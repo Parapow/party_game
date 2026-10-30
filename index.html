@@ -227,13 +227,13 @@
     }
     #pauseOverlay.active { display: flex; }
 
-    #restartOverlay {
+    #restartOverlay, #gameStartLoadingOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 150;
       display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center;
       animation: fadeIn 0.3s ease;
     }
-    #restartOverlay.active { display: flex; }
+    #restartOverlay.active, #gameStartLoadingOverlay.active { display: flex; }
 
     .host-controls-bar {
       display: flex; justify-content: center; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);
@@ -258,11 +258,11 @@
     }
     .rest-player-item.disconnected { opacity: 0.4; filter: grayscale(90%); }
 
-    /* Mobile Container */
+    /* Mobile Container avec scroll désactivé (overflow: hidden) */
     .mobile-container {
       width: 100%; height: 100dvh; max-width: 450px; margin: 0 auto;
       display: flex; flex-direction: column; justify-content: space-between; padding-top: 65px; padding-bottom: 12px;
-      overflow-y: auto;
+      overflow: hidden;
     }
 
     .mobile-fixed-top {
@@ -332,13 +332,20 @@
 </head>
 <body>
 
-  <!-- MODAL D'INFORMATION GÉNÉRALE (Bientôt disponible, Erreur salon vide, etc.) -->
+  <!-- MODAL D'INFORMATION GÉNÉRALE -->
   <div id="infoModal" class="modal-overlay">
     <div class="card" style="width: 100%; max-width: 400px; text-align: center;">
       <h3 id="infoModalTitle" style="margin-bottom: 15px; color: var(--primary);">Information</h3>
       <p id="infoModalText" style="color: var(--text-muted); margin-bottom: 25px;"></p>
       <button class="btn btn-accent" id="btnCloseInfoModal">Compris</button>
     </div>
+  </div>
+
+  <!-- OVERLAY CHARGEMENT DÉBUT DE PARTIE -->
+  <div id="gameStartLoadingOverlay">
+    <div style="font-size: 4rem; color: var(--primary); margin-bottom: 15px;"><i class="fa-solid fa-gamepad fa-bounce"></i></div>
+    <h1 style="font-size: 2.2rem; color: #fff; margin-bottom: 10px;">La partie va commencer !</h1>
+    <p style="color: var(--text-muted);">Préparez-vous...</p>
   </div>
 
   <!-- OVERLAY PAUSE -->
@@ -409,7 +416,7 @@
 
   <main>
 
-    <!-- ÉCRAN 1: ACCUEIL & CHOIX DE JEU (4 jeux dont 3 verrouillés sans badge "Bientôt") -->
+    <!-- ÉCRAN 1: ACCUEIL & CHOIX DE JEU -->
     <section id="screenHome" class="screen active">
       <div class="card">
         <h1 class="title-large"><i class="fa-solid fa-fire"></i> Choisissez votre Jeu de Soirée</h1>
@@ -482,7 +489,7 @@
       </div>
     </section>
 
-    <!-- ÉCRAN 3: SALON D'ATTENTE (AVEC BOUTON RETOUR EN HAUT À GAUCHE) -->
+    <!-- ÉCRAN 3: SALON D'ATTENTE -->
     <section id="screenLobby" class="screen">
       <div class="lobby-header">
         <button class="btn-back-top" id="btnBackToHomeFromLobby" style="position: absolute; left: 0; top: 0;">
@@ -635,13 +642,14 @@
           <input type="text" id="playerPseudoInput" class="input-field" placeholder="Entre ton pseudo..." maxlength="12">
           
           <label style="display:block; font-size:0.85rem; color:var(--text-muted); margin-bottom: 5px;">Choisis ton avatar :</label>
+          <!-- Emoji robot remplacé par 👽, les bots auront automatiquement l'émoji robot 🤖 -->
           <div class="emoji-selector">
             <div class="emoji-opt selected">😎</div>
             <div class="emoji-opt">🚀</div>
             <div class="emoji-opt">🔥</div>
             <div class="emoji-opt">🦄</div>
             <div class="emoji-opt">🍕</div>
-            <div class="emoji-opt">🤖</div>
+            <div class="emoji-opt">👽</div>
             <div class="emoji-opt">🐱</div>
             <div class="emoji-opt">👑</div>
             <div class="emoji-opt">⚡</div>
@@ -672,6 +680,8 @@
           </div>
 
           <div id="playerActiveQuestionArea" style="display: none;">
+            <!-- Numéro de question centré verticalement au-dessus de la question -->
+            <div id="playerQNumTracker" style="text-align: center; font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">Question 1 / 10</div>
             <div id="playerQuestionTitle" style="font-size: 1.05rem; font-weight: 700; text-align: center; margin-bottom: 10px;">Question...</div>
 
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
@@ -722,7 +732,7 @@
       </div>
     </section>
 
-    <!-- ÉCRAN 8: DÉCONNECTÉ (Sans aucun bouton) -->
+    <!-- ÉCRAN 8: DÉCONNECTÉ -->
     <section id="screenDisconnected" class="screen">
       <div class="mobile-container" style="justify-content: center; padding-top: 0;">
         <div class="card" style="text-align: center;">
@@ -941,7 +951,6 @@
         showScreen('config');
       });
 
-      // Clic sur les jeux verrouillés de la page d'accueil
       document.querySelectorAll('.game-card.locked-game').forEach(card => {
         card.addEventListener('click', () => {
           sound.playClick();
@@ -960,7 +969,6 @@
         showScreen('home');
       });
 
-      // Bouton Retour depuis le salon d'attente vers l'accueil
       document.getElementById('btnBackToHomeFromLobby').addEventListener('click', () => {
         sound.playClick();
         if (Object.keys(app.players).length > 0) {
@@ -1022,14 +1030,13 @@
         addBotPlayer();
       });
 
-      // Lancer la partie avec vérification de présence de joueurs (modal d'erreur si vide)
       document.getElementById('btnStartGame').addEventListener('click', () => {
         sound.playClick();
         if (Object.keys(app.players).length === 0) {
           showInfoModal("Attention", "Ajoute au moins 1 joueur avant de lancer la partie !");
           return;
         }
-        startQuizGame();
+        triggerGameStartSequence();
       });
 
       document.querySelectorAll('.emoji-opt').forEach(opt => {
@@ -1112,10 +1119,26 @@
         if (app.hostConn) app.hostConn.send({ type: 'PLAYER_CLAP', id: app.localPlayer.id, name: app.localPlayer.name });
       });
 
+      // Bouton Quitter mobile : fermeture connexion, changement d'URL en générique et affichage écran déconnecté sans bouton
       document.getElementById('btnPlayerLeave').addEventListener('click', () => {
+        if (app.hostConn) {
+          app.hostConn.close();
+        }
+        window.history.replaceState({}, '', window.location.pathname);
         sessionStorage.setItem('party_ejected', 'true');
         showDisconnected("Tu as quitté la partie.", "👋");
       });
+    }
+
+    function triggerGameStartSequence() {
+      const overlay = document.getElementById('gameStartLoadingOverlay');
+      overlay.style.display = 'flex';
+      broadcastToPlayers({ type: 'SHOW_START_LOADING' });
+
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        startQuizGame();
+      }, 2500);
     }
 
     function triggerRestartAnimation(callback) {
@@ -1248,11 +1271,10 @@
 
     function addBotPlayer() {
       const bNames = ['RoboBot', 'CyberMax', 'Pixel', 'BotParty'];
-      const bAvatars = ['🤖', '👾', '⚡', '🎮'];
       const id = 'bot_' + Math.random().toString(36).substr(2, 5);
       app.players[id] = {
         name: bNames[Math.floor(Math.random() * bNames.length)] + '_' + Math.floor(Math.random() * 99),
-        avatar: bAvatars[Math.floor(Math.random() * bAvatars.length)],
+        avatar: '🤖', // Avatar robot for bots by default
         score: 0, isBot: true, disconnected: false
       };
       updateLobbyUI();
@@ -1313,7 +1335,14 @@
       updateLiveTrackSidebar();
       showScreen('question');
 
-      broadcastToPlayers({ type: 'NEW_QUESTION', question: q.q, answers: q.a, time: app.questionTime });
+      broadcastToPlayers({ 
+        type: 'NEW_QUESTION', 
+        question: q.q, 
+        answers: q.a, 
+        time: app.questionTime,
+        qIndex: app.currentQIdx + 1,
+        totalQ: app.totalQuestions
+      });
       simulateBots();
 
       app.timeLeft = app.questionTime;
@@ -1445,8 +1474,9 @@
           const item = document.createElement('div');
           item.className = `rest-player-item ${p.disconnected ? 'disconnected' : ''}`;
           item.id = 'player_rest_node_' + id;
+          // Suppression du # à côté du numéro de classement
           item.innerHTML = `
-            <span><strong>#${idx + 4}</strong> ${restAvatar} ${p.name}</span>
+            <span><strong>${idx + 4}</strong> ${restAvatar} ${p.name}</span>
             <span>${p.score} pts</span>
           `;
           restList.appendChild(item);
@@ -1487,7 +1517,11 @@
       else if (data.type === 'HOST_LEFT_LOBBY') {
         showDisconnected("L'hôte a quitté le salon.", "🚪");
       }
+      else if (data.type === 'SHOW_START_LOADING') {
+        document.getElementById('gameStartLoadingOverlay').style.display = 'flex';
+      }
       else if (data.type === 'PAUSE_GAME') {
+        document.getElementById('gameStartLoadingOverlay').style.display = 'none';
         document.getElementById('pauseOverlay').classList.add('active');
         document.getElementById('btnResumeGameHost').style.display = 'none';
       }
@@ -1498,6 +1532,7 @@
         triggerRestartAnimation();
       }
       else if (data.type === 'NEW_QUESTION') {
+        document.getElementById('gameStartLoadingOverlay').style.display = 'none';
         document.getElementById('pauseOverlay').classList.remove('active');
         document.getElementById('playerWaitArea').style.display = 'none';
         document.getElementById('playerFeedbackArea').style.display = 'none';
@@ -1505,6 +1540,7 @@
         document.getElementById('playerActiveQuestionArea').style.display = 'block';
 
         document.getElementById('playerQuestionTitle').textContent = data.question;
+        document.getElementById('playerQNumTracker').textContent = `Question ${data.qIndex} / ${data.totalQ}`;
 
         const btns = document.querySelectorAll('.mobile-answer-btn');
         btns.forEach((btn, idx) => {
