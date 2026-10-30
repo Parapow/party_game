@@ -37,7 +37,6 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; user-select: none; }
 
-    /* Fixation anti-scroll et support dynamique 100dvh pour le clavier mobile */
     html, body {
       width: 100%; height: 100dvh; overflow: hidden;
       background: radial-gradient(circle at center, #1b1e2e 0%, #080811 100%);
@@ -46,7 +45,6 @@
 
     body { display: flex; flex-direction: column; }
 
-    /* En-tête Hôte */
     header.host-header {
       display: flex; justify-content: space-between; align-items: center;
       padding: 15px 30px; background: rgba(11, 12, 16, 0.85); backdrop-filter: blur(10px);
@@ -76,7 +74,7 @@
       padding: 15px; position: relative; overflow-y: auto; height: 100%;
     }
 
-    .screen { display: none; width: 100%; max-width: 1100px; animation: fadeIn 0.4s ease-out; }
+    .screen { display: none; width: 100%; max-width: 1250px; animation: fadeIn 0.4s ease-out; }
     .screen.active { display: block; }
 
     @keyframes fadeIn {
@@ -92,14 +90,16 @@
 
     .title-large { font-size: 2.2rem; text-align: center; margin-bottom: 20px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
 
-    .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
     .game-card {
       background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
-      border-radius: var(--radius); padding: 25px; text-align: center; cursor: pointer; transition: all 0.3s;
+      border-radius: var(--radius); padding: 25px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative;
     }
     .game-card.active-game:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: var(--neon-glow); }
-    .game-card.disabled { opacity: 0.5; cursor: not-allowed; }
+    .game-card.locked-game { opacity: 0.75; }
+    .game-card.locked-game:hover { border-color: var(--accent); transform: translateY(-3px); }
     .game-icon { font-size: 3rem; margin-bottom: 15px; color: var(--primary); }
+    .game-card.locked-game .game-icon { color: var(--text-muted); }
 
     .btn {
       background: linear-gradient(45deg, var(--primary), var(--secondary));
@@ -112,6 +112,14 @@
     .btn-accent { background: linear-gradient(45deg, #ff007f, #7928ca); color: #fff; box-shadow: 0 4px 15px rgba(255, 0, 127, 0.3); }
     .btn-danger { background: linear-gradient(45deg, #ff1744, #b71c1c); color: #fff; }
     .btn-secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; }
+
+    .btn-back-top {
+      margin-bottom: 15px; display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text-light); padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-back-top:hover { background: rgba(255,255,255,0.2); color: #fff; }
 
     .config-group { margin-bottom: 22px; }
     .config-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted); }
@@ -126,9 +134,9 @@
     .slider-container input[type="range"] { flex-grow: 1; accent-color: var(--primary); height: 6px; cursor: pointer; }
     .slider-value { font-weight: 700; color: var(--primary); font-size: 1.2rem; min-width: 45px; text-align: center; }
 
-    .lobby-header { text-align: center; margin-bottom: 20px; position: relative; }
+    .lobby-header { text-align: center; margin-bottom: 20px; position: relative; padding-top: 10px; }
     .btn-settings-open {
-      position: absolute; right: 0; top: 0; background: rgba(255,255,255,0.15); border: none;
+      position: absolute; right: 0; top: 10px; background: rgba(255,255,255,0.15); border: none;
       color: #fff; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: 600;
     }
 
@@ -160,19 +168,28 @@
       width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
 
-    .game-main-layout { display: grid; grid-template-columns: 1fr 240px; gap: 20px; }
-    @media (max-width: 850px) { .game-main-layout { grid-template-columns: 1fr; } }
+    .game-main-layout { display: grid; grid-template-columns: 1fr 280px; gap: 25px; align-items: start; }
+    @media (max-width: 900px) { .game-main-layout { grid-template-columns: 1fr; } }
 
     .live-status-sidebar {
-      background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.08); max-height: 350px; overflow-y: auto;
+      background: var(--bg-card); backdrop-filter: blur(15px);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius);
+      padding: 20px; box-shadow: var(--shadow); max-height: 520px; overflow-y: auto;
     }
+    .live-sidebar-title {
+      font-size: 1.1rem; font-weight: 700; margin-bottom: 15px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
+    }
+
     .player-live-track {
-      display: flex; align-items: center; justify-content: space-between; padding: 8px 12px;
-      border-radius: 8px; background: rgba(255,255,255,0.04); margin-bottom: 8px; transition: all 0.3s;
+      display: flex; align-items: center; justify-content: space-between; padding: 10px 14px;
+      border-radius: 10px; background: rgba(255,255,255,0.04); margin-bottom: 10px; transition: all 0.3s;
+      border: 1px solid rgba(255,255,255,0.05);
     }
-    .player-live-track.has-answered { background: rgba(0,230,118,0.15); border: 1px solid var(--success); }
-    .player-live-track.disconnected { opacity: 0.4; }
-    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #777; }
+    .player-live-track.has-answered { background: rgba(0,230,118,0.15); border-color: var(--success); }
+    .player-live-track.disconnected { opacity: 0.4; filter: grayscale(90%); }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #555; }
     .player-live-track.has-answered .status-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
 
     .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
@@ -195,7 +212,14 @@
     .count-badge { position: absolute; right: 12px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; display: none; }
     .count-badge.visible { display: block; }
 
-    /* Overlay Pause Hôte (avec bouton Reprendre pour l'hôte) */
+    /* Modals & Overlays */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+      z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+
     #pauseOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 100;
@@ -203,7 +227,6 @@
     }
     #pauseOverlay.active { display: flex; }
 
-    /* Overlay Redémarrage Animé */
     #restartOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 150;
@@ -213,7 +236,7 @@
     #restartOverlay.active { display: flex; }
 
     .host-controls-bar {
-      display: flex; justify-content: center; gap: 15px; margin-top: 15px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex; justify-content: center; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);
     }
     .btn-ctrl { padding: 10px 18px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; border: none; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px; }
     .btn-ctrl-pause { background: rgba(255,193,7,0.2); border: 1px solid #ffc107; color: #ffc107; }
@@ -233,9 +256,9 @@
       display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
       border-radius: 8px; background: rgba(255,255,255,0.03); margin-bottom: 6px; font-size: 0.9rem;
     }
-    .rest-player-item.disconnected { opacity: 0.4; }
+    .rest-player-item.disconnected { opacity: 0.4; filter: grayscale(90%); }
 
-    /* MOBILE CONTAINER & 100dvh */
+    /* Mobile Container */
     .mobile-container {
       width: 100%; height: 100dvh; max-width: 450px; margin: 0 auto;
       display: flex; flex-direction: column; justify-content: space-between; padding-top: 65px; padding-bottom: 12px;
@@ -309,12 +332,20 @@
 </head>
 <body>
 
-  <!-- OVERLAY PAUSE (Affiché chez l'hôte et les joueurs) -->
+  <!-- MODAL D'INFORMATION GÉNÉRALE (Bientôt disponible, Erreur salon vide, etc.) -->
+  <div id="infoModal" class="modal-overlay">
+    <div class="card" style="width: 100%; max-width: 400px; text-align: center;">
+      <h3 id="infoModalTitle" style="margin-bottom: 15px; color: var(--primary);">Information</h3>
+      <p id="infoModalText" style="color: var(--text-muted); margin-bottom: 25px;"></p>
+      <button class="btn btn-accent" id="btnCloseInfoModal">Compris</button>
+    </div>
+  </div>
+
+  <!-- OVERLAY PAUSE -->
   <div id="pauseOverlay">
     <div style="font-size: 4rem; color: #ffc107; margin-bottom: 15px;"><i class="fa-solid fa-pause fa-beat"></i></div>
     <h1 style="font-size: 2.5rem; color: #fff; margin-bottom: 10px;">PARTIE EN PAUSE</h1>
     <p style="color: var(--text-muted); margin-bottom: 25px;">La partie est suspendue temporairement.</p>
-    <!-- Bouton Reprendre visible uniquement sur l'écran principal de l'hôte -->
     <button class="btn btn-accent" id="btnResumeGameHost" style="padding: 12px 30px; display: none;">
       <i class="fa-solid fa-play"></i> Reprendre la partie
     </button>
@@ -378,7 +409,7 @@
 
   <main>
 
-    <!-- ÉCRAN 1: ACCUEIL & CHOIX DE JEU -->
+    <!-- ÉCRAN 1: ACCUEIL & CHOIX DE JEU (4 jeux dont 3 verrouillés sans badge "Bientôt") -->
     <section id="screenHome" class="screen active">
       <div class="card">
         <h1 class="title-large"><i class="fa-solid fa-fire"></i> Choisissez votre Jeu de Soirée</h1>
@@ -388,10 +419,20 @@
             <h2>QUIZZ</h2>
             <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Généré par IA, sans doublon, dynamique !</p>
           </div>
-          <div class="game-card disabled">
-            <span class="badge-disabled" style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.2); padding:4px 10px; border-radius:20px; font-size:0.75rem;">Bientôt</span>
+          <div class="game-card locked-game" data-gamename="Blind Test">
             <div class="game-icon"><i class="fa-solid fa-headphones"></i></div>
             <h2>Blind Test</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Devinez les titres en musique</p>
+          </div>
+          <div class="game-card locked-game" data-gamename="Burger Quiz">
+            <div class="game-icon"><i class="fa-solid fa-burger"></i></div>
+            <h2>Burger Quiz</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Le sel, le poivre et le questionnaire</p>
+          </div>
+          <div class="game-card locked-game" data-gamename="Time's Up">
+            <div class="game-icon"><i class="fa-solid fa-stopwatch-20"></i></div>
+            <h2>Time's Up</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Faites deviner un max de mots</p>
           </div>
         </div>
       </div>
@@ -399,6 +440,10 @@
 
     <!-- ÉCRAN 2: CONFIGURATION DU QUIZZ -->
     <section id="screenConfig" class="screen">
+      <button class="btn-back-top" id="btnBackToHomeFromConfig">
+        <i class="fa-solid fa-arrow-left"></i> Retour
+      </button>
+
       <div class="card">
         <h2 class="title-large"><i class="fa-solid fa-gears"></i> Configuration Initiale</h2>
         
@@ -437,9 +482,12 @@
       </div>
     </section>
 
-    <!-- ÉCRAN 3: SALON D'ATTENTE -->
+    <!-- ÉCRAN 3: SALON D'ATTENTE (AVEC BOUTON RETOUR EN HAUT À GAUCHE) -->
     <section id="screenLobby" class="screen">
       <div class="lobby-header">
+        <button class="btn-back-top" id="btnBackToHomeFromLobby" style="position: absolute; left: 0; top: 0;">
+          <i class="fa-solid fa-arrow-left"></i> Retour
+        </button>
         <h1 style="font-size: 2.2rem; font-weight: 900; color: #fff;">Salle d'attente</h1>
         <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 4px;">
           Thème : <span id="lobbyThemeName" style="color: var(--primary); font-weight: 700;"></span> | 
@@ -482,64 +530,68 @@
 
     <!-- ÉCRAN 4: QUESTION DE JEU HÔTE -->
     <section id="screenQuestion" class="screen">
-      <div class="card">
-        <div class="game-main-layout">
-          <div>
-            <div class="game-header">
-              <span style="font-weight: 700; color: var(--text-muted);">
-                Question <span id="currentQNum">1</span> / <span id="totalQNum">10</span>
-              </span>
-              <span id="timerDisplay" style="font-size: 1.4rem; font-weight: 900; color: var(--primary);">
-                <i class="fa-solid fa-stopwatch"></i> 10s
-              </span>
+      <div class="game-main-layout">
+        
+        <div class="card" style="margin-bottom: 0;">
+          <div class="game-header">
+            <span style="font-weight: 700; color: var(--text-muted);">
+              Question <span id="currentQNum">1</span> / <span id="totalQNum">10</span>
+            </span>
+            <span id="timerDisplay" style="font-size: 1.4rem; font-weight: 900; color: var(--primary);">
+              <i class="fa-solid fa-stopwatch"></i> 10s
+            </span>
+          </div>
+
+          <div class="timer-bar-container">
+            <div class="timer-bar" id="timerBar"></div>
+          </div>
+
+          <h2 class="question-title" id="questionText">Chargement...</h2>
+
+          <div class="answers-grid-host">
+            <div class="answer-host" id="hostAns0">
+              <span class="answer-prefix prefix-a">A</span>
+              <span class="ans-text">Option A</span>
+              <span class="count-badge" id="countAns0">0</span>
             </div>
-
-            <div class="timer-bar-container">
-              <div class="timer-bar" id="timerBar"></div>
+            <div class="answer-host" id="hostAns1">
+              <span class="answer-prefix prefix-b">B</span>
+              <span class="ans-text">Option B</span>
+              <span class="count-badge" id="countAns1">0</span>
             </div>
-
-            <h2 class="question-title" id="questionText">Chargement...</h2>
-
-            <div class="answers-grid-host">
-              <div class="answer-host" id="hostAns0">
-                <span class="answer-prefix prefix-a">A</span>
-                <span class="ans-text">Option A</span>
-                <span class="count-badge" id="countAns0">0</span>
-              </div>
-              <div class="answer-host" id="hostAns1">
-                <span class="answer-prefix prefix-b">B</span>
-                <span class="ans-text">Option B</span>
-                <span class="count-badge" id="countAns1">0</span>
-              </div>
-              <div class="answer-host" id="hostAns2">
-                <span class="answer-prefix prefix-c">C</span>
-                <span class="ans-text">Option C</span>
-                <span class="count-badge" id="countAns2">0</span>
-              </div>
-              <div class="answer-host" id="hostAns3">
-                <span class="answer-prefix prefix-d">D</span>
-                <span class="ans-text">Option D</span>
-                <span class="count-badge" id="countAns3">0</span>
-              </div>
+            <div class="answer-host" id="hostAns2">
+              <span class="answer-prefix prefix-c">C</span>
+              <span class="ans-text">Option C</span>
+              <span class="count-badge" id="countAns2">0</span>
+            </div>
+            <div class="answer-host" id="hostAns3">
+              <span class="answer-prefix prefix-d">D</span>
+              <span class="ans-text">Option D</span>
+              <span class="count-badge" id="countAns3">0</span>
             </div>
           </div>
 
-          <div class="live-status-sidebar">
-            <div id="livePlayersList"></div>
+          <div class="host-controls-bar">
+            <button class="btn-ctrl btn-ctrl-pause" id="btnPauseGame">
+              <i class="fa-solid fa-pause"></i> <span id="pauseBtnLabel">Mettre en pause</span>
+            </button>
+            <button class="btn-ctrl btn-ctrl-restart" id="btnRestartGame">
+              <i class="fa-solid fa-rotate-right"></i> Recommencer
+            </button>
+            <button class="btn-ctrl btn-ctrl-stop" id="btnStopGame">
+              <i class="fa-solid fa-square"></i> Arrêter
+            </button>
           </div>
         </div>
 
-        <div class="host-controls-bar">
-          <button class="btn-ctrl btn-ctrl-pause" id="btnPauseGame">
-            <i class="fa-solid fa-pause"></i> <span id="pauseBtnLabel">Mettre en pause</span>
-          </button>
-          <button class="btn-ctrl btn-ctrl-restart" id="btnRestartGame">
-            <i class="fa-solid fa-rotate-right"></i> Recommencer
-          </button>
-          <button class="btn-ctrl btn-ctrl-stop" id="btnStopGame">
-            <i class="fa-solid fa-square"></i> Arrêter
-          </button>
+        <div class="live-status-sidebar">
+          <div class="live-sidebar-title">
+            <span><i class="fa-solid fa-users"></i> Joueurs</span>
+            <span id="liveTrackCount" style="color:var(--primary); font-size:0.9rem;">0</span>
+          </div>
+          <div id="livePlayersList"></div>
         </div>
+
       </div>
     </section>
 
@@ -670,7 +722,7 @@
       </div>
     </section>
 
-    <!-- ÉCRAN 8: DÉCONNECTÉ -->
+    <!-- ÉCRAN 8: DÉCONNECTÉ (Sans aucun bouton) -->
     <section id="screenDisconnected" class="screen">
       <div class="mobile-container" style="justify-content: center; padding-top: 0;">
         <div class="card" style="text-align: center;">
@@ -838,6 +890,21 @@
       }
     }
 
+    function generateSecureRoomId() {
+      const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = '';
+      for (let i = 0; i < 12; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    function showInfoModal(title, text) {
+      document.getElementById('infoModalTitle').textContent = title;
+      document.getElementById('infoModalText').textContent = text;
+      document.getElementById('infoModal').classList.add('active');
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       if (sessionStorage.getItem('party_ejected') === 'true') {
         sound.isDisabled = true;
@@ -872,6 +939,41 @@
       document.getElementById('btnSelectQuizz').addEventListener('click', () => {
         sound.playClick();
         showScreen('config');
+      });
+
+      // Clic sur les jeux verrouillés de la page d'accueil
+      document.querySelectorAll('.game-card.locked-game').forEach(card => {
+        card.addEventListener('click', () => {
+          sound.playClick();
+          const gameName = card.dataset.gamename || "Ce jeu";
+          showInfoModal(gameName, "Bientôt disponible !");
+        });
+      });
+
+      document.getElementById('btnCloseInfoModal').addEventListener('click', () => {
+        sound.playClick();
+        document.getElementById('infoModal').classList.remove('active');
+      });
+
+      document.getElementById('btnBackToHomeFromConfig').addEventListener('click', () => {
+        sound.playClick();
+        showScreen('home');
+      });
+
+      // Bouton Retour depuis le salon d'attente vers l'accueil
+      document.getElementById('btnBackToHomeFromLobby').addEventListener('click', () => {
+        sound.playClick();
+        if (Object.keys(app.players).length > 0) {
+          broadcastToPlayers({ type: 'HOST_LEFT_LOBBY' });
+        }
+        if (app.peer) {
+          app.peer.destroy();
+        }
+        window.history.replaceState({}, '', window.location.pathname);
+        app.isHost = true;
+        app.players = {};
+        app.connections = {};
+        showScreen('home');
       });
 
       document.getElementById('musicToggle').addEventListener('click', () => {
@@ -920,9 +1022,13 @@
         addBotPlayer();
       });
 
+      // Lancer la partie avec vérification de présence de joueurs (modal d'erreur si vide)
       document.getElementById('btnStartGame').addEventListener('click', () => {
         sound.playClick();
-        if (Object.keys(app.players).length === 0) return alert("Ajoute au moins 1 joueur !");
+        if (Object.keys(app.players).length === 0) {
+          showInfoModal("Attention", "Ajoute au moins 1 joueur avant de lancer la partie !");
+          return;
+        }
         startQuizGame();
       });
 
@@ -955,13 +1061,11 @@
         });
       });
 
-      // Mettre en pause (Hôte affiche l'overlay avec bouton Reprendre, et envoie l'ordre aux joueurs)
       document.getElementById('btnPauseGame').addEventListener('click', () => {
         sound.playClick();
         app.isPaused = true;
         document.getElementById('pauseBtnLabel').textContent = "En pause";
         
-        // Affichage overlay sur écran hôte avec bouton Reprendre visible
         const overlay = document.getElementById('pauseOverlay');
         overlay.classList.add('active');
         document.getElementById('btnResumeGameHost').style.display = 'inline-flex';
@@ -969,7 +1073,6 @@
         broadcastToPlayers({ type: 'PAUSE_GAME' });
       });
 
-      // Reprendre la partie (Hôte)
       document.getElementById('btnResumeGameHost').addEventListener('click', () => {
         sound.playClick();
         app.isPaused = false;
@@ -978,7 +1081,6 @@
         broadcastToPlayers({ type: 'RESUME_GAME' });
       });
 
-      // Recommencer la partie (Déclenche animation sur tous les écrans)
       document.getElementById('btnRestartGame').addEventListener('click', () => {
         sound.playClick();
         triggerRestartAnimation(() => {
@@ -1066,8 +1168,7 @@
 
     /* WEBRTC & HÔTE */
     function initHostLobby() {
-      const roomNum = Math.floor(1000 + Math.random() * 9000);
-      app.roomId = 'QUIZ-' + roomNum;
+      app.roomId = generateSecureRoomId();
       app.players = {};
       window.history.replaceState({}, '', `?host=${app.roomId}`);
 
@@ -1085,18 +1186,28 @@
       app.peer = new Peer(app.roomId);
       app.peer.on('connection', (conn) => {
         conn.on('data', (data) => handleHostIncomingData(conn, data));
+        
         conn.on('close', () => {
-          for (let pId in app.connections) {
-            if (app.connections[pId] === conn) {
-              if (app.players[pId]) app.players[pId].disconnected = true;
-              updateLobbyUI();
-              updateLiveTrackSidebar();
-              if (screens.podium.classList.contains('active')) showPodium();
-              break;
-            }
-          }
+          handlePlayerDisconnectByConn(conn);
         });
       });
+    }
+
+    function handlePlayerDisconnectByConn(conn) {
+      for (let pId in app.connections) {
+        if (app.connections[pId] === conn) {
+          if (screens.lobby.classList.contains('active')) {
+            delete app.players[pId];
+            delete app.connections[pId];
+            updateLobbyUI();
+          } else {
+            if (app.players[pId]) app.players[pId].disconnected = true;
+            updateLiveTrackSidebar();
+            if (screens.podium.classList.contains('active')) showPodium();
+          }
+          break;
+        }
+      }
     }
 
     function handleHostIncomingData(conn, data) {
@@ -1131,7 +1242,6 @@
         app.connections[pId].close();
         delete app.connections[pId];
       }
-      // Suppression complète du joueur de la liste d'attente
       delete app.players[pId];
       updateLobbyUI();
     }
@@ -1233,10 +1343,14 @@
 
     function updateLiveTrackSidebar() {
       const list = document.getElementById('livePlayersList');
+      const countEl = document.getElementById('liveTrackCount');
       list.innerHTML = '';
-      Object.entries(app.players).forEach(([id, p]) => {
+      
+      const entries = Object.entries(app.players);
+      if (countEl) countEl.textContent = entries.length;
+
+      entries.forEach(([id, p]) => {
         const hasAns = app.answersReceived[id] !== undefined;
-        // Remplacement de l'émoji par l'icône de déconnexion si déconnecté
         const avatarDisplay = p.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p.avatar;
         const item = document.createElement('div');
         item.className = `player-live-track ${hasAns ? 'has-answered' : ''} ${p.disconnected ? 'disconnected' : ''}`;
@@ -1370,8 +1484,10 @@
         sessionStorage.setItem('party_ejected', 'true');
         showDisconnected("Tu as été déconnecté par l'hôte.", "🚫");
       }
+      else if (data.type === 'HOST_LEFT_LOBBY') {
+        showDisconnected("L'hôte a quitté le salon.", "🚪");
+      }
       else if (data.type === 'PAUSE_GAME') {
-        // Affichage overlay pause sur mobile joueur sans bouton Reprendre
         document.getElementById('pauseOverlay').classList.add('active');
         document.getElementById('btnResumeGameHost').style.display = 'none';
       }
