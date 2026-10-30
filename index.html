@@ -688,9 +688,14 @@
             appId: "1:123456789:web:demo"
         };
 
-        const firebaseApp = initializeApp(firebaseConfig);
-        const db = getFirestore(firebaseApp);
-        const auth = getAuth(firebaseApp);
+        let firebaseApp, db, auth;
+        try {
+            firebaseApp = initializeApp(firebaseConfig);
+            db = getFirestore(firebaseApp);
+            auth = getAuth(firebaseApp);
+        } catch(e) {
+            console.warn("Firebase Init Fallback active", e);
+        }
 
         /* ... sound effects class remains identical ... */
         class SoundEffects {
@@ -909,15 +914,21 @@
 
             async initAuthAndCheckURL() {
                 try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        const cred = await signInWithCustomToken(auth, __initial_auth_token);
-                        this.user = cred.user;
+                    if (auth) {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                            this.user = cred.user;
+                        } else {
+                            const cred = await signInAnonymously(auth);
+                            this.user = cred.user;
+                        }
                     } else {
-                        const cred = await signInAnonymously(auth);
-                        this.user = cred.user;
+                        // Secours utilisateur local
+                        this.user = { uid: 'user_' + Math.random().toString(36).substr(2, 9) };
                     }
                 } catch(e) {
-                    console.error("Erreur Auth:", e);
+                    console.warn("Erreur Auth - Fallback local activé:", e);
+                    this.user = { uid: 'user_' + Math.random().toString(36).substr(2, 9) };
                 }
 
                 this.renderThemesGrid();
@@ -932,12 +943,221 @@
                 if (roomToJoin) {
                     // CONNEXION AUTOMATIQUE JOUEUR MOBILE PAR SCAN
                     this.role = 'player';
-                    this.roomId = roomToJoin;
+                    this.roomId = roomToJoin.toUpperCase();
                     this.hideAllPages();
                     document.getElementById('pagePlayerMobile').classList.remove('hidden');
                     this.listenToRoom();
                 } else {
                     this.showHome();
+                }
+            }
+
+            showHostNotice(msg) {
+                const el = document.getElementById('hostNotification');
+                if (el) {
+                    el.innerText = msg;
+                    el.classList.remove('hidden');
+                    setTimeout(() => el.classList.add('hidden'), 5000);
+                }
+            }
+
+            getRoomDocRef() {
+                if (!this.roomId || !db) return null;
+                return doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.roomId);
+            }
+
+            listenToRoom() {
+                const roomRef = this.getRoomDocRef();
+                if (!roomRef) return;
+
+                if (this.unsubscribeRoom) this.unsubscribeRoom();
+
+                this.unsubscribeRoom = onSnapshot(roomRef, (snapshot) => {
+                    if (!snapshot.exists()) return;
+                    const data = snapshot.data();
+                    this.roomData = data;
+                    this.onRoomStateUpdate(data);
+                }, (error) => {
+                    console.warn("Erreur Firestore Room listener:", error);
+                });
+            }
+
+            onRoomStateUpdate(data) {
+                const state = data.state; // 'LOBBY', 'QUESTION_ACTIVE', 'REVEAL', 'PODIUM'
+
+                if (this.role === 'host') {
+                    this.updateHostLobbyUI(data);
+
+                    if (state === 'QUESTION_ACTIVE' && data.currentQuestionIndex !== this.lastHostQIndex) {
+                        this.lastHostQIndex = data.currentQuestionIndex;
+                        this.renderHostQuestion(data);
+                    } else if (state === 'QUESTION_ACTIVE') {
+                        this.updateHostAnswerCounters(data);
+                    } else if (state === 'REVEAL') {
+                        this.renderHostReveal(data);
+                    } else if (state === 'PODIUM') {
+                        this.renderHostPodium(data);
+                    }
+                } else {
+                    // Interface Mobile Joueur
+                    this.updatePlayerControllerUI(data);
+                }
+            }
+
+            // --- METHODES HOTE (ECRAN PRINCIPAL) ---
+            showHome() {
+                this.sfx.playClick();
+                this.hideAllPages();
+                document.getElementById('pageHome').classList.remove('hidden');
+            }
+
+            selectGameMode(mode) {
+                this.sfx.playClick();
+                if (mode === 'quizz') {
+                    this.showSetup();
+                }
+            }
+
+            showSetup() {
+                this.hideAllPages();
+                document.getElementById('pageSetup').classList.remove('hidden');
+            }
+
+            hideAllPages() {
+                ['pageHome', 'pageSetup', 'pageLobby', 'pageGame', 'pagePlayerMobile', 'pagePodium'].forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                });
+            }
+
+            toggleSound() {
+                this.sfx.enabled = !this.sfx.enabled;
+                const icon = document.getElementById('soundIcon');
+                const label = document.getElementById('soundLabel');
+                if (this.sfx.enabled) {
+                    icon.className = "fa-solid fa-volume-high text-party-cyan";
+                    label.innerText = "Sons ACTIVÉS";
+                    this.sfx.playClick();
+                } else {
+                    icon.className = "fa-solid fa-volume-xmark text-gray-500";
+                    label.innerText = "Sons DÉSACTIVÉS";
+                }
+            }
+
+            renderThemesGrid() {
+                const grid = document.getElementById('themesGrid');
+                grid.innerHTML = THEMES_METADATA.map(t => `
+                    <div onclick="app.setTheme('${t.id}')" id="theme-card-${t.id}" class="theme-card glass-panel p-4 rounded-2xl border border-white/10 cursor-pointer text-center space-y-2 hover:border-party-pink transition-all">
+                        <div class="w-10 h-10 mx-auto rounded-xl bg-gradient-to-tr ${t.color} flex items-center justify-center text-white text-lg">
+                            <i class="fa-solid ${t.icon}"></i>
+                        </div>
+                        <p class="text-xs font-bold text-white">${t.label}</p>
+                    </div>
+                `).join('');
+                this.setTheme('culture');
+            }
+
+            setTheme(themeId) {
+                this.sfx.playClick();
+                this.selectedTheme = themeId;
+                document.querySelectorAll('.theme-card').forEach(card => {
+                    card.classList.remove('border-party-pink', 'bg-party-pink/20');
+                });
+                const card = document.getElementById(`theme-card-${themeId}`);
+                if (card) {
+                    card.classList.add('border-party-pink', 'bg-party-pink/20');
+                }
+            }
+
+            setDifficulty(diff) {
+                this.sfx.playClick();
+                this.selectedDifficulty = diff;
+                document.querySelectorAll('.diff-btn').forEach(btn => {
+                    btn.classList.remove('border-party-cyan', 'bg-party-cyan/20');
+                });
+                const btn = document.getElementById(`diff-${diff}`);
+                if (btn) {
+                    btn.classList.add('border-party-cyan', 'bg-party-cyan/20');
+                }
+            }
+
+            async createLobby() {
+                this.sfx.playClick();
+
+                // Génération garantie du Code Salon
+                this.roomId = 'QUIZ-' + Math.floor(1000 + Math.random() * 9000);
+                this.role = 'host';
+
+                const newRoom = {
+                    roomId: this.roomId,
+                    theme: this.selectedTheme,
+                    difficulty: this.selectedDifficulty,
+                    state: 'LOBBY',
+                    currentQuestionIndex: 0,
+                    players: {},
+                    questions: QUIZ_DATABASE[this.selectedTheme],
+                    createdAt: Date.now()
+                };
+
+                this.roomData = newRoom;
+
+                // bascule instantanée sur la page du salon
+                this.hideAllPages();
+                document.getElementById('pageLobby').classList.remove('hidden');
+
+                const themeMeta = THEMES_METADATA.find(t => t.id === this.selectedTheme);
+                document.getElementById('lobbyThemeBadge').innerText = themeMeta.label;
+                document.getElementById('lobbyDifficultyInfo').innerText = `Difficulté : ${this.selectedDifficulty.toUpperCase()}`;
+                document.getElementById('lobbyRoomCode').innerText = this.roomId;
+
+                // Génération du QR Code
+                const qrContainer = document.getElementById('qrcode');
+                qrContainer.innerHTML = '';
+                const joinUrl = `${window.location.origin}${window.location.pathname}?room=${this.roomId}`;
+                new QRCode(qrContainer, {
+                    text: joinUrl,
+                    width: 140,
+                    height: 140,
+                    colorDark : "#0B0B1A",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                this.updateHostLobbyUI(newRoom);
+
+                // Sauvegarde asynchrone Firestore
+                const docRef = this.getRoomDocRef();
+                if (docRef) {
+                    try {
+                        await setDoc(docRef, newRoom);
+                        this.listenToRoom();
+                    } catch(err) {
+                        console.warn("Mode local actif pour le salon", err);
+                    }
+                }
+            }
+
+            async addBotPlayer() {
+                if (!this.roomData) return;
+                const name = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)] + ' 🤖';
+                const avatar = BOT_AVATARS[Math.floor(Math.random() * BOT_AVATARS.length)];
+                const botId = 'bot_' + Math.random().toString(36).substr(2, 9);
+
+                const updatedPlayers = { ...(this.roomData.players || {}) };
+                updatedPlayers[botId] = {
+                    id: botId,
+                    pseudo: name,
+                    avatar: avatar,
+                    score: 0,
+                    currentAnswer: null,
+                    isBot: true
+                };
+
+                this.roomData.players = updatedPlayers;
+                this.updateHostLobbyUI(this.roomData);
+
+                const docRef = this.getRoomDocRef();
+                if (docRef) {
+                    try { await updateDoc(docRef, { players: updatedPlayers }); } catch(e){}
                 }
             }
 
