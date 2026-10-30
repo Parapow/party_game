@@ -79,41 +79,6 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        .glass-btn {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .glass-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
-        }
-
-        .glass-btn:active {
-            transform: translateY(1px);
-        }
-
-        /* Glowing text effects */
-        .neon-text-pink {
-            text-shadow: 0 0 10px #FF007A, 0 0 20px #FF007A, 0 0 40px #FF007A;
-        }
-        .neon-text-cyan {
-            text-shadow: 0 0 10px #00F0FF, 0 0 20px #00F0FF, 0 0 40px #00F0FF;
-        }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0B0B1A;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #8B00FF;
-            border-radius: 4px;
-        }
-
         /* Answer Option Colors */
         .opt-0 { background: linear-gradient(135deg, #FF3366, #DA023C); }
         .opt-1 { background: linear-gradient(135deg, #2196F3, #0062FF); }
@@ -148,16 +113,6 @@
                 <i id="soundIcon" class="fa-solid fa-volume-high text-party-cyan"></i>
                 <span class="text-xs font-semibold hidden sm:inline" id="soundLabel">Sons ON</span>
             </button>
-
-            <!-- Mode Switcher (Main Screen / Mobile Switcher) -->
-            <div class="glass-panel p-1 rounded-xl flex border border-white/10 text-xs">
-                <button id="modeHostBtn" onclick="app.setDeviceMode('host')" class="px-3 py-1.5 rounded-lg font-bold transition-all bg-party-purple text-white shadow-md">
-                    <i class="fa-solid fa-desktop mr-1"></i> Écran Principal
-                </button>
-                <button id="modePlayerBtn" onclick="app.setDeviceMode('player')" class="px-3 py-1.5 rounded-lg font-bold transition-all text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-mobile-screen mr-1"></i> Joueur Mobile
-                </button>
-            </div>
         </div>
     </header>
 
@@ -331,7 +286,7 @@
                     <div class="p-3 bg-white rounded-2xl shadow-2xl inline-block" id="qrcode"></div>
 
                     <div class="w-full bg-party-dark/80 p-3 rounded-xl border border-white/10">
-                        <span class="text-xs text-gray-400 block">CODE REJOINDRE:</span>
+                        <span class="text-xs text-gray-400 block">CODE SALON UNIQUE:</span>
                         <span class="font-mono text-2xl font-black text-party-yellow tracking-widest" id="lobbyRoomCode">PARTY88</span>
                     </div>
                 </div>
@@ -342,7 +297,7 @@
                         <div class="flex justify-between items-center border-b border-white/10 pb-4">
                             <div>
                                 <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                                    <i class="fa-solid fa-users text-party-pink"></i> Joueurs dans le salon
+                                    <i class="fa-solid fa-users text-party-pink"></i> Joueurs connectés
                                 </h3>
                                 <p class="text-xs text-gray-400" id="lobbyDifficultyInfo">Difficulté: Facile</p>
                             </div>
@@ -357,10 +312,10 @@
                         </div>
                     </div>
 
-                    <!-- Simulation / Quick Join Bar for testing on PC -->
+                    <!-- Simulation / Quick Join Bar for testing locally -->
                     <div class="bg-white/5 p-3 rounded-xl border border-white/10 space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="text-xs font-semibold text-gray-300">Simuler l'arrivée de bots ou joueurs :</span>
+                            <span class="text-xs font-semibold text-gray-300">Simuler un joueur bot (pour test) :</span>
                             <button onclick="app.addBotPlayer()" class="text-xs bg-party-purple/50 hover:bg-party-purple text-white px-2.5 py-1 rounded-lg transition-all">
                                 + Ajouter Bot 🤖
                             </button>
@@ -461,15 +416,11 @@
             <div id="playerJoinForm" class="glass-panel p-6 rounded-3xl space-y-4 border border-party-cyan/40">
                 <div class="text-center space-y-1">
                     <i class="fa-solid fa-mobile-screen text-3xl text-party-cyan mb-2"></i>
-                    <h3 class="text-xl font-black">Rejoindre la partie</h3>
-                    <p class="text-xs text-gray-400">Entrez votre pseudo pour jouer</p>
+                    <h3 class="text-xl font-black">Rejoindre le salon</h3>
+                    <p class="text-xs text-gray-400">Choisissez votre pseudo pour participer !</p>
                 </div>
 
                 <div class="space-y-3">
-                    <div>
-                        <label class="text-xs font-bold text-gray-300">Code Partie</label>
-                        <input type="text" id="playerInputRoom" value="PARTY88" class="w-full p-3 rounded-xl bg-black/40 border border-white/20 text-center font-mono font-bold text-lg uppercase tracking-wider focus:outline-none focus:border-party-cyan">
-                    </div>
                     <div>
                         <label class="text-xs font-bold text-gray-300">Votre Pseudo</label>
                         <input type="text" id="playerInputPseudo" placeholder="Ex: MasterQuiz" maxlength="12" class="w-full p-3 rounded-xl bg-black/40 border border-white/20 text-center font-bold text-base focus:outline-none focus:border-party-pink">
@@ -480,7 +431,14 @@
                 </div>
             </div>
 
-            <!-- Active Player View (When Joined) -->
+            <!-- Waiting in Lobby View on Mobile -->
+            <div id="playerWaitingLobby" class="hidden glass-panel p-6 rounded-3xl text-center space-y-3 border border-party-cyan/40 animate-pulse">
+                <div class="text-4xl">⏳</div>
+                <h3 class="text-lg font-extrabold text-white">Connexion réussie !</h3>
+                <p class="text-xs text-gray-300">En attente que l'hôte lance la partie...</p>
+            </div>
+
+            <!-- Active Player View (When Game Started) -->
             <div id="playerActiveView" class="hidden space-y-4">
                 
                 <!-- Player Header -->
@@ -501,19 +459,15 @@
                 <div id="mobileAnswerButtons" class="grid grid-cols-2 gap-3 min-h-[260px]">
                     <button onclick="app.submitPlayerAnswer(0)" class="mobile-opt-btn opt-0 p-6 rounded-2xl font-black text-2xl text-white shadow-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all">
                         <span>A</span>
-                        <span class="text-xs font-normal opacity-80" id="m-opt-0">Option A</span>
                     </button>
                     <button onclick="app.submitPlayerAnswer(1)" class="mobile-opt-btn opt-1 p-6 rounded-2xl font-black text-2xl text-white shadow-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all">
                         <span>B</span>
-                        <span class="text-xs font-normal opacity-80" id="m-opt-1">Option B</span>
                     </button>
                     <button onclick="app.submitPlayerAnswer(2)" class="mobile-opt-btn opt-2 p-6 rounded-2xl font-black text-2xl text-white shadow-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all">
                         <span>C</span>
-                        <span class="text-xs font-normal opacity-80" id="m-opt-2">Option C</span>
                     </button>
                     <button onclick="app.submitPlayerAnswer(3)" class="mobile-opt-btn opt-3 p-6 rounded-2xl font-black text-2xl text-white shadow-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all">
                         <span>D</span>
-                        <span class="text-xs font-normal opacity-80" id="m-opt-3">Option D</span>
                     </button>
                 </div>
 
@@ -575,10 +529,29 @@
         Party Quiz Web App &copy; 2026 - Soirées Festive & Mini-jeux
     </footer>
 
-    <!-- ================= JAVASCRIPT APP LOGIC ================= -->
-    <script>
+    <!-- Firebase Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Environment Variables Injection
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'party-quiz-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo",
+            authDomain: "demo.firebaseapp.com",
+            projectId: "demo",
+            storageBucket: "demo.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:demo"
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        const db = getFirestore(firebaseApp);
+        const auth = getAuth(firebaseApp);
+
         /**
-         * Web Audio API Synthesizer (Instant SFX without external MP3 assets)
+         * Web Audio API Synthesizer
          */
         class SoundEffects {
             constructor() {
@@ -631,9 +604,9 @@
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, now); // C5
-                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
-                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                osc.frequency.setValueAtTime(783.99, now + 0.2);
                 gain.gain.setValueAtTime(0.2, now);
                 gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
                 osc.connect(gain);
@@ -678,9 +651,6 @@
             }
         }
 
-        /**
-         * Quiz Questions Database (15 questions per theme)
-         */
         const QUIZ_DATABASE = {
             culture: [
                 { q: "Quelle est la capitale de l'Australie ?", options: ["Sydney", "Melbourne", "Canberra", "Brisbane"], answer: 2 },
@@ -714,13 +684,13 @@
                 { q: "Quel est le nom du monstre géant japonais apparu en 1954 ?", options: ["King Kong", "Godzilla", "Mothra", "Gamera"], answer: 1 },
                 { q: "Qui a réalisé le film Avatar ?", options: ["James Cameron", "George Lucas", "Ridley Scott", "Peter Jackson"], answer: 0 },
                 { q: "Dans Le Seigneur des Anneaux, quel est le hobbit porteur de l'Anneau ?", options: ["Sam", "Pippin", "Frodon", "Merry"], answer: 2 },
-                { q: "Quel est le vrai nom de Spider-Man ?", options: "Bruce Wayne", options: ["Peter Parker", "Clark Kent", "Tony Stark", "Peter Parker"], answer: 3 }
+                { q: "Quel est le vrai nom de Spider-Man ?", options: ["Bruce Wayne", "Peter Parker", "Clark Kent", "Tony Stark"], answer: 1 }
             ],
             sport: [
                 { q: "Combien de joueurs composent une équipe de football sur le terrain ?", options: ["9", "10", "11", "12"], answer: 2 },
                 { q: "Dans quel pays se sont déroulés les Jeux Olympiques d'été 2024 ?", options: ["Japon", "France", "États-Unis", "Grèce"], answer: 1 },
                 { q: "Quel est le plus grand tournoi de tennis sur gazon ?", options: ["Roland-Garros", "Wimbledon", "US Open", "Open d'Australie"], answer: 1 },
-                { q: "Quel pilote de F1 détient 7 titres de champion du monde (avec Schumacher) ?", options: ["Max Verstappen", "Lewis Hamilton", "Fernando Alonso", "Ayrton Senna"], answer: 1 },
+                { q: "Quel pilote de F1 détient 7 titres de champion du monde ?", options: ["Max Verstappen", "Lewis Hamilton", "Fernando Alonso", "Ayrton Senna"], answer: 1 },
                 { q: "Quel pays a remporté la Coupe du Monde de Football en 2022 ?", options: ["France", "Brésil", "Argentine", "Allemagne"], answer: 2 },
                 { q: "Combien de temps dure un quart-temps en NBA ?", options: ["10 min", "12 min", "15 min", "20 min"], answer: 1 },
                 { q: "Quel sport associe-t-on au terme 'Strike' ?", options: ["Baseball", "Bowling", "Tennis", "Golf"], answer: 1 },
@@ -728,7 +698,7 @@
                 { q: "Au rugby à XV, combien vaut un essai non transformé ?", options: ["3 pts", "5 pts", "7 pts", "2 pts"], answer: 1 },
                 { q: "Quelle nation détient le plus de victoires en Coupe du Monde de football ?", options: ["Allemagne", "Italie", "Brésil", "Argentine"], answer: 2 },
                 { q: "Quel athlète est l'homme le plus rapide de l'histoire du 100m ?", options: ["Tyson Gay", "Usain Bolt", "Yohan Blake", "Carl Lewis"], answer: 1 },
-                { q: "En judo, quelle est la récompense maximale donnant immédiatement la victoire ?", options: ["Waza-ari", "Ippon", "Yuko", "Koka"], answer: 1 },
+                { q: "En judo, quelle est la récompense maximale donnant la victoire ?", options: ["Waza-ari", "Ippon", "Yuko", "Koka"], answer: 1 },
                 { q: "Sur quelle surface se joue le tournoi de Roland-Garros ?", options: ["Béton", "Gazon", "Terre battue", "Synthétique"], answer: 2 },
                 { q: "Dans quel sport utilise-t-on un palet (puck) ?", options: ["Rink Hockey", "Hockey sur glace", "Curling", "Polo"], answer: 1 },
                 { q: "Combien d'anneaux composent le drapeau olympique ?", options: ["4", "5", "6", "7"], answer: 1 }
@@ -744,7 +714,7 @@
                 { q: "Dans quelle ville est né le groupe The Beatles ?", options: ["Londres", "Manchester", "Liverpool", "Birmingham"], answer: 2 },
                 { q: "Qui interprète la chanson 'Get Lucky' avec Daft Punk ?", options: ["Pharrell Williams", "Bruno Mars", "Weeknd", "Drake"], answer: 0 },
                 { q: "Quel compositeur est devenu sourd à la fin de sa vie ?", options: ["Mozart", "Beethoven", "Chopin", "Bach"], answer: 1 },
-                { q: "Quel album d'Ayless ou Michael Jackson est l'album le plus vendu de tous les temps ?", options: ["Thriller", "Bad", "Dangerous", "Off the Wall"], answer: 0 },
+                { q: "Quel album de Michael Jackson est l'album le plus vendu de tous les temps ?", options: ["Thriller", "Bad", "Dangerous", "Off the Wall"], answer: 0 },
                 { q: "Quel groupe chante 'Smells Like Teen Spirit' ?", options: ["Pearl Jam", "Nirvana", "Foo Fighters", "Red Hot Chili Peppers"], answer: 1 },
                 { q: "Combien de cordes possède une guitare classique standard ?", options: ["4", "5", "6", "7"], answer: 2 },
                 { q: "Quel genre musical est associé à Bob Marley ?", options: ["Ska", "Reggae", "Dub", "Rocksteady"], answer: 1 },
@@ -764,7 +734,7 @@
                 { q: "Quel est le nom de la princesse dans la saga The Legend of Zelda ?", options: ["Peach", "Zelda", "Daisy", "Samus"], answer: 1 },
                 { q: "Dans Half-Life, quelle est l'arme emblématique de Gordon Freeman ?", options: ["Un pied-de-biche", "Un pistolet laser", "Une tronçonneuse", "Une clé anglaise"], answer: 0 },
                 { q: "Quelle entreprise a inventé le smartphone iPhone ?", options: ["Samsung", "Google", "Apple", "Microsoft"], answer: 2 },
-                { q: "Quel jeu de bataille royale est célèbre pour ses danses et ses bus volants ?", options: ["PUBG", "Apex Legends", "Fortnite", "Warzone"], answer: 2 },
+                { q: "Quel jeu de bataille royale est célèbre pour ses danses ?", options: ["PUBG", "Apex Legends", "Fortnite", "Warzone"], answer: 2 },
                 { q: "Que signifie le sigle 'AI' en informatique ?", options: ["Automated Internet", "Artificial Intelligence", "Advanced Interface", "Active Integration"], answer: 1 }
             ]
         };
@@ -777,43 +747,104 @@
             { id: 'geek', label: 'Sciences & Geek', icon: 'fa-gamepad', color: 'from-emerald-500 to-teal-600' }
         ];
 
-        const BOT_NAMES = ['Sacha', 'Léa', 'Maxime', 'Chloé', 'Alex', 'Lucas', 'Emma', 'Hugo', 'Inès', 'Antoine'];
-        const BOT_AVATARS = ['🦊', '🦄', '🐼', '🐯', '🤖', '👾', '🚀', '⭐', '🔥', '👑'];
+        const BOT_NAMES = ['Sacha', 'Léa', 'Maxime', 'Chloé', 'Alex', 'Lucas', 'Emma', 'Hugo'];
+        const BOT_AVATARS = ['🦊', '🦄', '🐼', '🐯', '🤖', '👾', '🚀', '⭐'];
 
-        /**
-         * Main Web Application State & Controller
-         */
         class PartyQuizApp {
             constructor() {
                 this.sfx = new SoundEffects();
-                
-                // Game Configuration State
                 this.selectedTheme = 'culture';
                 this.selectedDifficulty = 'facile';
-                this.roomCode = 'PARTY' + Math.floor(100 + Math.random() * 900);
-                
-                // Players & Game Room State
-                this.players = []; // [{ id, pseudo, avatar, score, currentAnswer, isBot }]
-                this.currentQuestionIndex = 0;
-                this.activeQuestions = [];
-                this.timer = 10;
-                this.timerInterval = null;
-                this.isAnsweringLocked = false;
-
-                // Local Device Player state
-                this.mode = 'host'; // 'host' or 'player'
+                this.roomId = null;
+                this.role = 'host'; // 'host' or 'player'
+                this.user = null;
                 this.localPlayerId = null;
+                
+                this.roomData = null;
+                this.unsubscribeRoom = null;
+                this.timerInterval = null;
 
-                this.init();
+                this.initAuthAndCheckURL();
             }
 
-            init() {
+            async initAuthAndCheckURL() {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                        this.user = cred.user;
+                    } else {
+                        const cred = await signInAnonymously(auth);
+                        this.user = cred.user;
+                    }
+                } catch(e) {
+                    console.error("Auth error:", e);
+                }
+
                 this.renderThemesGrid();
                 this.setDifficulty('facile');
-                this.updateRoomCodeDisplay();
+
+                // Check URL for room parameter (?room=XXX or #room=XXX)
+                const urlParams = new URLSearchParams(window.location.search);
+                const queryRoom = urlParams.get('room');
+                const hashRoom = window.location.hash ? window.location.hash.replace('#', '') : null;
+                const roomToJoin = queryRoom || hashRoom;
+
+                if (roomToJoin) {
+                    // AUTOMATIC MOBILE JOINING
+                    this.role = 'player';
+                    this.roomId = roomToJoin;
+                    this.hideAllPages();
+                    document.getElementById('pagePlayerMobile').classList.remove('hidden');
+                    this.listenToRoom();
+                } else {
+                    this.showHome();
+                }
             }
 
-            // --- NAVIGATION & VIEWS ---
+            getRoomDocRef() {
+                if (!this.roomId) return null;
+                return doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.roomId);
+            }
+
+            listenToRoom() {
+                const roomRef = this.getRoomDocRef();
+                if (!roomRef) return;
+
+                if (this.unsubscribeRoom) this.unsubscribeRoom();
+
+                this.unsubscribeRoom = onSnapshot(roomRef, (snapshot) => {
+                    if (!snapshot.exists()) return;
+                    const data = snapshot.data();
+                    this.roomData = data;
+                    this.onRoomStateUpdate(data);
+                }, (error) => {
+                    console.error("Firestore room error:", error);
+                });
+            }
+
+            onRoomStateUpdate(data) {
+                const state = data.state; // 'LOBBY', 'QUESTION_ACTIVE', 'REVEAL', 'PODIUM'
+
+                if (this.role === 'host') {
+                    this.updateHostLobbyUI(data);
+
+                    if (state === 'QUESTION_ACTIVE' && data.currentQuestionIndex !== this.lastHostQIndex) {
+                        this.lastHostQIndex = data.currentQuestionIndex;
+                        this.renderHostQuestion(data);
+                    } else if (state === 'QUESTION_ACTIVE') {
+                        this.updateHostAnswerCounters(data);
+                    } else if (state === 'REVEAL') {
+                        this.renderHostReveal(data);
+                    } else if (state === 'PODIUM') {
+                        this.renderHostPodium(data);
+                    }
+                } else {
+                    // Mobile Player Controller Sync
+                    this.updatePlayerControllerUI(data);
+                }
+            }
+
+            // --- HOST METHODS ---
             showHome() {
                 this.sfx.playClick();
                 this.hideAllPages();
@@ -838,26 +869,6 @@
                 });
             }
 
-            setDeviceMode(mode) {
-                this.sfx.playClick();
-                this.mode = mode;
-                const hostBtn = document.getElementById('modeHostBtn');
-                const playerBtn = document.getElementById('modePlayerBtn');
-
-                if (mode === 'host') {
-                    hostBtn.className = "px-3 py-1.5 rounded-lg font-bold transition-all bg-party-purple text-white shadow-md";
-                    playerBtn.className = "px-3 py-1.5 rounded-lg font-bold transition-all text-gray-400 hover:text-white";
-                    if (document.getElementById('pagePlayerMobile').classList.contains('hidden') === false) {
-                        this.showHome();
-                    }
-                } else {
-                    playerBtn.className = "px-3 py-1.5 rounded-lg font-bold transition-all bg-party-pink text-white shadow-md";
-                    hostBtn.className = "px-3 py-1.5 rounded-lg font-bold transition-all text-gray-400 hover:text-white";
-                    this.hideAllPages();
-                    document.getElementById('pagePlayerMobile').classList.remove('hidden');
-                }
-            }
-
             toggleSound() {
                 this.sfx.enabled = !this.sfx.enabled;
                 const icon = document.getElementById('soundIcon');
@@ -872,7 +883,6 @@
                 }
             }
 
-            // --- QUIZZ SETUP ---
             renderThemesGrid() {
                 const grid = document.getElementById('themesGrid');
                 grid.innerHTML = THEMES_METADATA.map(t => `
@@ -910,26 +920,40 @@
                 }
             }
 
-            updateRoomCodeDisplay() {
-                document.getElementById('lobbyRoomCode').innerText = this.roomCode;
-                document.getElementById('playerInputRoom').value = this.roomCode;
-            }
-
-            // --- LOBBY SYSTEM ---
-            createLobby() {
+            async createLobby() {
+                if (!this.user) return;
                 this.sfx.playClick();
+
+                this.roomId = 'PARTY' + Math.floor(100 + Math.random() * 900);
+                this.role = 'host';
+
+                const newRoom = {
+                    roomId: this.roomId,
+                    theme: this.selectedTheme,
+                    difficulty: this.selectedDifficulty,
+                    state: 'LOBBY',
+                    currentQuestionIndex: 0,
+                    players: {},
+                    questions: QUIZ_DATABASE[this.selectedTheme],
+                    createdAt: Date.now()
+                };
+
+                await setDoc(this.getRoomDocRef(), newRoom);
+
                 this.hideAllPages();
                 document.getElementById('pageLobby').classList.remove('hidden');
 
                 const themeMeta = THEMES_METADATA.find(t => t.id === this.selectedTheme);
                 document.getElementById('lobbyThemeBadge').innerText = themeMeta.label;
                 document.getElementById('lobbyDifficultyInfo').innerText = `Difficulté : ${this.selectedDifficulty.toUpperCase()}`;
+                document.getElementById('lobbyRoomCode').innerText = this.roomId;
 
-                // Generate QR Code dynamically
+                // QR Code pointing to direct join URL
                 const qrContainer = document.getElementById('qrcode');
                 qrContainer.innerHTML = '';
+                const joinUrl = `${window.location.origin}${window.location.pathname}?room=${this.roomId}`;
                 new QRCode(qrContainer, {
-                    text: window.location.href + `#join-${this.roomCode}`,
+                    text: joinUrl,
                     width: 140,
                     height: 140,
                     colorDark : "#0B0B1A",
@@ -937,61 +961,34 @@
                     correctLevel : QRCode.CorrectLevel.H
                 });
 
-                // Pre-populate with 2 bots for instant demo playability
-                if (this.players.length === 0) {
-                    this.addBotPlayer();
-                    this.addBotPlayer();
-                }
-
-                this.updateLobbyPlayerList();
+                this.listenToRoom();
             }
 
-            addBotPlayer() {
+            async addBotPlayer() {
+                if (!this.roomData || !this.user) return;
                 const name = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)] + ' 🤖';
                 const avatar = BOT_AVATARS[Math.floor(Math.random() * BOT_AVATARS.length)];
-                const botPlayer = {
-                    id: 'bot_' + Math.random().toString(36).substr(2, 9),
+                const botId = 'bot_' + Math.random().toString(36).substr(2, 9);
+
+                const updatedPlayers = { ...(this.roomData.players || {}) };
+                updatedPlayers[botId] = {
+                    id: botId,
                     pseudo: name,
                     avatar: avatar,
                     score: 0,
                     currentAnswer: null,
                     isBot: true
                 };
-                this.players.push(botPlayer);
-                this.sfx.playClick();
-                this.updateLobbyPlayerList();
+
+                await updateDoc(this.getRoomDocRef(), { players: updatedPlayers });
             }
 
-            joinAsMobilePlayer() {
-                const pseudo = document.getElementById('playerInputPseudo').value.trim() || 'Joueur' + Math.floor(Math.random() * 99);
-                this.localPlayerId = 'player_' + Date.now();
-                
-                const newPlayer = {
-                    id: this.localPlayerId,
-                    pseudo: pseudo,
-                    avatar: '😎',
-                    score: 0,
-                    currentAnswer: null,
-                    isBot: false
-                };
+            updateHostLobbyUI(data) {
+                const playerList = Object.values(data.players || {});
+                document.getElementById('playerCount').innerText = playerList.length;
 
-                this.players.push(newPlayer);
-                this.sfx.playClick();
-
-                // Toggle Mobile UI to Active View
-                document.getElementById('playerJoinForm').classList.add('hidden');
-                document.getElementById('playerActiveView').classList.remove('hidden');
-                document.getElementById('myPseudoName').innerText = pseudo;
-                document.getElementById('myScore').innerText = '0';
-
-                this.updateLobbyPlayerList();
-            }
-
-            updateLobbyPlayerList() {
-                const list = document.getElementById('playerList');
-                document.getElementById('playerCount').innerText = this.players.length;
-
-                list.innerHTML = this.players.map(p => `
+                const listElem = document.getElementById('playerList');
+                listElem.innerHTML = playerList.map(p => `
                     <div class="glass-panel p-2.5 rounded-xl flex items-center gap-2 border border-white/10 animate-bounce-short">
                         <span class="text-xl">${p.avatar}</span>
                         <span class="font-bold text-xs truncate text-white">${p.pseudo}</span>
@@ -999,10 +996,11 @@
                 `).join('');
             }
 
-            // --- GAMEPLAY ENGINE ---
-            startQuizGame() {
-                if (this.players.length === 0) {
-                    alert("Veuillez ajouter au moins un joueur pour démarrer !");
+            async startQuizGame() {
+                if (!this.roomData || !this.user) return;
+                const playerList = Object.values(this.roomData.players || {});
+                if (playerList.length === 0) {
+                    alert("Attendez au moins un joueur pour commencer !");
                     return;
                 }
 
@@ -1010,155 +1008,140 @@
                 this.hideAllPages();
                 document.getElementById('pageGame').classList.remove('hidden');
 
-                // Load 15 questions from DB
-                this.activeQuestions = [...QUIZ_DATABASE[this.selectedTheme]];
-                this.currentQuestionIndex = 0;
-                
-                // Reset player scores
-                this.players.forEach(p => p.score = 0);
+                // Reset player answers/scores
+                const resetPlayers = {};
+                playerList.forEach(p => {
+                    resetPlayers[p.id] = { ...p, score: 0, currentAnswer: null };
+                });
 
-                this.loadNextQuestion();
+                await updateDoc(this.getRoomDocRef(), {
+                    state: 'QUESTION_ACTIVE',
+                    currentQuestionIndex: 0,
+                    players: resetPlayers
+                });
             }
 
-            loadNextQuestion() {
-                if (this.currentQuestionIndex >= this.activeQuestions.length) {
-                    this.showPodium();
-                    return;
-                }
+            renderHostQuestion(data) {
+                const currentQ = data.questions[data.currentQuestionIndex];
 
-                this.isAnsweringLocked = false;
-                const currentQ = this.activeQuestions[this.currentQuestionIndex];
-
-                // Reset answers state
-                this.players.forEach(p => p.currentAnswer = null);
-
-                // Update Host UI
-                document.getElementById('gameQuestionIdx').innerText = `Question ${this.currentQuestionIndex + 1}/${this.activeQuestions.length}`;
-                document.getElementById('gameThemeTitle').innerText = THEMES_METADATA.find(t => t.id === this.selectedTheme).label;
+                document.getElementById('gameQuestionIdx').innerText = `Question ${data.currentQuestionIndex + 1}/${data.questions.length}`;
+                document.getElementById('gameThemeTitle').innerText = THEMES_METADATA.find(t => t.id === data.theme).label;
                 document.getElementById('gameQuestionText').innerText = currentQ.q;
                 document.getElementById('questionStatusText').innerText = "⏰ Répondez vite !";
                 document.getElementById('questionStatusText').className = "text-party-yellow font-semibold animate-pulse";
 
-                // Reset Options styling on Main Display
                 for (let i = 0; i < 4; i++) {
                     const card = document.getElementById(`opt-card-${i}`);
                     const text = document.getElementById(`opt-text-${i}`);
-                    const count = document.getElementById(`opt-count-${i}`);
-
                     card.className = `opt-${i} p-5 rounded-2xl flex justify-between items-center text-white shadow-lg transition-all duration-300 opacity-100 scale-100`;
                     text.innerText = currentQ.options[i];
-                    count.innerText = "0 rep";
-
-                    // Mobile button options text
-                    const mOpt = document.getElementById(`m-opt-${i}`);
-                    if (mOpt) mOpt.innerText = currentQ.options[i];
                 }
 
-                // Reset Mobile Controls View
-                document.querySelectorAll('.mobile-opt-btn').forEach(btn => {
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-40', 'border-4', 'border-white');
-                });
-                document.getElementById('mobileFeedbackBox').classList.add('hidden');
-                document.getElementById('mobileAnswerButtons').classList.remove('hidden');
-                document.getElementById('mobileStatusBadge').innerText = "À vous de jouer !";
-                document.getElementById('mobileStatusBadge').className = "px-2.5 py-1 bg-party-cyan/20 text-party-cyan text-xs font-bold rounded-lg";
-
-                this.updateAnswerCounters();
-
-                // Trigger Bot Auto-answers
-                this.triggerBotAnswers();
-
-                // Start 10-Second Countdown Timer
+                this.updateHostAnswerCounters(data);
+                this.triggerBotAnswers(data);
                 this.startTimer(10);
             }
 
-            triggerBotAnswers() {
-                this.players.filter(p => p.isBot).forEach(bot => {
-                    const delay = Math.floor(1000 + Math.random() * 7000); // random time between 1s and 8s
-                    setTimeout(() => {
-                        if (!this.isAnsweringLocked) {
-                            // Bots have a difficulty-based accuracy
-                            const correctIdx = this.activeQuestions[this.currentQuestionIndex].answer;
-                            const isCorrect = Math.random() < (this.selectedDifficulty === 'facile' ? 0.8 : this.selectedDifficulty === 'moyen' ? 0.6 : 0.4);
-                            bot.currentAnswer = isCorrect ? correctIdx : Math.floor(Math.random() * 4);
-                            this.updateAnswerCounters();
-                        }
+            triggerBotAnswers(data) {
+                const botPlayers = Object.values(data.players || {}).filter(p => p.isBot);
+                botPlayers.forEach(bot => {
+                    const delay = Math.floor(1000 + Math.random() * 7000);
+                    setTimeout(async () => {
+                        if (!this.getRoomDocRef()) return;
+                        const correctIdx = data.questions[data.currentQuestionIndex].answer;
+                        const isCorrect = Math.random() < (data.difficulty === 'facile' ? 0.8 : data.difficulty === 'moyen' ? 0.6 : 0.4);
+                        
+                        await updateDoc(this.getRoomDocRef(), {
+                            [`players.${bot.id}.currentAnswer`]: isCorrect ? correctIdx : Math.floor(Math.random() * 4)
+                        });
                     }, delay);
                 });
             }
 
-            submitPlayerAnswer(optionIdx) {
-                if (this.isAnsweringLocked) return;
-
-                const player = this.players.find(p => p.id === this.localPlayerId);
-                if (player) {
-                    player.currentAnswer = optionIdx;
-                    this.sfx.playClick();
-
-                    // Lock buttons UI on mobile
-                    document.querySelectorAll('.mobile-opt-btn').forEach((btn, idx) => {
-                        btn.disabled = true;
-                        if (idx !== optionIdx) {
-                            btn.classList.add('opacity-40');
-                        } else {
-                            btn.classList.add('border-4', 'border-white');
-                        }
-                    });
-
-                    document.getElementById('mobileStatusBadge').innerText = "Réponse verrouillée 🔒";
-                    document.getElementById('mobileStatusBadge').className = "px-2.5 py-1 bg-party-yellow/20 text-party-yellow text-xs font-bold rounded-lg";
-
-                    this.updateAnswerCounters();
-                }
-            }
-
-            updateAnswerCounters() {
-                const total = this.players.length;
-                const answered = this.players.filter(p => p.currentAnswer !== null).length;
+            updateHostAnswerCounters(data) {
+                const playersList = Object.values(data.players || {});
+                const total = playersList.length;
+                const answered = playersList.filter(p => p.currentAnswer !== null && p.currentAnswer !== undefined).length;
 
                 document.getElementById('answeredCount').innerText = answered;
                 document.getElementById('totalPlayersCount').innerText = total;
 
-                // Update count per option on main screen
                 for (let i = 0; i < 4; i++) {
-                    const countForOpt = this.players.filter(p => p.currentAnswer === i).length;
+                    const countForOpt = playersList.filter(p => p.currentAnswer === i).length;
                     document.getElementById(`opt-count-${i}`).innerText = `${countForOpt} rep`;
                 }
             }
 
             startTimer(seconds) {
                 clearInterval(this.timerInterval);
-                this.timer = seconds;
+                let timer = seconds;
                 const timerElem = document.getElementById('gameTimer');
                 const progressBar = document.getElementById('timerProgressBar');
 
-                timerElem.innerText = this.timer;
+                timerElem.innerText = timer;
                 progressBar.style.width = '100%';
 
-                this.timerInterval = setInterval(() => {
-                    this.timer--;
-                    timerElem.innerText = this.timer;
-                    progressBar.style.width = `${(this.timer / 10) * 100}%`;
+                this.timerInterval = setInterval(async () => {
+                    timer--;
+                    timerElem.innerText = timer;
+                    progressBar.style.width = `${(timer / 10) * 100}%`;
 
                     this.sfx.playTick();
 
-                    if (this.timer <= 0) {
+                    if (timer <= 0) {
                         clearInterval(this.timerInterval);
-                        this.revealQuestionAnswer();
+                        await this.revealQuestionAnswerHost();
                     }
                 }, 1000);
             }
 
-            revealQuestionAnswer() {
-                this.isAnsweringLocked = true;
-                const currentQ = this.activeQuestions[this.currentQuestionIndex];
+            async revealQuestionAnswerHost() {
+                if (!this.roomData || !this.user) return;
+
+                const currentQ = this.roomData.questions[this.roomData.currentQuestionIndex];
+                const correctIdx = currentQ.answer;
+
+                // Update scores in room
+                const updatedPlayers = { ...this.roomData.players };
+                Object.values(updatedPlayers).forEach(p => {
+                    if (p.currentAnswer === correctIdx) {
+                        const pts = this.roomData.difficulty === 'facile' ? 100 : this.roomData.difficulty === 'moyen' ? 150 : 200;
+                        p.score = (p.score || 0) + pts;
+                    }
+                });
+
+                await updateDoc(this.getRoomDocRef(), {
+                    state: 'REVEAL',
+                    players: updatedPlayers
+                });
+
+                // Wait 4s then go to next question or end
+                setTimeout(async () => {
+                    if (!this.getRoomDocRef()) return;
+                    const nextQ = this.roomData.currentQuestionIndex + 1;
+                    if (nextQ < this.roomData.questions.length) {
+                        // Reset player answer choices for next question
+                        const resetAnswersPlayers = { ...this.roomData.players };
+                        Object.values(resetAnswersPlayers).forEach(p => p.currentAnswer = null);
+
+                        await updateDoc(this.getRoomDocRef(), {
+                            state: 'QUESTION_ACTIVE',
+                            currentQuestionIndex: nextQ,
+                            players: resetAnswersPlayers
+                        });
+                    } else {
+                        await updateDoc(this.getRoomDocRef(), { state: 'PODIUM' });
+                    }
+                }, 4000);
+            }
+
+            renderHostReveal(data) {
+                const currentQ = data.questions[data.currentQuestionIndex];
                 const correctIdx = currentQ.answer;
 
                 document.getElementById('questionStatusText').innerText = "RESULTATS DE LA QUESTION !";
                 document.getElementById('questionStatusText').className = "text-party-pink font-bold";
 
-                // Main Display: Highlight Correct Answer & Gray out wrong ones
                 for (let i = 0; i < 4; i++) {
                     const card = document.getElementById(`opt-card-${i}`);
                     if (i === correctIdx) {
@@ -1167,75 +1150,22 @@
                         card.className = "bg-gray-800/60 p-5 rounded-2xl flex justify-between items-center text-gray-500 opacity-40 shadow-none";
                     }
                 }
-
-                // Award Points & Calculate Feedback
-                this.players.forEach(p => {
-                    if (p.currentAnswer === correctIdx) {
-                        // Bonus points based on difficulty
-                        const pts = this.selectedDifficulty === 'facile' ? 100 : this.selectedDifficulty === 'moyen' ? 150 : 200;
-                        p.score += pts;
-                    }
-                });
-
-                // Update Mobile Feedback for local player
-                const localPlayer = this.players.find(p => p.id === this.localPlayerId);
-                if (localPlayer) {
-                    const feedbackBox = document.getElementById('mobileFeedbackBox');
-                    const feedbackTitle = document.getElementById('feedbackTitle');
-                    const feedbackSubtitle = document.getElementById('feedbackSubtitle');
-                    const feedbackIcon = document.getElementById('feedbackIcon');
-
-                    document.getElementById('myScore').innerText = localPlayer.score;
-                    document.getElementById('mobileAnswerButtons').classList.add('hidden');
-                    feedbackBox.classList.remove('hidden');
-
-                    if (localPlayer.currentAnswer === correctIdx) {
-                        this.sfx.playCorrect();
-                        feedbackIcon.innerText = "🎉";
-                        feedbackTitle.innerText = "BONNE RÉPONSE !";
-                        feedbackTitle.className = "text-xl font-black text-green-400";
-                        feedbackSubtitle.innerText = `+${this.selectedDifficulty === 'facile' ? 100 : this.selectedDifficulty === 'moyen' ? 150 : 200} points ! Score: ${localPlayer.score}`;
-                    } else {
-                        this.sfx.playWrong();
-                        feedbackIcon.innerText = "❌";
-                        feedbackTitle.innerText = "MAUVAISE RÉPONSE !";
-                        feedbackTitle.className = "text-xl font-black text-red-500";
-                        feedbackSubtitle.innerText = `La bonne réponse était l'option ${['A','B','C','D'][correctIdx]}`;
-                    }
-                } else {
-                    this.sfx.playCorrect();
-                }
-
-                // Wait 4 seconds then advance to next question
-                setTimeout(() => {
-                    this.currentQuestionIndex++;
-                    this.loadNextQuestion();
-                }, 4000);
             }
 
-            // --- PODIUM & LEADERBOARD ---
-            showPodium() {
+            renderHostPodium(data) {
                 this.hideAllPages();
                 document.getElementById('pagePodium').classList.remove('hidden');
                 this.sfx.playFanfare();
 
-                // Trigger confetti particles
                 if (typeof confetti === 'function') {
-                    confetti({
-                        particleCount: 120,
-                        spread: 80,
-                        origin: { y: 0.6 }
-                    });
+                    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
                 }
 
-                // Sort players by score
-                const sorted = [...this.players].sort((a, b) => b.score - a.score);
+                const sorted = Object.values(data.players || {}).sort((a, b) => b.score - a.score);
 
-                // Render Top 3 Podium
                 const podiumContainer = document.getElementById('podiumSteps');
                 podiumContainer.innerHTML = '';
 
-                // Order for podium steps: [2nd, 1st, 3rd]
                 const podiumOrder = [
                     { player: sorted[1], rank: 2, height: 'h-36', color: 'bg-slate-400', badge: '🥈 2ème' },
                     { player: sorted[0], rank: 1, height: 'h-48', color: 'bg-gradient-to-t from-amber-500 to-yellow-300', badge: '👑 1er' },
@@ -1244,7 +1174,7 @@
 
                 podiumOrder.forEach(item => {
                     if (item.player) {
-                        const stepHtml = `
+                        podiumContainer.insertAdjacentHTML('beforeend', `
                             <div class="flex flex-col items-center justify-end animate-bounce-short">
                                 <div class="text-3xl mb-1">${item.player.avatar}</div>
                                 <span class="font-bold text-xs truncate max-w-[80px] text-white">${item.player.pseudo}</span>
@@ -1253,12 +1183,10 @@
                                     ${item.badge}
                                 </div>
                             </div>
-                        `;
-                        podiumContainer.insertAdjacentHTML('beforeend', stepHtml);
+                        `);
                     }
                 });
 
-                // Render full leaderboard table
                 const list = document.getElementById('fullLeaderboardList');
                 list.innerHTML = sorted.map((p, idx) => `
                     <div class="glass-panel p-3 rounded-xl flex justify-between items-center text-sm border border-white/10">
@@ -1271,12 +1199,104 @@
                     </div>
                 `).join('');
             }
+
+            // --- MOBILE PLAYER CONTROLLER METHODS ---
+            async joinAsMobilePlayer() {
+                if (!this.user || !this.roomId) return;
+                const pseudo = document.getElementById('playerInputPseudo').value.trim() || 'Joueur' + Math.floor(Math.random() * 99);
+                this.localPlayerId = 'player_' + Date.now();
+
+                const updatedPlayers = { ...(this.roomData?.players || {}) };
+                updatedPlayers[this.localPlayerId] = {
+                    id: this.localPlayerId,
+                    pseudo: pseudo,
+                    avatar: '😎',
+                    score: 0,
+                    currentAnswer: null,
+                    isBot: false
+                };
+
+                await updateDoc(this.getRoomDocRef(), { players: updatedPlayers });
+
+                document.getElementById('playerJoinForm').classList.add('hidden');
+                document.getElementById('playerWaitingLobby').classList.remove('hidden');
+                document.getElementById('myPseudoName').innerText = pseudo;
+            }
+
+            updatePlayerControllerUI(data) {
+                const myData = data.players ? data.players[this.localPlayerId] : null;
+                if (!myData) return;
+
+                const state = data.state;
+
+                if (state === 'LOBBY') {
+                    document.getElementById('playerWaitingLobby').classList.remove('hidden');
+                    document.getElementById('playerActiveView').classList.add('hidden');
+                } else if (state === 'QUESTION_ACTIVE') {
+                    document.getElementById('playerWaitingLobby').classList.add('hidden');
+                    document.getElementById('playerActiveView').classList.remove('hidden');
+
+                    document.getElementById('myScore').innerText = myData.score || 0;
+
+                    // Reset buttons if new question
+                    if (myData.currentAnswer === null || myData.currentAnswer === undefined) {
+                        document.querySelectorAll('.mobile-opt-btn').forEach(btn => {
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-40', 'border-4', 'border-white');
+                        });
+                        document.getElementById('mobileFeedbackBox').classList.add('hidden');
+                        document.getElementById('mobileAnswerButtons').classList.remove('hidden');
+                        document.getElementById('mobileStatusBadge').innerText = "À vous de jouer !";
+                        document.getElementById('mobileStatusBadge').className = "px-2.5 py-1 bg-party-cyan/20 text-party-cyan text-xs font-bold rounded-lg";
+                    }
+                } else if (state === 'REVEAL') {
+                    const currentQ = data.questions[data.currentQuestionIndex];
+                    const correctIdx = currentQ.answer;
+
+                    document.getElementById('mobileAnswerButtons').classList.add('hidden');
+                    const feedbackBox = document.getElementById('mobileFeedbackBox');
+                    feedbackBox.classList.remove('hidden');
+
+                    if (myData.currentAnswer === correctIdx) {
+                        this.sfx.playCorrect();
+                        document.getElementById('feedbackIcon').innerText = "🎉";
+                        document.getElementById('feedbackTitle').innerText = "BONNE RÉPONSE !";
+                        document.getElementById('feedbackTitle').className = "text-xl font-black text-green-400";
+                        document.getElementById('feedbackSubtitle').innerText = `Score total: ${myData.score} pts`;
+                    } else {
+                        this.sfx.playWrong();
+                        document.getElementById('feedbackIcon').innerText = "❌";
+                        document.getElementById('feedbackTitle').innerText = "MAUVAISE RÉPONSE !";
+                        document.getElementById('feedbackTitle').className = "text-xl font-black text-red-500";
+                        document.getElementById('feedbackSubtitle').innerText = `La bonne réponse était l'option ${['A','B','C','D'][correctIdx]}`;
+                    }
+                } else if (state === 'PODIUM') {
+                    this.renderHostPodium(data);
+                }
+            }
+
+            async submitPlayerAnswer(optionIdx) {
+                if (!this.getRoomDocRef() || !this.localPlayerId) return;
+
+                this.sfx.playClick();
+                document.querySelectorAll('.mobile-opt-btn').forEach((btn, idx) => {
+                    btn.disabled = true;
+                    if (idx !== optionIdx) btn.classList.add('opacity-40');
+                    else btn.classList.add('border-4', 'border-white');
+                });
+
+                document.getElementById('mobileStatusBadge').innerText = "Réponse envoyée 🔒";
+                document.getElementById('mobileStatusBadge').className = "px-2.5 py-1 bg-party-yellow/20 text-party-yellow text-xs font-bold rounded-lg";
+
+                await updateDoc(this.getRoomDocRef(), {
+                    [`players.${this.localPlayerId}.currentAnswer`]: optionIdx
+                });
+            }
         }
 
-        // Initialize App on DOM Load
-        let app;
+        // Global Instance
         window.addEventListener('DOMContentLoaded', () => {
-            app = new PartyQuizApp();
+            window.app = new PartyQuizApp();
         });
     </script>
 </body>
