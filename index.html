@@ -58,7 +58,16 @@
       display: flex; align-items: center; gap: 10px; cursor: pointer;
     }
 
-    .audio-controls { display: flex; gap: 15px; }
+    .audio-controls { display: flex; align-items: center; gap: 12px; }
+
+    .volume-slider-box {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255, 255, 255, 0.08); padding: 6px 14px; border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .volume-slider-box input[type="range"] {
+      width: 80px; accent-color: var(--primary); height: 4px; cursor: pointer;
+    }
 
     .icon-btn {
       background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
@@ -194,7 +203,10 @@
 
     .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .timer-bar-container { width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; margin-bottom: 20px; }
-    .timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 1s linear; }
+    
+    /* FIX GRAPHIC: Barre pleine à 100% sans transition initiale brutale */
+    .timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+    .timer-bar.running { transition: width 1s linear; }
 
     .question-title { font-size: 1.5rem; text-align: center; margin-bottom: 20px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
 
@@ -212,14 +224,7 @@
     .count-badge { position: absolute; right: 12px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; display: none; }
     .count-badge.visible { display: block; }
 
-    /* Modals & Overlays */
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-      z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px;
-    }
-    .modal-overlay.active { display: flex; }
-
+    /* Overlays et Toast global */
     #pauseOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 100;
@@ -243,37 +248,57 @@
     .btn-ctrl-restart { background: rgba(0,242,254,0.2); border: 1px solid var(--primary); color: var(--primary); }
     .btn-ctrl-stop { background: rgba(255,23,68,0.2); border: 1px solid var(--danger); color: #ff5252; }
 
+    /* LAYOUT PODIUM HÔTE */
     .podium-layout-main {
-      display: grid; grid-template-columns: 280px 1fr 300px; gap: 20px; align-items: start;
+      display: grid; grid-template-columns: 280px 1fr 320px; gap: 20px; align-items: stretch;
     }
-    @media (max-width: 1000px) { .podium-layout-main { grid-template-columns: 1fr; } }
+    @media (max-width: 1050px) { .podium-layout-main { grid-template-columns: 1fr; } }
 
+    /* Encadré Joueur le plus rapide même hauteur + contenu centré */
     .fastest-stat-card {
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: var(--radius); padding: 20px; text-align: center;
+      background: var(--bg-card); backdrop-filter: blur(15px);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius);
+      padding: 25px; text-align: center; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; height: 100%; box-shadow: var(--shadow);
     }
 
+    /* Classement sur la droite : Sans encadré */
     .podium-rest-card {
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: var(--radius); padding: 20px; max-height: 380px; overflow-y: auto; text-align: left;
+      background: transparent; border: none; padding: 10px;
+      max-height: 420px; overflow-y: auto; text-align: left;
     }
+    
+    /* Element classement sur une seule ligne */
     .rest-player-item {
-      display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
-      border-radius: 8px; background: rgba(255,255,255,0.03); margin-bottom: 6px; font-size: 0.9rem;
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 14px;
+      border-radius: 10px; background: rgba(255,255,255,0.05); margin-bottom: 8px; font-size: 0.9rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .rest-player-item.disconnected { opacity: 0.4; filter: grayscale(90%); }
 
-    /* Notifications de salon d'attente (empilées en bas) */
-    #lobbyNotificationsStack {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      display: flex; flex-direction: column-reverse; gap: 8px; z-index: 500; align-items: center; pointer-events: none;
+    .old-score-striked {
+      text-decoration: line-through; color: var(--text-muted); font-size: 0.8rem; margin-right: 5px;
     }
-    .lobby-notif-toast {
-      background: rgba(0, 242, 254, 0.25); border: 1px solid var(--primary); backdrop-filter: blur(10px);
-      color: #fff; padding: 10px 22px; border-radius: 20px; font-size: 0.95rem; font-weight: 600;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4); animation: slideUpToast 0.3s ease; transition: opacity 0.4s ease;
+    .bonus-score-green {
+      color: var(--success); font-weight: 700;
     }
-    @keyframes slideUpToast { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Stack de Notifications Éphémères Unifié */
+    #globalNotificationsStack {
+      position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column-reverse; gap: 10px; z-index: 999; align-items: center; pointer-events: none;
+    }
+    .toast-notification {
+      background: rgba(11, 12, 16, 0.95); border: 1px solid var(--primary); backdrop-filter: blur(12px);
+      color: #fff; padding: 12px 24px; border-radius: 25px; font-size: 0.95rem; font-weight: 600;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5); animation: toastSlideUp 0.3s ease; transition: opacity 0.4s ease;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .toast-notification.leave { border-color: var(--danger); background: rgba(255, 23, 68, 0.2); }
+    .toast-notification.error { border-color: var(--danger); color: #ff5252; }
+    .toast-notification.info { border-color: var(--primary); }
+
+    @keyframes toastSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Mobile Container avec scroll désactivé */
     .mobile-container {
@@ -323,7 +348,7 @@
     .feedback-mobile-card.error { background: rgba(255,23,68,0.2); border: 2px solid var(--danger); color: var(--danger); animation: errorShake 0.4s ease; }
 
     .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: 10px; height: 180px; margin: 15px 0; }
-    .podium-step { width: 80px; background: rgba(255,255,255,0.1); border-radius: 10px 10px 0 0; display: flex; flex-direction: column; align-items: center; padding-top: 8px; font-size: 0.85rem; }
+    .podium-step { width: 85px; background: rgba(255,255,255,0.1); border-radius: 10px 10px 0 0; display: flex; flex-direction: column; align-items: center; padding-top: 8px; font-size: 0.85rem; }
     .podium-step.p1 { height: 150px; background: linear-gradient(to top, rgba(255,215,0,0.3), rgba(255,215,0,0.8)); border: 2px solid var(--gold); }
     .podium-step.p2 { height: 110px; background: linear-gradient(to top, rgba(192,192,192,0.3), rgba(192,192,192,0.8)); border: 2px solid var(--silver); }
     .podium-step.p3 { height: 85px; background: linear-gradient(to top, rgba(205,127,50,0.3), rgba(205,127,50,0.8)); border: 2px solid var(--bronze); }
@@ -343,17 +368,8 @@
 </head>
 <body>
 
-  <!-- MODAL D'INFORMATION GÉNÉRALE -->
-  <div id="infoModal" class="modal-overlay">
-    <div class="card" style="width: 100%; max-width: 400px; text-align: center;">
-      <h3 id="infoModalTitle" style="margin-bottom: 15px; color: var(--primary);">Information</h3>
-      <p id="infoModalText" style="color: var(--text-muted); margin-bottom: 25px;"></p>
-      <button class="btn btn-accent" id="btnCloseInfoModal">Compris</button>
-    </div>
-  </div>
-
-  <!-- STACK DE NOTIFICATIONS DE SALON D'ATTENTE -->
-  <div id="lobbyNotificationsStack"></div>
+  <!-- STACK DE NOTIFICATIONS ÉPHÉMÈRES (REMPLACE TOUTES LES MODALS) -->
+  <div id="globalNotificationsStack"></div>
 
   <!-- OVERLAY CHARGEMENT DE CONNEXION DEPUIS ACCUEIL -->
   <div id="homeJoinLoadingOverlay">
@@ -383,12 +399,12 @@
     <p style="color: var(--text-muted);">Analyse des statistiques et bonus de vitesse !</p>
   </div>
 
-  <!-- OVERLAY JOUEUR LE PLUS RAPIDE (PAR QUESTION) -->
+  <!-- OVERLAY JOUEUR LE PLUS RAPIDE (SANS FOND SUR "BRAVO !") -->
   <div id="fastestPlayerOverlay">
     <div style="font-size: 4.5rem; margin-bottom: 15px;" id="fastestModalAvatar">⚡</div>
     <h1 style="font-size: 2rem; color: var(--primary); margin-bottom: 5px;" id="fastestModalName">Nom du joueur</h1>
     <p style="color: var(--success); font-size: 1.3rem; font-weight: 700; margin-bottom: 15px;">A répondu le plus rapidement !</p>
-    <div style="background: rgba(255,255,255,0.1); padding: 10px 25px; border-radius: 20px; font-size: 1.2rem; font-weight: 600; color: #fff;">Bravo !</div>
+    <div style="font-size: 1.8rem; font-weight: 800; color: #fff; text-shadow: 0 0 10px var(--primary);">Bravo !</div>
   </div>
 
   <!-- OVERLAY PAUSE -->
@@ -452,7 +468,12 @@
       <i class="fa-solid fa-gamepad"></i> Party Quiz
     </div>
     <div class="audio-controls">
-      <button class="icon-btn active" id="musicToggle" title="Musique"><i class="fa-solid fa-music"></i></button>
+      <!-- SLIDER DE VOLUME MUSIQUE -->
+      <div class="volume-slider-box" title="Volume de la musique">
+        <i class="fa-solid fa-volume-low" style="font-size:0.85rem; color:var(--text-muted);"></i>
+        <input type="range" id="musicVolumeSlider" min="0" max="1" step="0.01" value="0.15">
+      </div>
+      <button class="icon-btn active" id="musicToggle" title="Activer/Désactiver Musique"><i class="fa-solid fa-music"></i></button>
       <button class="icon-btn active" id="sfxToggle" title="Sons"><i class="fa-solid fa-volume-high"></i></button>
     </div>
   </header>
@@ -486,7 +507,6 @@
           </div>
         </div>
 
-        <!-- Section Rejoindre une session -->
         <div class="card" style="margin-top: 25px; text-align: center; background: rgba(0,0,0,0.2);">
           <h3 style="margin-bottom: 12px; font-size: 1.1rem;"><i class="fa-solid fa-right-to-bracket"></i> Rejoindre une session existante</h3>
           <div style="display: flex; gap: 10px; max-width: 450px; margin: 0 auto; flex-wrap: wrap; justify-content: center;">
@@ -548,7 +568,13 @@
           <i class="fa-solid fa-arrow-left"></i> Retour
         </button>
         <h1 style="font-size: 2.2rem; font-weight: 900; color: #fff;">Salle d'attente</h1>
-        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 4px;">
+        
+        <!-- CODE SESSION AJOUTÉ SOUS LE TITRE -->
+        <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-top: 2px;">
+          Code session : <span id="lobbySessionCodeDisplay" style="color: #fff; background: rgba(0,242,254,0.2); padding: 2px 10px; border-radius: 12px; border: 1px solid var(--primary);"></span>
+        </div>
+
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 6px;">
           Thème : <span id="lobbyThemeName" style="color: var(--primary); font-weight: 700;"></span> | 
           Questions : <span id="lobbyCountName" style="color: var(--gold); font-weight: 700;"></span> | 
           Temps : <span id="lobbyTimeName" style="color: var(--accent); font-weight: 700;"></span>
@@ -659,9 +685,9 @@
       <h1 class="title-large" style="margin-bottom: 15px;"><i class="fa-solid fa-flag-checkered" style="color: var(--primary);"></i> La partie est terminée !</h1>
 
       <div class="podium-layout-main">
-        <!-- STATS JOUEUR LE PLUS RAPIDE À GAUCHE -->
+        <!-- STATS JOUEUR LE PLUS RAPIDE À GAUCHE (Même hauteur que podium) -->
         <div class="fastest-stat-card">
-          <h3 style="margin-bottom: 12px; font-size: 1rem; color: var(--text-muted);"><i class="fa-solid fa-bolt" style="color: var(--gold);"></i> Plus Rapide</h3>
+          <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: var(--gold);"><i class="fa-solid fa-bolt"></i> Plus Rapide</h3>
           <div id="fastestPlayerStatBox" style="font-size: 1.1rem; font-weight: 700;">-</div>
         </div>
 
@@ -677,7 +703,7 @@
           </div>
         </div>
 
-        <!-- CLASSEMENT COMPLET À DROITE -->
+        <!-- CLASSEMENT COMPLET À DROITE (Sans encadré) -->
         <div class="podium-rest-card">
           <h3 style="margin-bottom: 12px; font-size: 1rem; color: var(--text-muted);">
             <i class="fa-solid fa-list-ol"></i> Classement
@@ -774,7 +800,6 @@
               </button>
             </div>
 
-            <!-- CLASSEMENT COMPLET MOBILE SOUS LE BOUTON APPLAUDIR -->
             <div style="margin-top: 10px; text-align: left; padding: 0 5px;">
               <h4 style="margin-bottom: 6px; font-size: 0.9rem; color: var(--text-muted); text-align: center;"><i class="fa-solid fa-list-ol"></i> Classement</h4>
               <div id="playerFullRankingList" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;"></div>
@@ -797,7 +822,6 @@
 
   </main>
 
-  <!-- AUDIO BACKGROUND MUSIC LOCALE (background-music.mp3) -->
   <audio id="bgAudioPlayer" src="background-music.mp3" preload="auto" loop></audio>
 
   <script>
@@ -940,10 +964,20 @@
       return result;
     }
 
-    function showInfoModal(title, text) {
-      document.getElementById('infoModalTitle').textContent = title;
-      document.getElementById('infoModalText').textContent = text;
-      document.getElementById('infoModal').classList.add('active');
+    /* SYSTEME DE TOAST EPHEMERE UNIQUE POUR REPLACER TOUTES LES MODALS */
+    function showGlobalToast(message, type = 'info', icon = 'fa-info-circle') {
+      const stack = document.getElementById('globalNotificationsStack');
+      if (!stack) return;
+      
+      const toast = document.createElement('div');
+      toast.className = `toast-notification ${type}`;
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+      stack.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 400);
+      }, 3200);
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -977,8 +1011,12 @@
 
     function setupAudioPlayer() {
       const bgAudio = document.getElementById('bgAudioPlayer');
-      if (bgAudio) {
-        bgAudio.volume = 0.15; // Volume faible demandé
+      const volSlider = document.getElementById('musicVolumeSlider');
+      if (bgAudio && volSlider) {
+        bgAudio.volume = parseFloat(volSlider.value);
+        volSlider.addEventListener('input', (e) => {
+          bgAudio.volume = parseFloat(e.target.value);
+        });
       }
     }
 
@@ -992,18 +1030,16 @@
         showScreen('config');
       });
 
-      // Rejoindre une session depuis l'accueil
       document.getElementById('btnHomeJoinSession').addEventListener('click', () => {
         sound.playClick();
         const code = document.getElementById('homeRoomIdInput').value.trim();
         if (!code) {
-          showInfoModal("Erreur", "Veuillez entrer un code de salon.");
+          showGlobalToast("Veuillez entrer un code de salon.", "error", "fa-triangle-exclamation");
           return;
         }
         
         document.getElementById('homeJoinLoadingOverlay').classList.add('active');
 
-        // Test de connexion PeerJS pour vérifier si le salon existe
         const testPeer = new Peer();
         let success = false;
 
@@ -1024,14 +1060,14 @@
             if (!success) {
               testPeer.destroy();
               document.getElementById('homeJoinLoadingOverlay').classList.remove('active');
-              showInfoModal("Salon introuvable", "La session n'existe pas ou n'est pas active.");
+              showGlobalToast("La session n'existe pas ou n'est plus active.", "error", "fa-circle-xmark");
             }
           }, 3500);
         });
 
         testPeer.on('error', () => {
           document.getElementById('homeJoinLoadingOverlay').classList.remove('active');
-          showInfoModal("Salon introuvable", "La session n'existe pas ou n'est pas active.");
+          showGlobalToast("La session n'existe pas ou n'est plus active.", "error", "fa-circle-xmark");
         });
       });
 
@@ -1039,13 +1075,8 @@
         card.addEventListener('click', () => {
           sound.playClick();
           const gameName = card.dataset.gamename || "Ce jeu";
-          showInfoModal(gameName, "Bientôt disponible !");
+          showGlobalToast(`${gameName} sera bientôt disponible !`, "info", "fa-clock");
         });
-      });
-
-      document.getElementById('btnCloseInfoModal').addEventListener('click', () => {
-        sound.playClick();
-        document.getElementById('infoModal').classList.remove('active');
       });
 
       document.getElementById('btnBackToHomeFromConfig').addEventListener('click', () => {
@@ -1058,9 +1089,7 @@
         if (Object.keys(app.players).length > 0) {
           broadcastToPlayers({ type: 'HOST_LEFT_LOBBY' });
         }
-        if (app.peer) {
-          app.peer.destroy();
-        }
+        if (app.peer) app.peer.destroy();
         window.history.replaceState({}, '', window.location.pathname);
         app.isHost = true;
         app.players = {};
@@ -1118,13 +1147,12 @@
       document.getElementById('btnStartGame').addEventListener('click', () => {
         sound.playClick();
         if (Object.keys(app.players).length === 0) {
-          showInfoModal("Attention", "Ajoute au moins 1 joueur avant de lancer la partie !");
+          showGlobalToast("Ajoutez au moins 1 joueur avant de lancer la partie !", "error", "fa-user-plus");
           return;
         }
         triggerGameStartCountdown();
       });
 
-      // Bouton Terminer sur la page Podium (Retour au salon)
       document.getElementById('btnReturnToLobbyHost').addEventListener('click', () => {
         sound.playClick();
         document.getElementById('returnToLobbyOverlay').classList.add('active');
@@ -1147,7 +1175,10 @@
 
       document.getElementById('btnPlayerJoin').addEventListener('click', () => {
         const name = document.getElementById('playerPseudoInput').value.trim();
-        if (!name) return alert("Entre ton pseudo !");
+        if (!name) {
+          showGlobalToast("Veuillez entrer votre pseudo !", "error", "fa-user-pen");
+          return;
+        }
         app.localPlayer.name = name;
         app.localPlayer.id = 'p_' + Math.random().toString(36).substr(2, 6);
 
@@ -1206,9 +1237,7 @@
       });
 
       document.getElementById('btnPlayerLeave').addEventListener('click', () => {
-        if (app.hostConn) {
-          app.hostConn.close();
-        }
+        if (app.hostConn) app.hostConn.close();
         window.history.replaceState({}, '', window.location.pathname);
         sessionStorage.setItem('party_ejected', 'true');
         showDisconnected("Tu as quitté la partie.", "👋");
@@ -1293,6 +1322,7 @@
       app.players = {};
       window.history.replaceState({}, '', `?host=${app.roomId}`);
 
+      document.getElementById('lobbySessionCodeDisplay').textContent = app.roomId;
       updateLobbySettingsDisplay();
 
       const joinUrl = window.location.origin + window.location.pathname + '?room=' + app.roomId;
@@ -1307,24 +1337,24 @@
       app.peer = new Peer(app.roomId);
       app.peer.on('connection', (conn) => {
         conn.on('data', (data) => handleHostIncomingData(conn, data));
-        
-        conn.on('close', () => {
-          handlePlayerDisconnectByConn(conn);
-        });
+        conn.on('close', () => handlePlayerDisconnectByConn(conn));
       });
     }
 
     function handlePlayerDisconnectByConn(conn) {
       for (let pId in app.connections) {
         if (app.connections[pId] === conn) {
+          const leavingName = app.players[pId] ? app.players[pId].name : "Un joueur";
           if (screens.lobby.classList.contains('active')) {
             delete app.players[pId];
             delete app.connections[pId];
             updateLobbyUI();
+            showGlobalToast(`${leavingName} a quitté le salon.`, 'leave', 'fa-user-minus');
           } else {
             if (app.players[pId]) app.players[pId].disconnected = true;
             updateLiveTrackSidebar();
             if (screens.podium.classList.contains('active')) showPodium();
+            showGlobalToast(`${leavingName} s'est déconnecté.`, 'leave', 'fa-plug-circle-xmark');
           }
           break;
         }
@@ -1338,7 +1368,7 @@
         app.playerTotalResponseTime[data.player.id] = 0;
         app.playerAnswerCounts[data.player.id] = 0;
         updateLobbyUI();
-        showLobbyJoinNotification(data.player.avatar, data.player.name);
+        showGlobalToast(`${data.player.avatar} ${data.player.name} a rejoint le salon !`, 'info', 'fa-user-check');
       } else if (data.type === 'ANSWER') {
         const responseTime = (Date.now() - app.localPlayer.answerStartTime) / 1000;
         app.answersReceived[data.playerId] = { choice: data.choice, time: responseTime };
@@ -1355,25 +1385,10 @@
       }
     }
 
-    // Affichage des notifications animées empilées dans le salon d'attente
-    function showLobbyJoinNotification(avatar, name) {
-      const stack = document.getElementById('lobbyNotificationsStack');
-      if (!stack) return;
-      const toast = document.createElement('div');
-      toast.className = 'lobby-notif-toast';
-      toast.innerHTML = `<span>${avatar}</span> <strong>${name}</strong> a rejoint la session !`;
-      stack.appendChild(toast);
-
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 400);
-      }, 3000);
-    }
-
     function triggerCelebrationEffect(playerId) {
       const el = document.getElementById('player_podium_node_' + playerId) || document.getElementById('player_rest_node_' + playerId);
       if (el) {
-        el.style.transform = 'scale(1.2)';
+        el.style.transform = 'scale(1.15)';
         el.style.boxShadow = '0 0 20px var(--gold)';
         setTimeout(() => {
           el.style.transform = 'scale(1)';
@@ -1390,19 +1405,22 @@
       }
       delete app.players[pId];
       updateLobbyUI();
+      showGlobalToast(`Joueur éjecté.`, 'leave', 'fa-user-xmark');
     }
 
     function addBotPlayer() {
       const bNames = ['RoboBot', 'CyberMax', 'Pixel', 'BotParty'];
       const id = 'bot_' + Math.random().toString(36).substr(2, 5);
+      const bName = bNames[Math.floor(Math.random() * bNames.length)] + '_' + Math.floor(Math.random() * 99);
       app.players[id] = {
-        name: bNames[Math.floor(Math.random() * bNames.length)] + '_' + Math.floor(Math.random() * 99),
+        name: bName,
         avatar: '🤖',
         score: 0, isBot: true, disconnected: false
       };
       app.playerTotalResponseTime[id] = 0;
       app.playerAnswerCounts[id] = 0;
       updateLobbyUI();
+      showGlobalToast(`🤖 ${bName} a été ajouté au salon !`, 'info', 'fa-robot');
     }
 
     function updateLobbyUI() {
@@ -1441,6 +1459,7 @@
       Object.keys(app.players).forEach(id => {
         app.playerTotalResponseTime[id] = 0;
         app.playerAnswerCounts[id] = 0;
+        app.players[id].score = 0;
       });
 
       showNextQuestion();
@@ -1482,11 +1501,21 @@
       runTimer(() => revealResults());
     }
 
+    /* CORRECTION DU BUG DE BARRE DE TEMPS PROGRESSIVE */
     function runTimer(onDone) {
       const disp = document.getElementById('timerDisplay');
       const bar = document.getElementById('timerBar');
 
       if (app.timerInterval) clearInterval(app.timerInterval);
+
+      // Réinitialisation immédiate à 100% sans transition initiale
+      bar.classList.remove('running');
+      bar.style.width = '100%';
+
+      // On active la transition fluide après que la barre est garantie pleine
+      setTimeout(() => {
+        bar.classList.add('running');
+      }, 50);
 
       app.timerInterval = setInterval(() => {
         if (app.isPaused) return;
@@ -1630,24 +1659,27 @@
 
       const bonusPoints = 300;
       Object.keys(app.players).forEach(id => {
+        const p = app.players[id];
+        p.rawScore = p.score;
         if (bestAvgPlayer && id === bestAvgPlayer.id) {
-          app.players[id].score += bonusPoints;
-          app.players[id].hasBonus = true;
+          p.finalScore = p.score + bonusPoints;
+          p.hasBonus = true;
         } else {
-          app.players[id].hasBonus = false;
+          p.finalScore = p.score;
+          p.hasBonus = false;
         }
       });
 
-      const sorted = Object.entries(app.players).sort((a, b) => b[1].score - a[1].score);
+      const sorted = Object.entries(app.players).sort((a, b) => b[1].finalScore - a[1].finalScore);
 
       const fastestStatBox = document.getElementById('fastestPlayerStatBox');
       if (bestAvgPlayer) {
         const fpObj = app.players[bestAvgPlayer.id];
         fastestStatBox.innerHTML = `
-          <div style="font-size:2rem; margin-bottom:5px;">${fpObj.avatar}</div>
-          <div>${fpObj.name}</div>
-          <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">Moyenne : ${bestAvgPlayer.avg.toFixed(2)}s</div>
-          <div style="color: var(--success); font-size: 1rem; margin-top: 8px;">+ ${bonusPoints} points</div>
+          <div style="font-size:2.8rem; margin-bottom:8px;">${fpObj.avatar}</div>
+          <div style="font-size:1.3rem;">${fpObj.name}</div>
+          <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">Temps moyen : <strong>${bestAvgPlayer.avg.toFixed(2)}s</strong></div>
+          <div style="color: var(--success); font-size: 1.1rem; font-weight:700; margin-top: 10px;">+ ${bonusPoints} pts (vitesse)</div>
         `;
       } else {
         fastestStatBox.innerHTML = `<span style="color:var(--text-muted)">Aucune donnée</span>`;
@@ -1660,9 +1692,17 @@
       const entry1 = sorted[0];
       const entry3 = sorted[2];
 
-      const p2 = entry2 ? entry2[1] : { name: '-', avatar: '🥈', score: 0, disconnected: false };
-      const p1 = entry1 ? entry1[1] : { name: '-', avatar: '🥇', score: 0, disconnected: false };
-      const p3 = entry3 ? entry3[1] : { name: '-', avatar: '🥉', score: 0, disconnected: false };
+      function renderScoreDisplay(pObj) {
+        if (!pObj) return '';
+        if (pObj.hasBonus) {
+          return `<span class="old-score-striked">${pObj.rawScore}</span><span class="bonus-score-green">${pObj.finalScore} pts</span> <i class="fa-solid fa-bolt" style="color:var(--gold);"></i>`;
+        }
+        return `<span>${pObj.finalScore} pts</span>`;
+      }
+
+      const p2 = entry2 ? entry2[1] : { name: '-', avatar: '🥈', finalScore: 0, disconnected: false };
+      const p1 = entry1 ? entry1[1] : { name: '-', avatar: '🥇', finalScore: 0, disconnected: false };
+      const p3 = entry3 ? entry3[1] : { name: '-', avatar: '🥉', finalScore: 0, disconnected: false };
 
       const p2Avatar = p2.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p2.avatar;
       const p1Avatar = p1.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p1.avatar;
@@ -1670,33 +1710,28 @@
 
       podium.innerHTML = `
         <div class="podium-step p2 ${p2.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry2 ? entry2[0] : ''}">
-          <div>${p2Avatar}</div><strong>${p2.name}</strong><small>${p2.score} pts ${entry2 && entry2[0] === bestAvgPlayer?.id ? '<i class="fa-solid fa-bolt" style="color:var(--gold);"></i>' : ''}</small>
-          ${p2.hasBonus ? '<div style="color:var(--success); font-size:0.7rem;">+bonus</div>' : ''}
+          <div>${p2Avatar}</div><strong>${p2.name}</strong><small>${renderScoreDisplay(p2)}</small>
         </div>
         <div class="podium-step p1 ${p1.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry1 ? entry1[0] : ''}">
-          <div>${p1Avatar}</div><strong>${p1.name}</strong><small>${p1.score} pts ${entry1 && entry1[0] === bestAvgPlayer?.id ? '<i class="fa-solid fa-bolt" style="color:var(--gold);"></i>' : ''}</small>
-          ${p1.hasBonus ? '<div style="color:var(--success); font-size:0.7rem;">+bonus</div>' : ''}
+          <div>${p1Avatar}</div><strong>${p1.name}</strong><small>${renderScoreDisplay(p1)}</small>
         </div>
         <div class="podium-step p3 ${p3.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry3 ? entry3[0] : ''}">
-          <div>${p3Avatar}</div><strong>${p3.name}</strong><small>${p3.score} pts ${entry3 && entry3[0] === bestAvgPlayer?.id ? '<i class="fa-solid fa-bolt" style="color:var(--gold);"></i>' : ''}</small>
-          ${p3.hasBonus ? '<div style="color:var(--success); font-size:0.7rem;">+bonus</div>' : ''}
+          <div>${p3Avatar}</div><strong>${p3.name}</strong><small>${renderScoreDisplay(p3)}</small>
         </div>
       `;
 
-      // Affichage du classement complet à droite (incluant le podium)
       restList.innerHTML = '';
       if (sorted.length === 0) {
         restList.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; text-align:center;">Aucun joueur</p>`;
       } else {
         sorted.forEach(([id, p], idx) => {
           const restAvatar = p.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p.avatar;
-          const isFastestOverall = bestAvgPlayer && id === bestAvgPlayer.id;
           const item = document.createElement('div');
           item.className = `rest-player-item ${p.disconnected ? 'disconnected' : ''}`;
           item.id = 'player_rest_node_' + id;
           item.innerHTML = `
-            <span><strong>${idx + 1}</strong> ${restAvatar} ${p.name} ${p.hasBonus ? '<span style="color:var(--success); font-size:0.75rem;">(+bonus)</span>' : ''}</span>
-            <span>${p.score} pts ${isFastestOverall ? '<i class="fa-solid fa-bolt" style="color:var(--gold); margin-left:4px;"></i>' : ''}</span>
+            <span><strong>${idx + 1}.</strong> ${restAvatar} ${p.name}</span>
+            <span>${renderScoreDisplay(p)}</span>
           `;
           restList.appendChild(item);
         });
@@ -1814,16 +1849,21 @@
           <div class="podium-step p3 ${p[2]?.disconnected ? 'disconnected' : ''}"><div>${p[2]?.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : (p[2]?.avatar || '🥉')}</div><strong>${p[2]?.name || '-'}</strong></div>
         `;
 
-        // Affichage du classement complet sur l'écran mobile sous le bouton applaudir
         const mobileRankingContainer = document.getElementById('playerFullRankingList');
         mobileRankingContainer.innerHTML = '';
         p.forEach((player, idx) => {
           const isFastest = player.id === data.fastestPlayerId;
           const item = document.createElement('div');
           item.className = `rest-player-item ${player.disconnected ? 'disconnected' : ''}`;
+          
+          let scoreHtml = `<span>${player.finalScore} pts</span>`;
+          if (player.hasBonus) {
+            scoreHtml = `<span class="old-score-striked">${player.rawScore}</span><span class="bonus-score-green">${player.finalScore} pts</span> <i class="fa-solid fa-bolt" style="color:var(--gold);"></i>`;
+          }
+
           item.innerHTML = `
-            <span><strong>${idx + 1}</strong> ${player.avatar} ${player.name}</span>
-            <span>${player.score} pts ${isFastest ? '<i class="fa-solid fa-bolt" style="color:var(--gold); margin-left:4px;"></i>' : ''}</span>
+            <span><strong>${idx + 1}.</strong> ${player.avatar} ${player.name}</span>
+            <span>${scoreHtml}</span>
           `;
           mobileRankingContainer.appendChild(item);
         });
