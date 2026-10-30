@@ -227,13 +227,13 @@
     }
     #pauseOverlay.active { display: flex; }
 
-    #restartOverlay, #gameStartLoadingOverlay, #calcPointsOverlay, #fastestPlayerOverlay {
+    #restartOverlay, #gameStartLoadingOverlay, #calcPointsOverlay, #fastestPlayerOverlay, #homeJoinLoadingOverlay, #returnToLobbyOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 150;
       display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center;
       animation: fadeIn 0.3s ease;
     }
-    #restartOverlay.active, #gameStartLoadingOverlay.active, #calcPointsOverlay.active, #fastestPlayerOverlay.active { display: flex; }
+    #restartOverlay.active, #gameStartLoadingOverlay.active, #calcPointsOverlay.active, #fastestPlayerOverlay.active, #homeJoinLoadingOverlay.active, #returnToLobbyOverlay.active { display: flex; }
 
     .host-controls-bar {
       display: flex; justify-content: center; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);
@@ -262,6 +262,18 @@
       border-radius: 8px; background: rgba(255,255,255,0.03); margin-bottom: 6px; font-size: 0.9rem;
     }
     .rest-player-item.disconnected { opacity: 0.4; filter: grayscale(90%); }
+
+    /* Notifications de salon d'attente (empilées en bas) */
+    #lobbyNotificationsStack {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column-reverse; gap: 8px; z-index: 500; align-items: center; pointer-events: none;
+    }
+    .lobby-notif-toast {
+      background: rgba(0, 242, 254, 0.25); border: 1px solid var(--primary); backdrop-filter: blur(10px);
+      color: #fff; padding: 10px 22px; border-radius: 20px; font-size: 0.95rem; font-weight: 600;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4); animation: slideUpToast 0.3s ease; transition: opacity 0.4s ease;
+    }
+    @keyframes slideUpToast { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Mobile Container avec scroll désactivé */
     .mobile-container {
@@ -317,12 +329,6 @@
     .podium-step.p3 { height: 85px; background: linear-gradient(to top, rgba(205,127,50,0.3), rgba(205,127,50,0.8)); border: 2px solid var(--bronze); }
     .podium-step.disconnected { opacity: 0.4; filter: grayscale(90%); background: #333 !important; border-color: #666 !important; }
 
-    .recap-accordion-item {
-      background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; padding: 10px; cursor: pointer; text-align: left; font-size: 0.9rem;
-    }
-    .recap-details { display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; color: var(--text-muted); }
-    .recap-accordion-item.open .recap-details { display: block; }
-
     .input-field {
       width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2);
       background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 1.1rem; margin-bottom: 15px; outline: none;
@@ -346,7 +352,24 @@
     </div>
   </div>
 
-  <!-- OVERLAY COMPTE À REBOURS DE DÉMARRAGE (5 SECONDES) -->
+  <!-- STACK DE NOTIFICATIONS DE SALON D'ATTENTE -->
+  <div id="lobbyNotificationsStack"></div>
+
+  <!-- OVERLAY CHARGEMENT DE CONNEXION DEPUIS ACCUEIL -->
+  <div id="homeJoinLoadingOverlay">
+    <div style="font-size: 4rem; color: var(--primary); margin-bottom: 15px;"><i class="fa-solid fa-spinner fa-spin"></i></div>
+    <h1 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">Connexion au salon...</h1>
+    <p style="color: var(--text-muted);">Vérification de la session en cours</p>
+  </div>
+
+  <!-- OVERLAY RETOUR AU SALON -->
+  <div id="returnToLobbyOverlay">
+    <div style="font-size: 4rem; color: var(--primary); margin-bottom: 15px;"><i class="fa-solid fa-house fa-bounce"></i></div>
+    <h1 style="font-size: 2.2rem; color: #fff; margin-bottom: 10px;">Retour au salon</h1>
+    <p style="color: var(--text-muted);">Redirection vers la salle d'attente...</p>
+  </div>
+
+  <!-- OVERLAY COMPTE À REBOURS DE DÉMARRAGE -->
   <div id="gameStartLoadingOverlay">
     <div style="font-size: 5rem; color: var(--primary); margin-bottom: 15px; font-weight: 900;" id="startCountdownNum">5</div>
     <h1 style="font-size: 2.2rem; color: #fff; margin-bottom: 10px;">La partie va commencer !</h1>
@@ -436,7 +459,7 @@
 
   <main>
 
-    <!-- ÉCRAN 1: ACCUEIL & CHOIX DE JEU -->
+    <!-- ÉCRAN 1: ACCUEIL & CHOIX DE JEU + REJOINDRE SESSION -->
     <section id="screenHome" class="screen active">
       <div class="card">
         <h1 class="title-large"><i class="fa-solid fa-fire"></i> Choisissez votre Jeu de Soirée</h1>
@@ -460,6 +483,15 @@
             <div class="game-icon"><i class="fa-solid fa-stopwatch-20"></i></div>
             <h2>Time's Up</h2>
             <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Faites deviner un max de mots</p>
+          </div>
+        </div>
+
+        <!-- Section Rejoindre une session -->
+        <div class="card" style="margin-top: 25px; text-align: center; background: rgba(0,0,0,0.2);">
+          <h3 style="margin-bottom: 12px; font-size: 1.1rem;"><i class="fa-solid fa-right-to-bracket"></i> Rejoindre une session existante</h3>
+          <div style="display: flex; gap: 10px; max-width: 450px; margin: 0 auto; flex-wrap: wrap; justify-content: center;">
+            <input type="text" id="homeRoomIdInput" class="input-field" placeholder="Entrer le code du salon..." style="margin-bottom: 0; flex-grow: 1;" maxlength="12">
+            <button class="btn btn-accent" id="btnHomeJoinSession" style="white-space: nowrap;"><i class="fa-solid fa-arrow-right"></i> Rejoindre</button>
           </div>
         </div>
       </div>
@@ -635,14 +667,20 @@
 
         <!-- ENCART PRINCIPAL PODIUM AU CENTRE -->
         <div class="card" style="text-align: center; margin-bottom: 0;">
-          <h2 style="margin-bottom: 10px;"><i class="fa-solid fa-trophy" style="color: var(--gold);"></i> Classement Final</h2>
+          <h2 style="margin-bottom: 10px;"><i class="fa-solid fa-trophy" style="color: var(--gold);"></i> Podium</h2>
           <div class="podium-container" id="podiumDisplay"></div>
+
+          <div style="margin-top: 20px;">
+            <button class="btn btn-danger" id="btnReturnToLobbyHost">
+              <i class="fa-solid fa-arrow-rotate-left"></i> Terminer
+            </button>
+          </div>
         </div>
 
-        <!-- SUITE DU CLASSEMENT À DROITE -->
+        <!-- CLASSEMENT COMPLET À DROITE -->
         <div class="podium-rest-card">
           <h3 style="margin-bottom: 12px; font-size: 1rem; color: var(--text-muted);">
-            <i class="fa-solid fa-list-ol"></i> Suite du classement
+            <i class="fa-solid fa-list-ol"></i> Classement
           </h3>
           <div id="podiumRestList"></div>
         </div>
@@ -727,13 +765,19 @@
           <div id="playerFeedbackArea" style="display: none;"></div>
 
           <div id="playerPodiumArea" style="display: none; text-align: center; overflow-y: auto; max-height: 75vh;">
-            <h3><i class="fa-solid fa-trophy" style="color: var(--gold);"></i> Podium Final</h3>
+            <h3><i class="fa-solid fa-trophy" style="color: var(--gold);"></i> Podium</h3>
             <div class="podium-container" id="playerPodiumDisplay"></div>
             
             <div style="display: flex; justify-content: center; margin: 15px 0;">
               <button class="btn btn-accent" id="btnPlayerClap" style="border-radius: 30px; padding: 12px 24px; font-size: 1.1rem; gap: 10px;">
                 <i class="fa-solid fa-hands-clapping"></i> Applaudir !
               </button>
+            </div>
+
+            <!-- CLASSEMENT COMPLET MOBILE SOUS LE BOUTON APPLAUDIR -->
+            <div style="margin-top: 10px; text-align: left; padding: 0 5px;">
+              <h4 style="margin-bottom: 6px; font-size: 0.9rem; color: var(--text-muted); text-align: center;"><i class="fa-solid fa-list-ol"></i> Classement</h4>
+              <div id="playerFullRankingList" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;"></div>
             </div>
           </div>
         </div>
@@ -753,8 +797,8 @@
 
   </main>
 
-  <!-- AUDIO BACKGROUND MUSIC PIXABAY -->
-  <audio id="bgAudioPlayer" src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf756.mp3?filename=jazz-lounge-relaxing-background-music-559761.mp3" preload="auto" loop></audio>
+  <!-- AUDIO BACKGROUND MUSIC LOCALE (background-music.mp3) -->
+  <audio id="bgAudioPlayer" src="background-music.mp3" preload="auto" loop></audio>
 
   <script>
     const AI_QUESTIONS_POOL = {
@@ -857,9 +901,8 @@
       questions: [],
       currentQIdx: 0,
       answersReceived: {},
-      answerTimes: {}, // Stocke les temps de réponse pour chaque question par joueur
-      playerTotalResponseTime: {}, // Cumul des temps de réponse pour la moyenne
-      playerAnswerCounts: {}, // Nombre de réponses données
+      playerTotalResponseTime: {},
+      playerAnswerCounts: {},
       timerInterval: null,
       isPaused: false,
       timeLeft: 10,
@@ -947,6 +990,49 @@
       document.getElementById('btnSelectQuizz').addEventListener('click', () => {
         sound.playClick();
         showScreen('config');
+      });
+
+      // Rejoindre une session depuis l'accueil
+      document.getElementById('btnHomeJoinSession').addEventListener('click', () => {
+        sound.playClick();
+        const code = document.getElementById('homeRoomIdInput').value.trim();
+        if (!code) {
+          showInfoModal("Erreur", "Veuillez entrer un code de salon.");
+          return;
+        }
+        
+        document.getElementById('homeJoinLoadingOverlay').classList.add('active');
+
+        // Test de connexion PeerJS pour vérifier si le salon existe
+        const testPeer = new Peer();
+        let success = false;
+
+        testPeer.on('open', () => {
+          const conn = testPeer.connect(code);
+          conn.on('open', () => {
+            success = true;
+            testPeer.destroy();
+            document.getElementById('homeJoinLoadingOverlay').classList.remove('active');
+            app.isHost = false;
+            app.roomId = code;
+            sound.isDisabled = true;
+            showScreen('playerJoin');
+            initPlayerPeer();
+          });
+
+          setTimeout(() => {
+            if (!success) {
+              testPeer.destroy();
+              document.getElementById('homeJoinLoadingOverlay').classList.remove('active');
+              showInfoModal("Salon introuvable", "La session n'existe pas ou n'est pas active.");
+            }
+          }, 3500);
+        });
+
+        testPeer.on('error', () => {
+          document.getElementById('homeJoinLoadingOverlay').classList.remove('active');
+          showInfoModal("Salon introuvable", "La session n'existe pas ou n'est pas active.");
+        });
       });
 
       document.querySelectorAll('.game-card.locked-game').forEach(card => {
@@ -1038,6 +1124,18 @@
         triggerGameStartCountdown();
       });
 
+      // Bouton Terminer sur la page Podium (Retour au salon)
+      document.getElementById('btnReturnToLobbyHost').addEventListener('click', () => {
+        sound.playClick();
+        document.getElementById('returnToLobbyOverlay').classList.add('active');
+        broadcastToPlayers({ type: 'RETURN_TO_LOBBY' });
+        setTimeout(() => {
+          document.getElementById('returnToLobbyOverlay').classList.remove('active');
+          showScreen('lobby');
+          updateLobbyUI();
+        }, 2000);
+      });
+
       document.querySelectorAll('.emoji-opt').forEach(opt => {
         opt.addEventListener('click', (e) => {
           sound.playClick();
@@ -1117,7 +1215,6 @@
       });
     }
 
-    /* COMPTE À REBOURS 5 SECONDES AU DÉMARRAGE AVEC SON ET ANIMATION */
     function triggerGameStartCountdown() {
       const overlay = document.getElementById('gameStartLoadingOverlay');
       const numDisplay = document.getElementById('startCountdownNum');
@@ -1241,6 +1338,7 @@
         app.playerTotalResponseTime[data.player.id] = 0;
         app.playerAnswerCounts[data.player.id] = 0;
         updateLobbyUI();
+        showLobbyJoinNotification(data.player.avatar, data.player.name);
       } else if (data.type === 'ANSWER') {
         const responseTime = (Date.now() - app.localPlayer.answerStartTime) / 1000;
         app.answersReceived[data.playerId] = { choice: data.choice, time: responseTime };
@@ -1255,6 +1353,21 @@
         confetti({ particleCount: 50, spread: 50 });
         triggerCelebrationEffect(data.id);
       }
+    }
+
+    // Affichage des notifications animées empilées dans le salon d'attente
+    function showLobbyJoinNotification(avatar, name) {
+      const stack = document.getElementById('lobbyNotificationsStack');
+      if (!stack) return;
+      const toast = document.createElement('div');
+      toast.className = 'lobby-notif-toast';
+      toast.innerHTML = `<span>${avatar}</span> <strong>${name}</strong> a rejoint la session !`;
+      stack.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 400);
+      }, 3000);
     }
 
     function triggerCelebrationEffect(playerId) {
@@ -1323,7 +1436,6 @@
       app.questions = shuffled.slice(0, app.totalQuestions);
       app.currentQIdx = 0;
       
-      // Réinitialisation des stats de temps
       app.playerTotalResponseTime = {};
       app.playerAnswerCounts = {};
       Object.keys(app.players).forEach(id => {
@@ -1456,7 +1568,6 @@
 
       sound.playCorrect();
 
-      // Affichage écran du joueur le plus rapide de la question
       if (fastestPlayerId && app.players[fastestPlayerId]) {
         const fp = app.players[fastestPlayerId];
         showFastestPlayerOverlay(fp.avatar, fp.name);
@@ -1471,7 +1582,6 @@
         if (app.currentQIdx < app.questions.length) {
           showNextQuestion();
         } else {
-          // Écran de chargement "Calcul des points en cours" avant le podium
           showCalcPointsScreen(() => {
             showPodium();
           });
@@ -1504,7 +1614,6 @@
       showScreen('podium');
       confetti({ particleCount: 120, spread: 80 });
 
-      // Calcul du joueur ayant répondu le plus rapidement en moyenne
       let bestAvgPlayer = null;
       let lowestAvgTime = Infinity;
 
@@ -1519,7 +1628,6 @@
         }
       });
 
-      // Attribution du bonus de points (+ 300 pts par ex) au plus rapide en moyenne
       const bonusPoints = 300;
       Object.keys(app.players).forEach(id => {
         if (bestAvgPlayer && id === bestAvgPlayer.id) {
@@ -1532,7 +1640,6 @@
 
       const sorted = Object.entries(app.players).sort((a, b) => b[1].score - a[1].score);
 
-      // Affichage de la stat du plus rapide à gauche
       const fastestStatBox = document.getElementById('fastestPlayerStatBox');
       if (bestAvgPlayer) {
         const fpObj = app.players[bestAvgPlayer.id];
@@ -1563,38 +1670,43 @@
 
       podium.innerHTML = `
         <div class="podium-step p2 ${p2.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry2 ? entry2[0] : ''}">
-          <div>${p2Avatar}</div><strong>${p2.name}</strong><small>${p2.score} pts</small>
+          <div>${p2Avatar}</div><strong>${p2.name}</strong><small>${p2.score} pts ${entry2 && entry2[0] === bestAvgPlayer?.id ? '<i class="fa-solid fa-bolt" style="color:var(--gold);"></i>' : ''}</small>
           ${p2.hasBonus ? '<div style="color:var(--success); font-size:0.7rem;">+bonus</div>' : ''}
         </div>
         <div class="podium-step p1 ${p1.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry1 ? entry1[0] : ''}">
-          <div>${p1Avatar}</div><strong>${p1.name}</strong><small>${p1.score} pts</small>
+          <div>${p1Avatar}</div><strong>${p1.name}</strong><small>${p1.score} pts ${entry1 && entry1[0] === bestAvgPlayer?.id ? '<i class="fa-solid fa-bolt" style="color:var(--gold);"></i>' : ''}</small>
           ${p1.hasBonus ? '<div style="color:var(--success); font-size:0.7rem;">+bonus</div>' : ''}
         </div>
         <div class="podium-step p3 ${p3.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry3 ? entry3[0] : ''}">
-          <div>${p3Avatar}</div><strong>${p3.name}</strong><small>${p3.score} pts</small>
+          <div>${p3Avatar}</div><strong>${p3.name}</strong><small>${p3.score} pts ${entry3 && entry3[0] === bestAvgPlayer?.id ? '<i class="fa-solid fa-bolt" style="color:var(--gold);"></i>' : ''}</small>
           ${p3.hasBonus ? '<div style="color:var(--success); font-size:0.7rem;">+bonus</div>' : ''}
         </div>
       `;
 
+      // Affichage du classement complet à droite (incluant le podium)
       restList.innerHTML = '';
-      const restPlayers = sorted.slice(3);
-      if (restPlayers.length === 0) {
-        restList.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; text-align:center;">Aucun autre joueur</p>`;
+      if (sorted.length === 0) {
+        restList.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; text-align:center;">Aucun joueur</p>`;
       } else {
-        restPlayers.forEach(([id, p], idx) => {
+        sorted.forEach(([id, p], idx) => {
           const restAvatar = p.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p.avatar;
+          const isFastestOverall = bestAvgPlayer && id === bestAvgPlayer.id;
           const item = document.createElement('div');
           item.className = `rest-player-item ${p.disconnected ? 'disconnected' : ''}`;
           item.id = 'player_rest_node_' + id;
           item.innerHTML = `
-            <span><strong>${idx + 4}</strong> ${restAvatar} ${p.name} ${p.hasBonus ? '<span style="color:var(--success); font-size:0.75rem;">(+bonus)</span>' : ''}</span>
-            <span>${p.score} pts</span>
+            <span><strong>${idx + 1}</strong> ${restAvatar} ${p.name} ${p.hasBonus ? '<span style="color:var(--success); font-size:0.75rem;">(+bonus)</span>' : ''}</span>
+            <span>${p.score} pts ${isFastestOverall ? '<i class="fa-solid fa-bolt" style="color:var(--gold); margin-left:4px;"></i>' : ''}</span>
           `;
           restList.appendChild(item);
         });
       }
 
-      broadcastToPlayers({ type: 'FINAL_PODIUM', rankings: sorted.map(e => e[1]), questions: app.questions });
+      broadcastToPlayers({ 
+        type: 'FINAL_PODIUM', 
+        rankings: sorted.map(e => ({ id: e[0], ...e[1] })), 
+        fastestPlayerId: bestAvgPlayer?.id 
+      });
     }
 
     /* JOUEUR MOBILE WEBRTC */
@@ -1613,6 +1725,14 @@
       }
       else if (data.type === 'HOST_LEFT_LOBBY') {
         showDisconnected("L'hôte a quitté le salon.", "🚪");
+      }
+      else if (data.type === 'RETURN_TO_LOBBY') {
+        document.getElementById('returnToLobbyOverlay').classList.add('active');
+        setTimeout(() => {
+          document.getElementById('returnToLobbyOverlay').classList.remove('active');
+          document.getElementById('playerPodiumArea').style.display = 'none';
+          document.getElementById('playerWaitArea').style.display = 'block';
+        }, 2000);
       }
       else if (data.type === 'SHOW_START_COUNTDOWN') {
         const overlay = document.getElementById('gameStartLoadingOverlay');
@@ -1693,6 +1813,20 @@
           <div class="podium-step p1 ${p[0]?.disconnected ? 'disconnected' : ''}"><div>${p[0]?.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : (p[0]?.avatar || '🥇')}</div><strong>${p[0]?.name || '-'}</strong></div>
           <div class="podium-step p3 ${p[2]?.disconnected ? 'disconnected' : ''}"><div>${p[2]?.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : (p[2]?.avatar || '🥉')}</div><strong>${p[2]?.name || '-'}</strong></div>
         `;
+
+        // Affichage du classement complet sur l'écran mobile sous le bouton applaudir
+        const mobileRankingContainer = document.getElementById('playerFullRankingList');
+        mobileRankingContainer.innerHTML = '';
+        p.forEach((player, idx) => {
+          const isFastest = player.id === data.fastestPlayerId;
+          const item = document.createElement('div');
+          item.className = `rest-player-item ${player.disconnected ? 'disconnected' : ''}`;
+          item.innerHTML = `
+            <span><strong>${idx + 1}</strong> ${player.avatar} ${player.name}</span>
+            <span>${player.score} pts ${isFastest ? '<i class="fa-solid fa-bolt" style="color:var(--gold); margin-left:4px;"></i>' : ''}</span>
+          `;
+          mobileRankingContainer.appendChild(item);
+        });
       }
       else if (data.type === 'GAME_OVER') {
         showDisconnected("Partie terminée !", "🎉");
