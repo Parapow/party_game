@@ -63,17 +63,19 @@
 
     .icon-btn {
       background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #fff; width: 42px; height: 42px; border-radius: 50%;
+      color: var(--text-muted); width: 42px; height: 42px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s;
     }
-    .icon-btn:hover { background: var(--primary); color: #000; box-shadow: var(--neon-glow); }
+    .icon-btn.active {
+      background: var(--primary); color: #000; border-color: var(--primary); box-shadow: var(--neon-glow);
+    }
 
     main {
       flex: 1; display: flex; justify-content: center; align-items: center;
       padding: 15px; position: relative; overflow-y: auto;
     }
 
-    .screen { display: none; width: 100%; max-width: 1050px; animation: fadeIn 0.4s ease-out; }
+    .screen { display: none; width: 100%; max-width: 1100px; animation: fadeIn 0.4s ease-out; }
     .screen.active { display: block; }
 
     @keyframes fadeIn {
@@ -98,7 +100,7 @@
     .game-card.disabled { opacity: 0.5; cursor: not-allowed; }
     .game-icon { font-size: 3rem; margin-bottom: 15px; color: var(--primary); }
 
-    /* Boutons */
+    /* Boutons généraux */
     .btn {
       background: linear-gradient(45deg, var(--primary), var(--secondary));
       color: #000; border: none; padding: 14px 28px; font-size: 1.1rem; font-weight: 700;
@@ -111,8 +113,8 @@
     .btn-danger { background: linear-gradient(45deg, #ff1744, #b71c1c); color: #fff; }
     .btn-secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; }
 
-    /* Config Groups */
-    .config-group { margin-bottom: 20px; }
+    /* Config Groups & Sliders */
+    .config-group { margin-bottom: 22px; }
     .config-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted); }
     .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
     .option-btn {
@@ -120,6 +122,10 @@
       border-radius: 10px; color: #fff; cursor: pointer; text-align: center; transition: all 0.2s; font-size: 0.95rem;
     }
     .option-btn.selected { background: var(--primary); color: #000; font-weight: 700; border-color: var(--primary); }
+
+    .slider-container { display: flex; align-items: center; gap: 15px; }
+    .slider-container input[type="range"] { flex-grow: 1; accent-color: var(--primary); height: 6px; cursor: pointer; }
+    .slider-value { font-weight: 700; color: var(--primary); font-size: 1.2rem; min-width: 45px; text-align: center; }
 
     /* Salon d'attente */
     .lobby-header { text-align: center; margin-bottom: 20px; position: relative; }
@@ -144,9 +150,12 @@
       background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
       border-radius: 12px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between;
     }
+    .player-row-item.disconnected { opacity: 0.4; filter: grayscale(90%); }
     .player-info-group { display: flex; align-items: center; gap: 12px; }
     .player-avatar { font-size: 1.4rem; }
-    .player-name { font-weight: 600; }
+    .player-name { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .bot-badge { background: rgba(0, 242, 254, 0.2); color: var(--primary); font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--primary); }
+    .disconnect-badge { color: var(--danger); font-size: 0.85rem; margin-left: 5px; }
 
     .btn-eject-icon {
       background: rgba(255,23,68,0.2); border: 1px solid rgba(255,23,68,0.4); color: #ff5252;
@@ -165,6 +174,7 @@
       border-radius: 8px; background: rgba(255,255,255,0.04); margin-bottom: 8px; transition: all 0.3s;
     }
     .player-live-track.has-answered { background: rgba(0,230,118,0.15); border: 1px solid var(--success); }
+    .player-live-track.disconnected { opacity: 0.4; }
     .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #777; }
     .player-live-track.has-answered .status-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
 
@@ -205,18 +215,43 @@
     .btn-ctrl-restart { background: rgba(0,242,254,0.2); border: 1px solid var(--primary); color: var(--primary); }
     .btn-ctrl-stop { background: rgba(255,23,68,0.2); border: 1px solid var(--danger); color: #ff5252; }
 
-    /* MOBILE JOUEUR CONTAINER & FIXE */
+    /* PODIUM LAYOUT AVEC LISTE 4E ET + */
+    .podium-layout-main {
+      display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start;
+    }
+    @media (max-width: 900px) { .podium-layout-main { grid-template-columns: 1fr; } }
+
+    .podium-rest-card {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius); padding: 20px; max-height: 380px; overflow-y: auto; text-align: left;
+    }
+    .rest-player-item {
+      display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
+      border-radius: 8px; background: rgba(255,255,255,0.03); margin-bottom: 6px; font-size: 0.9rem;
+    }
+    .rest-player-item.disconnected { opacity: 0.4; }
+
+    /* MOBILE JOUEUR CONTAINER & FIXE TOTAL EN HAUT */
     .mobile-container {
       width: 100%; height: 100%; max-width: 450px; margin: 0 auto;
-      display: flex; flex-direction: column; justify-content: space-between; padding: 12px 0;
+      display: flex; flex-direction: column; justify-content: space-between; padding-top: 60px; padding-bottom: 12px;
     }
 
-    .mobile-header-bar {
+    .mobile-fixed-top {
+      position: fixed; top: 0; left: 0; width: 100%; background: #0b0c10;
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(11,12,16,0.9); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 15px; z-index: 50; border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-    .player-profile-badge { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9rem; }
+    .player-profile-badge { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; }
     .btn-leave { background: rgba(255,23,68,0.2); border: 1px solid rgba(255,23,68,0.4); color: #ff4d4d; padding: 5px 10px; border-radius: 12px; font-size: 0.75rem; cursor: pointer; }
+
+    /* 2 LIGNES D'EMOJIS DIFFÉRENTS */
+    .emoji-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; }
+    .emoji-opt {
+      font-size: 1.6rem; padding: 8px; background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.15); border-radius: 12px; cursor: pointer; text-align: center; transition: all 0.2s;
+    }
+    .emoji-opt.selected { border-color: var(--primary); background: rgba(0, 242, 254, 0.25); box-shadow: var(--neon-glow); transform: scale(1.05); }
 
     /* Boutons Réponses Bicolores sur Mobile */
     .mobile-answers-list { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 10px; }
@@ -251,6 +286,7 @@
     .podium-step.p1 { height: 150px; background: linear-gradient(to top, rgba(255,215,0,0.3), rgba(255,215,0,0.8)); border: 2px solid var(--gold); }
     .podium-step.p2 { height: 110px; background: linear-gradient(to top, rgba(192,192,192,0.3), rgba(192,192,192,0.8)); border: 2px solid var(--silver); }
     .podium-step.p3 { height: 85px; background: linear-gradient(to top, rgba(205,127,50,0.3), rgba(205,127,50,0.8)); border: 2px solid var(--bronze); }
+    .podium-step.disconnected { opacity: 0.4; filter: grayscale(90%); background: #333 !important; border-color: #666 !important; }
 
     .recap-accordion-item {
       background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; padding: 10px; cursor: pointer; text-align: left; font-size: 0.9rem;
@@ -263,7 +299,6 @@
       background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 1.1rem; margin-bottom: 15px; outline: none;
     }
 
-    /* Modal Paramètres */
     #settingsModal {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
       z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px;
@@ -277,13 +312,16 @@
   <div id="pauseOverlay">
     <div style="font-size: 4rem; color: #ffc107; margin-bottom: 15px;"><i class="fa-solid fa-pause"></i></div>
     <h1 style="font-size: 2.5rem; color: #fff; margin-bottom: 10px;">PARTIE EN PAUSE</h1>
-    <p style="color: var(--text-muted); margin-bottom: 25px;">L'hôte a suspendu la partie temporairement.</p>
+    <p style="color: var(--text-muted); margin-bottom: 25px;">La partie est suspendue temporairement.</p>
+    <button class="btn btn-accent" id="btnResumeGameHost" style="padding: 12px 30px;">
+      <i class="fa-solid fa-play"></i> Reprendre la partie
+    </button>
   </div>
 
-  <!-- MODAL PARAMÈTRES (HÔTE) -->
+  <!-- MODAL PARAMÈTRES -->
   <div id="settingsModal">
     <div class="card" style="width: 100%; max-width: 500px;">
-      <h2 style="margin-bottom: 15px;">⚙️ Paramètres de la Partie</h2>
+      <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-sliders"></i> Paramètres de la Partie</h2>
       
       <div class="config-group">
         <label>Thème du Quizz</label>
@@ -298,26 +336,22 @@
 
       <div class="config-group">
         <label>Nombre de Questions</label>
-        <div class="options-grid" id="modalCountOptions">
-          <div class="option-btn" data-value="5">5</div>
-          <div class="option-btn selected" data-value="10">10</div>
-          <div class="option-btn" data-value="15">15</div>
-          <div class="option-btn" data-value="20">20</div>
+        <div class="slider-container">
+          <input type="range" id="sliderCount" min="5" max="20" step="1" value="10">
+          <span class="slider-value" id="valCount">10</span>
         </div>
       </div>
 
       <div class="config-group">
         <label>Temps par Question (secondes)</label>
-        <div class="options-grid" id="modalTimeOptions">
-          <div class="option-btn" data-value="5">5s</div>
-          <div class="option-btn selected" data-value="10">10s</div>
-          <div class="option-btn" data-value="15">15s</div>
-          <div class="option-btn" data-value="20">20s</div>
+        <div class="slider-container">
+          <input type="range" id="sliderTime" min="5" max="30" step="5" value="10">
+          <span class="slider-value" id="valTime">10s</span>
         </div>
       </div>
 
-      <div style="text-align: right; margin-top: 20px;">
-        <button class="btn btn-accent" id="btnCloseSettings">Appliquer & Fermer</button>
+      <div style="text-align: right; margin-top: 25px;">
+        <button class="btn btn-accent" id="btnCloseSettings"><i class="fa-solid fa-check"></i> Appliquer & Fermer</button>
       </div>
     </div>
   </div>
@@ -328,8 +362,8 @@
       <i class="fa-solid fa-gamepad"></i> Party Quiz
     </div>
     <div class="audio-controls">
-      <button class="icon-btn" id="musicToggle" title="Musique"><i class="fa-solid fa-music"></i></button>
-      <button class="icon-btn" id="sfxToggle" title="Sons"><i class="fa-solid fa-volume-high"></i></button>
+      <button class="icon-btn active" id="musicToggle" title="Musique"><i class="fa-solid fa-music"></i></button>
+      <button class="icon-btn active" id="sfxToggle" title="Sons"><i class="fa-solid fa-volume-high"></i></button>
     </div>
   </header>
 
@@ -338,7 +372,7 @@
     <!-- ÉCRAN 1: ACCUEIL & CHOIX DE JEU -->
     <section id="screenHome" class="screen active">
       <div class="card">
-        <h1 class="title-large">🎉 Choisissez votre Jeu de Soirée</h1>
+        <h1 class="title-large"><i class="fa-solid fa-fire"></i> Choisissez votre Jeu de Soirée</h1>
         <div class="games-grid">
           <div class="game-card active-game" id="btnSelectQuizz">
             <div class="game-icon"><i class="fa-solid fa-circle-question"></i></div>
@@ -357,7 +391,7 @@
     <!-- ÉCRAN 2: CONFIGURATION DU QUIZZ -->
     <section id="screenConfig" class="screen">
       <div class="card">
-        <h2 class="title-large">⚙️ Configuration Initiale</h2>
+        <h2 class="title-large"><i class="fa-solid fa-gears"></i> Configuration Initiale</h2>
         
         <div class="config-group">
           <label>Thème du Quizz</label>
@@ -372,27 +406,23 @@
 
         <div class="config-group">
           <label>Nombre de Questions</label>
-          <div class="options-grid" id="countOptions">
-            <div class="option-btn" data-value="5">5</div>
-            <div class="option-btn selected" data-value="10">10</div>
-            <div class="option-btn" data-value="15">15</div>
-            <div class="option-btn" data-value="20">20</div>
+          <div class="slider-container">
+            <input type="range" id="configSliderCount" min="5" max="20" step="1" value="10">
+            <span class="slider-value" id="configValCount">10</span>
           </div>
         </div>
 
         <div class="config-group">
           <label>Temps par Question</label>
-          <div class="options-grid" id="timeOptions">
-            <div class="option-btn" data-value="5">5s</div>
-            <div class="option-btn selected" data-value="10">10s</div>
-            <div class="option-btn" data-value="15">15s</div>
-            <div class="option-btn" data-value="20">20s</div>
+          <div class="slider-container">
+            <input type="range" id="configSliderTime" min="5" max="30" step="5" value="10">
+            <span class="slider-value" id="configValTime">10s</span>
           </div>
         </div>
 
         <div style="text-align: center; margin-top: 25px;">
           <button class="btn btn-accent" id="btnCreateLobby">
-            <i class="fa-solid fa-door-open"></i> Ouvrir le salon d'attente
+            <i class="fa-solid fa-door-open"></i> Créer la partie
           </button>
         </div>
       </div>
@@ -425,7 +455,7 @@
             <div class="players-header-row">
               <h3>Liste des joueurs (<span id="playerCount">0</span>)</h3>
               <button class="btn btn-secondary" id="btnAddBot" style="padding: 5px 12px; font-size: 0.8rem;">
-                + Ajouter un Bot
+                <i class="fa-solid fa-robot"></i> + Ajouter un Bot
               </button>
             </div>
 
@@ -436,7 +466,7 @@
 
       <div style="text-align: center; margin-top: 15px;">
         <button class="btn btn-accent" id="btnStartGame" style="padding: 16px 40px; font-size: 1.2rem;">
-          🚀 Lancer la Partie !
+          <i class="fa-solid fa-play"></i> Lancer la Partie !
         </button>
       </div>
     </section>
@@ -451,7 +481,7 @@
                 Question <span id="currentQNum">1</span> / <span id="totalQNum">10</span>
               </span>
               <span id="timerDisplay" style="font-size: 1.4rem; font-weight: 900; color: var(--primary);">
-                ⏱️ 10s
+                <i class="fa-solid fa-stopwatch"></i> 10s
               </span>
             </div>
 
@@ -485,7 +515,6 @@
             </div>
           </div>
 
-          <!-- Liste de suivi live en dehors de l'encadré principal -->
           <div class="live-status-sidebar">
             <div id="livePlayersList"></div>
           </div>
@@ -505,46 +534,62 @@
       </div>
     </section>
 
-    <!-- ÉCRAN 5: PODIUM HÔTE -->
+    <!-- ÉCRAN 5: PODIUM HÔTE (AVEC LISTE DES 4E ET + SUR LE CÔTÉ) -->
     <section id="screenPodium" class="screen">
-      <div class="card" style="text-align: center;">
-        <h1 class="title-large">🏆 Classement Final 🏆</h1>
-        
-        <div class="podium-container" id="podiumDisplay"></div>
+      <div class="podium-layout-main">
+        <div class="card" style="text-align: center; margin-bottom: 0;">
+          <h1 class="title-large"><i class="fa-solid fa-trophy" style="color: var(--gold);"></i> Classement Final</h1>
+          
+          <div class="podium-container" id="podiumDisplay"></div>
 
-        <div style="display:flex; justify-content:center; gap:15px; margin-top:20px; flex-wrap:wrap;">
-          <button class="btn btn-secondary" id="btnToggleDetails">
-            <i class="fa-solid fa-list-check"></i> Voir les détails de la partie
-          </button>
-          <button class="btn btn-danger" id="btnEndGameFinal">
-            <i class="fa-solid fa-power-off"></i> Terminer la partie
-          </button>
+          <div style="display:flex; justify-content:center; gap:15px; margin-top:20px; flex-wrap:wrap;">
+            <button class="btn btn-secondary" id="btnToggleDetails">
+              <i class="fa-solid fa-list-check"></i> Voir les détails
+            </button>
+            <button class="btn btn-danger" id="btnEndGameFinal">
+              <i class="fa-solid fa-power-off"></i> Terminer
+            </button>
+          </div>
+
+          <div id="gameDetailsBox" style="display: none; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">
+            <h3>Récapitulatif des Questions</h3>
+            <div id="recapQuestionsList" style="margin-top: 10px; max-height: 200px; overflow-y: auto;"></div>
+          </div>
         </div>
 
-        <div id="gameDetailsBox" style="display: none; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">
-          <h3>Récapitulatif des Questions</h3>
-          <div id="recapQuestionsList" style="margin-top: 10px; max-height: 220px; overflow-y: auto;"></div>
+        <!-- Liste latérale 4e position et plus -->
+        <div class="podium-rest-card">
+          <h3 style="margin-bottom: 12px; font-size: 1rem; color: var(--text-muted);">
+            <i class="fa-solid fa-list-ol"></i> Suite du classement
+          </h3>
+          <div id="podiumRestList"></div>
         </div>
       </div>
     </section>
 
     <!-- ÉCRAN 6: REJOINDRE MOBILE -->
     <section id="screenPlayerJoin" class="screen">
-      <div class="mobile-container">
+      <div class="mobile-container" style="justify-content: center; padding-top: 0;">
         <div class="card" style="margin: auto 0;">
-          <h2 style="text-align: center; margin-bottom: 15px;">Rejoindre le Quiz</h2>
+          <h2 style="text-align: center; margin-bottom: 15px;"><i class="fa-solid fa-right-to-bracket"></i> Rejoindre le Quiz</h2>
           <input type="text" id="playerPseudoInput" class="input-field" placeholder="Entre ton pseudo..." maxlength="12">
           
-          <label style="display:block; font-size:0.85rem; color:var(--text-muted); margin-bottom: 5px;">Ton Émoji :</label>
-          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px;">
-            <div class="emoji-opt selected" style="font-size:1.5rem; padding:8px; background:rgba(255,255,255,0.05); border-radius:10px; text-align:center; cursor:pointer;">😎</div>
-            <div class="emoji-opt" style="font-size:1.5rem; padding:8px; background:rgba(255,255,255,0.05); border-radius:10px; text-align:center; cursor:pointer;">🚀</div>
-            <div class="emoji-opt" style="font-size:1.5rem; padding:8px; background:rgba(255,255,255,0.05); border-radius:10px; text-align:center; cursor:pointer;">🔥</div>
-            <div class="emoji-opt" style="font-size:1.5rem; padding:8px; background:rgba(255,255,255,0.05); border-radius:10px; text-align:center; cursor:pointer;">🦄</div>
-            <div class="emoji-opt" style="font-size:1.5rem; padding:8px; background:rgba(255,255,255,0.05); border-radius:10px; text-align:center; cursor:pointer;">🍕</div>
+          <label style="display:block; font-size:0.85rem; color:var(--text-muted); margin-bottom: 5px;">Choisis ton avatar :</label>
+          <!-- 2 lignes d'émojis différents -->
+          <div class="emoji-selector">
+            <div class="emoji-opt selected">😎</div>
+            <div class="emoji-opt">🚀</div>
+            <div class="emoji-opt">🔥</div>
+            <div class="emoji-opt">🦄</div>
+            <div class="emoji-opt">🍕</div>
+            <div class="emoji-opt">🤖</div>
+            <div class="emoji-opt">🐱</div>
+            <div class="emoji-opt">👑</div>
+            <div class="emoji-opt">⚡</div>
+            <div class="emoji-opt">👻</div>
           </div>
 
-          <button class="btn btn-accent" id="btnPlayerJoin" style="width: 100%;">Rejoindre</button>
+          <button class="btn btn-accent" id="btnPlayerJoin" style="width: 100%;"><i class="fa-solid fa-arrow-right"></i> Rejoindre</button>
         </div>
       </div>
     </section>
@@ -552,26 +597,24 @@
     <!-- ÉCRAN 7: MANETTE JOUEUR SUR SMARTPHONE -->
     <section id="screenPlayerGame" class="screen">
       <div class="mobile-container">
-        <!-- Barre supérieure fixe joueur -->
-        <div class="mobile-header-bar">
+        
+        <div class="mobile-fixed-top">
           <div class="player-profile-badge">
             <span id="pBadgeAvatar">😎</span>
             <span id="pBadgeName">Joueur</span>
           </div>
-          <button class="btn-leave" id="btnPlayerLeave">Quitter</button>
+          <button class="btn-leave" id="btnPlayerLeave"><i class="fa-solid fa-right-from-bracket"></i> Quitter</button>
         </div>
 
         <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
           <div id="playerWaitArea" style="text-align: center; padding: 20px;">
             <i class="fa-solid fa-hourglass-half fa-spin" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 10px;"></i>
-            <h3>En attente...</h3>
+            <h3>En attente de l'hôte...</h3>
           </div>
 
           <div id="playerActiveQuestionArea" style="display: none;">
-            <!-- Titre de la question au-dessus de la barre de temps -->
             <div id="playerQuestionTitle" style="font-size: 1.05rem; font-weight: 700; text-align: center; margin-bottom: 10px;">Question...</div>
 
-            <!-- Barre de progression du temps et compteur à droite -->
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
               <div style="flex-grow: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
                 <div id="playerTimerBar" style="height: 100%; width: 100%; background: var(--primary); transition: width 1s linear;"></div>
@@ -579,7 +622,6 @@
               <span id="playerTimerCount" style="font-weight: 900; font-size: 0.9rem; color: var(--primary); width: 30px; text-align: right;">10s</span>
             </div>
 
-            <!-- Boutons réponses bicolores (blanc à gauche pour lettre) -->
             <div class="mobile-answers-list">
               <button class="mobile-answer-btn btn-a" data-choice="0">
                 <div class="m-ans-box-lettre">A</div>
@@ -602,15 +644,14 @@
 
           <div id="playerFeedbackArea" style="display: none;"></div>
 
-          <!-- Podium & Détails pour joueur mobile en fin de partie -->
           <div id="playerPodiumArea" style="display: none; text-align: center; overflow-y: auto; max-height: 75vh;">
-            <h3>🏆 Podium Final</h3>
+            <h3><i class="fa-solid fa-trophy" style="color: var(--gold);"></i> Podium Final</h3>
             <div class="podium-container" id="playerPodiumDisplay"></div>
             
             <div style="display: flex; justify-content: center; margin: 15px 0;">
-              <!-- Bouton mains qui claps -->
-              <button class="btn btn-accent" id="btnPlayerClap" style="border-radius: 50%; width: 55px; height: 55px; padding: 0; font-size: 1.5rem;">
-                👏
+              <!-- Bouton Applaudir avec texte et icône -->
+              <button class="btn btn-accent" id="btnPlayerClap" style="border-radius: 30px; padding: 12px 24px; font-size: 1.1rem; gap: 10px;">
+                <i class="fa-solid fa-hands-clapping"></i> Applaudir !
               </button>
             </div>
 
@@ -625,9 +666,9 @@
 
     <!-- ÉCRAN 8: DÉCONNECTÉ -->
     <section id="screenDisconnected" class="screen">
-      <div class="mobile-container" style="justify-content: center;">
+      <div class="mobile-container" style="justify-content: center; padding-top: 0;">
         <div class="card" style="text-align: center;">
-          <div style="font-size: 3.5rem; margin-bottom: 10px;" id="disconnIcon">🚫</div>
+          <div style="font-size: 3.5rem; margin-bottom: 10px;" id="disconnIcon"><i class="fa-solid fa-plug-circle-xmark" style="color: var(--danger);"></i></div>
           <h2 id="disconnTitle" style="margin-bottom: 8px;">Déconnecté</h2>
           <p id="disconnMsg" style="color: var(--text-muted);">Tu n'es plus dans la partie.</p>
         </div>
@@ -637,13 +678,10 @@
   </main>
 
   <script>
-    /* ==========================================================================
-       GÉNÉRATEUR D'IA POUR QUESTIONS VARIÉES SANS DOUBLON
-       ========================================================================== */
     const AI_QUESTIONS_POOL = {
       general: [
         { q: "Quel est l'élément chimique représenté par le symbole 'Au' ?", a: ["Argent", "Or", "Cuivre", "Aluminium"], correct: 1 },
-        { q: "Dans quel pays se trouve la ville de TُمْBOUCTOU ?", a: ["Mali", "Sénégal", "Maroc", "Égypte"], correct: 0 },
+        { q: "Dans quel pays se trouve la ville de Tombouctou ?", a: ["Mali", "Sénégal", "Maroc", "Égypte"], correct: 0 },
         { q: "Combien de pattes possède une araignée ?", a: ["6", "8", "10", "12"], correct: 1 },
         { q: "Quel artiste a peint le plafond de la chapelle Sixtine ?", a: ["Léonard de Vinci", "Michel-Ange", "Raphaël", "Donatello"], correct: 1 },
         { q: "Quelle est la plus haute montagne du monde ?", a: ["K2", "Mont Blanc", "Everest", "Kilimandjaro"], correct: 2 },
@@ -664,7 +702,7 @@
         { q: "Combien de joueurs composent une équipe de rugby à XV ?", a: ["11", "13", "15", "18"], correct: 2 },
         { q: "Dans quelle ville se déroule le tournoi de tennis de Roland-Garros ?", a: ["Londres", "New York", "Paris", "Melbourne"], correct: 2 },
         { q: "Quel pays a remporté la Coupe du Monde de football en 2018 ?", a: ["Brésil", "Allemagne", "France", "Argentine"], correct: 2 },
-        { q: "Combien de sets faut-il remporter pour gagner un match de Grand Chelem masculin au tennis ?", a: ["2", "3", "4", "5"], correct: 1 }
+        { q: "Combien de sets faut-il remporter pour gagner un match de Grand Chelem masculin ?", a: ["2", "3", "4", "5"], correct: 1 }
       ],
       music: [
         { q: "Quel artiste est surnommé le 'King of Pop' ?", a: ["Elvis Presley", "Michael Jackson", "Prince", "Freddie Mercury"], correct: 1 },
@@ -678,7 +716,6 @@
       ]
     };
 
-    /* AUDIO ENGINE */
     class SoundEngine {
       constructor() {
         this.ctx = null;
@@ -746,18 +783,20 @@
           step++;
         }, 250);
       }
+      stopMusic() {
+        if (this.bgMusicTimer) clearInterval(this.bgMusicTimer);
+        this.isMusicPlaying = false;
+      }
     }
 
     const sound = new SoundEngine();
 
-    /* APP STATE */
     const app = {
       isHost: false,
       roomId: null,
       peer: null,
       connections: {},
       hostConn: null,
-      // Paramètres modifiables
       selectedTheme: 'general',
       totalQuestions: 10,
       questionTime: 10,
@@ -829,15 +868,32 @@
         showScreen('config');
       });
 
-      // Config Options Initiales
-      setupOptionGroup('themeOptions', (val) => app.selectedTheme = val);
-      setupOptionGroup('countOptions', (val) => app.totalQuestions = parseInt(val));
-      setupOptionGroup('timeOptions', (val) => app.questionTime = parseInt(val));
+      document.getElementById('musicToggle').addEventListener('click', () => {
+        sound.musicMuted = !sound.musicMuted;
+        const btn = document.getElementById('musicToggle');
+        if (sound.musicMuted) {
+          btn.classList.remove('active');
+          sound.stopMusic();
+        } else {
+          btn.classList.add('active');
+          sound.startFestiveMusic();
+        }
+      });
 
-      // Modal Paramètres (Salon)
+      document.getElementById('sfxToggle').addEventListener('click', () => {
+        sound.sfxMuted = !sound.sfxMuted;
+        const btn = document.getElementById('sfxToggle');
+        if (sound.sfxMuted) btn.classList.remove('active');
+        else btn.classList.add('active');
+      });
+
+      setupOptionGroup('themeOptions', (val) => app.selectedTheme = val);
       setupOptionGroup('modalThemeOptions', (val) => { app.selectedTheme = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
-      setupOptionGroup('modalCountOptions', (val) => { app.totalQuestions = parseInt(val); updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
-      setupOptionGroup('modalTimeOptions', (val) => { app.questionTime = parseInt(val); updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
+
+      setupSlider('configSliderCount', 'configValCount', (val) => app.totalQuestions = val);
+      setupSlider('configSliderTime', 'configValTime', (val) => app.questionTime = val, 's');
+      setupSlider('sliderCount', 'valCount', (val) => { app.totalQuestions = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
+      setupSlider('sliderTime', 'valTime', (val) => { app.questionTime = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); }, 's');
 
       document.getElementById('btnOpenSettings').addEventListener('click', () => {
         sound.playClick();
@@ -864,12 +920,12 @@
         startQuizGame();
       });
 
-      // Emojis Joueur
       document.querySelectorAll('.emoji-opt').forEach(opt => {
         opt.addEventListener('click', (e) => {
+          sound.playClick();
           document.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
-          e.target.classList.add('selected');
-          app.localPlayer.avatar = e.target.textContent;
+          e.currentTarget.classList.add('selected');
+          app.localPlayer.avatar = e.currentTarget.textContent;
         });
       });
 
@@ -893,19 +949,19 @@
         });
       });
 
-      // Contrôles Hôte
       document.getElementById('btnPauseGame').addEventListener('click', () => {
         sound.playClick();
-        app.isPaused = !app.isPaused;
-        const overlay = document.getElementById('pauseOverlay');
-        const btnLabel = document.getElementById('pauseBtnLabel');
-        if (app.isPaused) {
-          overlay.classList.add('active');
-          btnLabel.textContent = "Reprendre";
-        } else {
-          overlay.classList.remove('active');
-          btnLabel.textContent = "Mettre en pause";
-        }
+        app.isPaused = true;
+        document.getElementById('pauseBtnLabel').textContent = "En pause";
+        broadcastToPlayers({ type: 'PAUSE_GAME' });
+      });
+
+      document.getElementById('btnResumeGameHost').addEventListener('click', () => {
+        sound.playClick();
+        app.isPaused = false;
+        document.getElementById('pauseOverlay').classList.remove('active');
+        document.getElementById('pauseBtnLabel').textContent = "Mettre en pause";
+        broadcastToPlayers({ type: 'RESUME_GAME' });
       });
 
       document.getElementById('btnRestartGame').addEventListener('click', () => {
@@ -933,7 +989,7 @@
       document.getElementById('btnPlayerClap').addEventListener('click', () => {
         sound.playClick();
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
-        if (app.hostConn) app.hostConn.send({ type: 'PLAYER_CLAP', name: app.localPlayer.name });
+        if (app.hostConn) app.hostConn.send({ type: 'PLAYER_CLAP', id: app.localPlayer.id, name: app.localPlayer.name });
       });
 
       document.getElementById('btnPlayerLeave').addEventListener('click', () => {
@@ -952,6 +1008,17 @@
           e.target.classList.add('selected');
           callback(e.target.dataset.value);
         });
+      });
+    }
+
+    function setupSlider(sliderId, displayId, callback, suffix = '') {
+      const slider = document.getElementById(sliderId);
+      const display = document.getElementById(displayId);
+      if (!slider || !display) return;
+      slider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        display.textContent = val + suffix;
+        callback(val);
       });
     }
 
@@ -991,12 +1058,23 @@
       app.peer = new Peer(app.roomId);
       app.peer.on('connection', (conn) => {
         conn.on('data', (data) => handleHostIncomingData(conn, data));
+        conn.on('close', () => {
+          for (let pId in app.connections) {
+            if (app.connections[pId] === conn) {
+              if (app.players[pId]) app.players[pId].disconnected = true;
+              updateLobbyUI();
+              updateLiveTrackSidebar();
+              if (screens.podium.classList.contains('active')) showPodium();
+              break;
+            }
+          }
+        });
       });
     }
 
     function handleHostIncomingData(conn, data) {
       if (data.type === 'JOIN') {
-        app.players[data.player.id] = { name: data.player.name, avatar: data.player.avatar, score: 0, isBot: false };
+        app.players[data.player.id] = { name: data.player.name, avatar: data.player.avatar, score: 0, isBot: false, disconnected: false };
         app.connections[data.player.id] = conn;
         updateLobbyUI();
       } else if (data.type === 'ANSWER') {
@@ -1004,6 +1082,20 @@
         updateLiveTrackSidebar();
       } else if (data.type === 'PLAYER_CLAP') {
         confetti({ particleCount: 50, spread: 50 });
+        // Animation visuelle de célébration au niveau du joueur sur le podium ou la liste 4+
+        triggerCelebrationEffect(data.id);
+      }
+    }
+
+    function triggerCelebrationEffect(playerId) {
+      const el = document.getElementById('player_podium_node_' + playerId) || document.getElementById('player_rest_node_' + playerId);
+      if (el) {
+        el.style.transform = 'scale(1.2)';
+        el.style.boxShadow = '0 0 20px var(--gold)';
+        setTimeout(() => {
+          el.style.transform = 'scale(1)';
+          el.style.boxShadow = 'none';
+        }, 600);
       }
     }
 
@@ -1013,7 +1105,7 @@
         app.connections[pId].close();
         delete app.connections[pId];
       }
-      delete app.players[pId];
+      if (app.players[pId]) app.players[pId].disconnected = true;
       updateLobbyUI();
     }
 
@@ -1024,7 +1116,7 @@
       app.players[id] = {
         name: bNames[Math.floor(Math.random() * bNames.length)] + '_' + Math.floor(Math.random() * 99),
         avatar: bAvatars[Math.floor(Math.random() * bAvatars.length)],
-        score: 0, isBot: true
+        score: 0, isBot: true, disconnected: false
       };
       updateLobbyUI();
     }
@@ -1038,11 +1130,11 @@
       keys.forEach(id => {
         const p = app.players[id];
         const row = document.createElement('div');
-        row.className = 'player-row-item';
+        row.className = `player-row-item ${p.disconnected ? 'disconnected' : ''}`;
         row.innerHTML = `
           <div class="player-info-group">
             <span class="player-avatar">${p.avatar}</span>
-            <span class="player-name">${p.name} ${p.isBot ? '<small>(Bot)</small>' : ''}</span>
+            <span class="player-name">${p.name} ${p.isBot ? '<span class="bot-badge">BOT</span>' : ''} ${p.disconnected ? '<i class="fa-solid fa-plug-circle-xmark disconnect-badge" title="Déconnecté"></i>' : ''}</span>
           </div>
           <button class="btn-eject-icon" onclick="ejectPlayer('${id}')" title="Éjecter"><i class="fa-solid fa-xmark"></i></button>
         `;
@@ -1050,10 +1142,9 @@
       });
     }
 
-    /* JEU & IA GÉNÉRATION SANS DOUBLON */
+    /* JEU & IA */
     function startQuizGame() {
       const pool = AI_QUESTIONS_POOL[app.selectedTheme] || AI_QUESTIONS_POOL['general'];
-      // Mélanger et sélectionner sans doublon
       let shuffled = [...pool].sort(() => 0.5 - Math.random());
       while (shuffled.length < app.totalQuestions) {
         shuffled = shuffled.concat([...pool].sort(() => 0.5 - Math.random()));
@@ -1103,7 +1194,7 @@
 
         app.timeLeft--;
         sound.playTick();
-        disp.textContent = `⏱️ ${app.timeLeft}s`;
+        disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${app.timeLeft}s`;
         bar.style.width = `${(app.timeLeft / app.questionTime) * 100}%`;
 
         if (app.timeLeft <= 0) {
@@ -1119,15 +1210,15 @@
       Object.entries(app.players).forEach(([id, p]) => {
         const hasAns = app.answersReceived[id] !== undefined;
         const item = document.createElement('div');
-        item.className = `player-live-track ${hasAns ? 'has-answered' : ''}`;
-        item.innerHTML = `<span>${p.avatar} ${p.name}</span><span class="status-dot"></span>`;
+        item.className = `player-live-track ${hasAns ? 'has-answered' : ''} ${p.disconnected ? 'disconnected' : ''}`;
+        item.innerHTML = `<span>${p.avatar} ${p.name} ${p.isBot ? '<span class="bot-badge">BOT</span>' : ''} ${p.disconnected ? '<i class="fa-solid fa-plug-circle-xmark disconnect-badge"></i>' : ''}</span><span class="status-dot"></span>`;
         list.appendChild(item);
       });
     }
 
     function simulateBots() {
       Object.keys(app.players).forEach(id => {
-        if (app.players[id].isBot) {
+        if (app.players[id].isBot && !app.players[id].disconnected) {
           setTimeout(() => {
             if (!app.answersReceived[id]) {
               app.answersReceived[id] = Math.floor(Math.random() * 4);
@@ -1144,7 +1235,7 @@
 
       Object.entries(app.answersReceived).forEach(([pId, choice]) => {
         counts[choice]++;
-        if (choice === q.correct && app.players[pId]) {
+        if (choice === q.correct && app.players[pId] && !app.players[pId].disconnected) {
           app.players[pId].score += 100;
         }
       });
@@ -1172,20 +1263,53 @@
       showScreen('podium');
       confetti({ particleCount: 120, spread: 80 });
 
-      const sorted = Object.values(app.players).sort((a, b) => b.score - a.score);
-      const podium = document.getElementById('podiumDisplay');
+      // Trier les joueurs par score décroissant, en mettant les déconnectés en fin de score équivalent ou traités avec badge
+      const sorted = Object.entries(app.players).sort((a, b) => b[1].score - a[1].score);
 
-      const p2 = sorted[1] || { name: '-', avatar: '🥈', score: 0 };
-      const p1 = sorted[0] || { name: '-', avatar: '🥇', score: 0 };
-      const p3 = sorted[2] || { name: '-', avatar: '🥉', score: 0 };
+      const podium = document.getElementById('podiumDisplay');
+      const restList = document.getElementById('podiumRestList');
+
+      const entry2 = sorted[1];
+      const entry1 = sorted[0];
+      const entry3 = sorted[2];
+
+      const p2 = entry2 ? entry2[1] : { name: '-', avatar: '🥈', score: 0, disconnected: false };
+      const p1 = entry1 ? entry1[1] : { name: '-', avatar: '🥇', score: 0, disconnected: false };
+      const p3 = entry3 ? entry3[1] : { name: '-', avatar: '🥉', score: 0, disconnected: false };
 
       podium.innerHTML = `
-        <div class="podium-step p2"><div>${p2.avatar}</div><strong>${p2.name}</strong><small>${p2.score} pts</small></div>
-        <div class="podium-step p1"><div>${p1.avatar}</div><strong>${p1.name}</strong><small>${p1.score} pts</small></div>
-        <div class="podium-step p3"><div>${p3.avatar}</div><strong>${p3.name}</strong><small>${p3.score} pts</small></div>
+        <div class="podium-step p2 ${p2.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry2 ? entry2[0] : ''}">
+          <div>${p2.avatar} ${p2.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="font-size:0.7rem; color:var(--danger)"></i>' : ''}</div>
+          <strong>${p2.name}</strong><small>${p2.score} pts</small>
+        </div>
+        <div class="podium-step p1 ${p1.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry1 ? entry1[0] : ''}">
+          <div>${p1.avatar} ${p1.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="font-size:0.7rem; color:var(--danger)"></i>' : ''}</div>
+          <strong>${p1.name}</strong><small>${p1.score} pts</small>
+        </div>
+        <div class="podium-step p3 ${p3.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry3 ? entry3[0] : ''}">
+          <div>${p3.avatar} ${p3.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="font-size:0.7rem; color:var(--danger)"></i>' : ''}</div>
+          <strong>${p3.name}</strong><small>${p3.score} pts</small>
+        </div>
       `;
 
-      // Récapitulatif
+      // Affichage de la suite du classement (4ème et +) sur la liste latérale
+      restList.innerHTML = '';
+      const restPlayers = sorted.slice(3);
+      if (restPlayers.length === 0) {
+        restList.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; text-align:center;">Aucun autre joueur</p>`;
+      } else {
+        restPlayers.forEach(([id, p], idx) => {
+          const item = document.createElement('div');
+          item.className = `rest-player-item ${p.disconnected ? 'disconnected' : ''}`;
+          item.id = 'player_rest_node_' + id;
+          item.innerHTML = `
+            <span><strong>#${idx + 4}</strong> ${p.avatar} ${p.name} ${p.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : ''}</span>
+            <span>${p.score} pts</span>
+          `;
+          restList.appendChild(item);
+        });
+      }
+
       const recapList = document.getElementById('recapQuestionsList');
       recapList.innerHTML = '';
       app.questions.forEach((q, idx) => {
@@ -1200,7 +1324,7 @@
         recapList.appendChild(div);
       });
 
-      broadcastToPlayers({ type: 'FINAL_PODIUM', rankings: sorted, questions: app.questions });
+      broadcastToPlayers({ type: 'FINAL_PODIUM', rankings: sorted.map(e => e[1]), questions: app.questions });
     }
 
     /* JOUEUR MOBILE WEBRTC */
@@ -1216,6 +1340,18 @@
       if (data.type === 'EJECTED') {
         sessionStorage.setItem('party_ejected', 'true');
         showDisconnected("Tu as été déconnecté par l'hôte.", "🚫");
+      }
+      else if (data.type === 'PAUSE_GAME') {
+        document.getElementById('playerWaitArea').style.display = 'block';
+        document.getElementById('playerActiveQuestionArea').style.display = 'none';
+        document.getElementById('playerWaitArea').innerHTML = `
+          <i class="fa-solid fa-pause fa-beat" style="font-size: 2.5rem; color: #ffc107; margin-bottom: 10px;"></i>
+          <h3>Partie en pause par l'hôte</h3>
+        `;
+      }
+      else if (data.type === 'RESUME_GAME') {
+        document.getElementById('playerWaitArea').style.display = 'none';
+        document.getElementById('playerActiveQuestionArea').style.display = 'block';
       }
       else if (data.type === 'NEW_QUESTION') {
         document.getElementById('playerWaitArea').style.display = 'none';
@@ -1240,10 +1376,10 @@
         fb.style.display = 'block';
 
         if (app.localPlayer.choice === data.correctChoice) {
-          fb.innerHTML = `<div class="feedback-mobile-card success"><h2>🎉 Bonne réponse !</h2><p>+100 points</p></div>`;
+          fb.innerHTML = `<div class="feedback-mobile-card success"><h2><i class="fa-solid fa-circle-check"></i> Bonne réponse !</h2><p>+100 points</p></div>`;
           sound.playCorrect();
         } else {
-          fb.innerHTML = `<div class="feedback-mobile-card error"><h2>❌ Mauvaise réponse</h2><p>Dommage !</p></div>`;
+          fb.innerHTML = `<div class="feedback-mobile-card error"><h2><i class="fa-solid fa-circle-xmark"></i> Mauvaise réponse</h2><p>Dommage !</p></div>`;
         }
       }
       else if (data.type === 'FINAL_PODIUM') {
@@ -1255,9 +1391,9 @@
         const p = data.rankings;
         const disp = document.getElementById('playerPodiumDisplay');
         disp.innerHTML = `
-          <div class="podium-step p2"><div>${p[1]?.avatar || '🥈'}</div><strong>${p[1]?.name || '-'}</strong></div>
-          <div class="podium-step p1"><div>${p[0]?.avatar || '🥇'}</div><strong>${p[0]?.name || '-'}</strong></div>
-          <div class="podium-step p3"><div>${p[2]?.avatar || '🥉'}</div><strong>${p[2]?.name || '-'}</strong></div>
+          <div class="podium-step p2 ${p[1]?.disconnected ? 'disconnected' : ''}"><div>${p[1]?.avatar || '🥈'}</div><strong>${p[1]?.name || '-'}</strong></div>
+          <div class="podium-step p1 ${p[0]?.disconnected ? 'disconnected' : ''}"><div>${p[0]?.avatar || '🥇'}</div><strong>${p[0]?.name || '-'}</strong></div>
+          <div class="podium-step p3 ${p[2]?.disconnected ? 'disconnected' : ''}"><div>${p[2]?.avatar || '🥉'}</div><strong>${p[2]?.name || '-'}</strong></div>
         `;
 
         const recap = document.getElementById('playerRecapList');
@@ -1310,7 +1446,6 @@
 
     function showDisconnected(msg, icon) {
       document.getElementById('disconnMsg').textContent = msg;
-      document.getElementById('disconnIcon').textContent = icon;
       showScreen('disconnected');
     }
 
