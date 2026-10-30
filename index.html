@@ -1,1741 +1,1549 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Party Quiz - Jeux de Soirée</title>
-  
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <!-- QR Code Generator CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- PeerJS CDN pour WebRTC -->
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <!-- Canvas Confetti CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-  <style>
-    :root {
-      --bg-dark: #0b0c10;
-      --bg-card: rgba(26, 29, 41, 0.85);
-      --primary: #00f2fe;
-      --secondary: #4facfe;
-      --accent: #ff007f;
-      --gold: #ffd700;
-      --silver: #c0c0c0;
-      --bronze: #cd7f32;
-      --success: #00e676;
-      --danger: #ff1744;
-      --text-light: #f8f9fa;
-      --text-muted: #a0aec0;
-      --radius: 16px;
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      --neon-glow: 0 0 15px rgba(0, 242, 254, 0.5);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', sans-serif;
-      user-select: none;
-    }
-
-    body {
-      background: radial-gradient(circle at center, #1b1e2e 0%, #080811 100%);
-      color: var(--text-light);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-    }
-
-    /* Bandeau Supérieur pour l'Hôte uniquement */
-    header.host-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 30px;
-      background: rgba(11, 12, 16, 0.8);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      position: relative;
-      z-index: 10;
-    }
-
-    .logo {
-      font-size: 1.8rem;
-      font-weight: 900;
-      background: linear-gradient(45deg, var(--primary), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .audio-controls {
-      display: flex;
-      gap: 15px;
-    }
-
-    .icon-btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #fff;
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .icon-btn:hover {
-      background: var(--primary);
-      color: #000;
-      box-shadow: var(--neon-glow);
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      position: relative;
-    }
-
-    .screen {
-      display: none;
-      width: 100%;
-      max-width: 1000px;
-      animation: fadeIn 0.4s ease-out;
-    }
-
-    .screen.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Cartes & Containers */
-    .card {
-      background: var(--bg-card);
-      backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: var(--radius);
-      padding: 30px;
-      box-shadow: var(--shadow);
-      margin-bottom: 20px;
-    }
-
-    .title-large {
-      font-size: 2.2rem;
-      text-align: center;
-      margin-bottom: 25px;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-    }
-
-    /* Grille de sélection de jeu */
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
-
-    .game-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: var(--radius);
-      padding: 25px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .game-card.active-game:hover {
-      border-color: var(--primary);
-      transform: translateY(-5px);
-      box-shadow: var(--neon-glow);
-    }
-
-    .game-card.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      filter: grayscale(80%);
-    }
-
-    .badge-disabled {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .game-icon {
-      font-size: 3rem;
-      margin-bottom: 15px;
-      color: var(--primary);
-    }
-
-    /* Boutons standards */
-    .btn {
-      background: linear-gradient(45deg, var(--primary), var(--secondary));
-      color: #000;
-      border: none;
-      padding: 14px 28px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
-    }
-
-    .btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6);
-    }
-
-    .btn-accent {
-      background: linear-gradient(45deg, #ff007f, #7928ca);
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(255, 0, 127, 0.3);
-    }
-
-    .btn-danger {
-      background: linear-gradient(45deg, #ff1744, #b71c1c);
-      color: #fff;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #fff;
-    }
-
-    /* Page Configuration du Salon */
-    .config-group {
-      margin-bottom: 20px;
-    }
-
-    .config-group label {
-      display: block;
-      margin-bottom: 10px;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .options-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 10px;
-    }
-
-    .option-btn {
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      color: #fff;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
-    }
-
-    .option-btn.selected {
-      background: var(--primary);
-      color: #000;
-      font-weight: 700;
-      border-color: var(--primary);
-    }
-
-    /* Écran Salon (Lobby) */
-    .lobby-container {
-      display: grid;
-      grid-template-columns: 1fr 1.2fr;
-      gap: 30px;
-    }
-
-    @media (max-width: 768px) {
-      .lobby-container {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .qr-box {
-      background: #fff;
-      padding: 20px;
-      border-radius: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #qrcode img {
-      margin: 0 auto;
-    }
-
-    .players-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 10px;
-      max-height: 280px;
-      overflow-y: auto;
-      padding-right: 5px;
-    }
-
-    .player-card {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      padding: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .player-card-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      overflow: hidden;
-    }
-
-    .player-avatar {
-      font-size: 1.5rem;
-    }
-
-    .player-name {
-      font-weight: 600;
-      font-size: 0.95rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .btn-eject {
-      background: rgba(255, 23, 68, 0.2);
-      border: 1px solid rgba(255, 23, 68, 0.4);
-      color: #ff5252;
-      border-radius: 50%;
-      width: 26px;
-      height: 26px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 0.75rem;
-      transition: all 0.2s ease;
-      flex-shrink: 0;
-    }
-
-    .btn-eject:hover {
-      background: var(--danger);
-      color: #fff;
-      transform: scale(1.1);
-    }
-
-    @keyframes popIn {
-      0% { transform: scale(0); }
-      100% { transform: scale(1); }
-    }
-
-    /* Écran Question (Hôte) */
-    .game-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .timer-bar-container {
-      width: 100%;
-      height: 12px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
-      overflow: hidden;
-      margin-bottom: 25px;
-    }
-
-    .timer-bar {
-      height: 100%;
-      width: 100%;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      transition: width 1s linear;
-    }
-
-    .question-title {
-      font-size: 1.8rem;
-      text-align: center;
-      margin-bottom: 30px;
-      min-height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .answers-grid-host {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-    }
-
-    .answer-host {
-      background: rgba(255, 255, 255, 0.05);
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 20px;
-      font-size: 1.2rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      position: relative;
-    }
-
-    .answer-prefix {
-      width: 35px;
-      height: 35px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      color: #000;
-    }
-
-    .prefix-a { background: #ff4757; }
-    .prefix-b { background: #1e90ff; }
-    .prefix-c { background: #2ed573; }
-    .prefix-d { background: #ffa502; }
-
-    .answer-host.correct {
-      border-color: var(--success);
-      background: rgba(0, 230, 118, 0.2);
-      box-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
-    }
-
-    .answer-host.wrong-dimmed {
-      opacity: 0.35;
-    }
-
-    .count-badge {
-      position: absolute;
-      right: 15px;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 5px 12px;
-      border-radius: 15px;
-      font-size: 0.9rem;
-      display: none; /* Masqué jusqu'à la fin de la question */
-    }
-
-    .count-badge.visible {
-      display: block;
-    }
-
-    /* Écran Joueur Mobile (Optimisé mobile sans bandeau top) */
-    .mobile-container {
-      width: 100%;
-      max-width: 480px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      min-height: 90vh;
-      justify-content: space-between;
-      position: relative;
-    }
-
-    .mobile-header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      margin-bottom: 15px;
-    }
-
-    .player-profile-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    .btn-leave {
-      background: rgba(255, 23, 68, 0.2);
-      border: 1px solid rgba(255, 23, 68, 0.4);
-      color: #ff4d4d;
-      padding: 6px 12px;
-      border-radius: 15px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .emoji-selector {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-      margin: 15px 0;
-    }
-
-    .emoji-opt {
-      font-size: 2rem;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
-    }
-
-    .emoji-opt.selected {
-      border-color: var(--primary);
-      background: rgba(0, 242, 254, 0.2);
-      transform: scale(1.1);
-    }
-
-    .mobile-question-text {
-      font-size: 1.25rem;
-      font-weight: 700;
-      text-align: center;
-      margin-bottom: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 15px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .mobile-answers-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
-    }
-
-    .mobile-answer-btn {
-      width: 100%;
-      padding: 18px 15px;
-      border-radius: 14px;
-      border: none;
-      color: #fff;
-      font-size: 1.1rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      transition: transform 0.1s, opacity 0.2s;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      text-align: left;
-    }
-
-    .mobile-answer-btn:active {
-      transform: scale(0.98);
-    }
-
-    .mobile-answer-btn.btn-a { background: linear-gradient(45deg, #ff4757, #ff6b81); }
-    .mobile-answer-btn.btn-b { background: linear-gradient(45deg, #1e90ff, #70a1ff); }
-    .mobile-answer-btn.btn-c { background: linear-gradient(45deg, #2ed573, #7bed9f); }
-    .mobile-answer-btn.btn-d { background: linear-gradient(45deg, #ffa502, #eccc68); }
-
-    .mobile-answer-btn.locked {
-      opacity: 0.4;
-      pointer-events: none;
-    }
-
-    .mobile-answer-btn.selected-choice {
-      opacity: 1 !important;
-      outline: 4px solid #fff;
-      transform: scale(1.02);
-    }
-
-    .feedback-card {
-      text-align: center;
-      padding: 40px 20px;
-      border-radius: var(--radius);
-      margin-top: 20px;
-      animation: popIn 0.3s ease;
-    }
-
-    .feedback-card.success {
-      background: rgba(0, 230, 118, 0.2);
-      border: 2px solid var(--success);
-      color: var(--success);
-    }
-
-    .feedback-card.error {
-      background: rgba(255, 23, 68, 0.2);
-      border: 2px solid var(--danger);
-      color: var(--danger);
-    }
-
-    /* Podium Finale */
-    .podium-container {
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      gap: 15px;
-      height: 250px;
-      margin: 30px 0;
-    }
-
-    .podium-step {
-      width: 100px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px 12px 0 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding-top: 15px;
-      position: relative;
-      transition: height 1s ease;
-    }
-
-    .podium-step.p1 { height: 200px; background: linear-gradient(to top, rgba(255,215,0,0.3), rgba(255,215,0,0.8)); border: 2px solid var(--gold); }
-    .podium-step.p2 { height: 150px; background: linear-gradient(to top, rgba(192,192,192,0.3), rgba(192,192,192,0.8)); border: 2px solid var(--silver); }
-    .podium-step.p3 { height: 110px; background: linear-gradient(to top, rgba(205,127,50,0.3), rgba(205,127,50,0.8)); border: 2px solid var(--bronze); }
-
-    .podium-avatar { font-size: 2.2rem; }
-    .podium-name { font-weight: 700; font-size: 0.9rem; margin-top: 5px; text-align: center; }
-    .podium-score { font-size: 0.8rem; color: #fff; }
-
-    .input-field {
-      width: 100%;
-      padding: 14px 18px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background: rgba(0, 0, 0, 0.3);
-      color: #fff;
-      font-size: 1.1rem;
-      margin-bottom: 15px;
-      outline: none;
-    }
-
-    .input-field:focus {
-      border-color: var(--primary);
-      box-shadow: var(--neon-glow);
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Bandeau Hôte Uniquement (Géré dynamiquement) -->
-  <header class="host-header" id="hostHeader">
-    <div class="logo">
-      <i class="fa-solid fa-gamepad"></i> Party Quiz
-    </div>
-    <div class="audio-controls">
-      <button class="icon-btn" id="musicToggle" title="Activer/Désactiver la Musique de Soirée">
-        <i class="fa-solid fa-music"></i>
-      </button>
-      <button class="icon-btn" id="sfxToggle" title="Effets Sonores">
-        <i class="fa-solid fa-volume-high"></i>
-      </button>
-    </div>
-  </header>
-
-  <main>
-
-    <!-- ÉCRAN 1: ACCUEIL & CHOIX DE JEU (SÉLECTION PAR HÔTE) -->
-    <section id="screenHome" class="screen active">
-      <div class="card">
-        <h1 class="title-large">🎉 Choisissez votre Jeu de Soirée</h1>
-        <div class="games-grid">
-          
-          <div class="game-card active-game" id="btnSelectQuizz">
-            <div class="game-icon"><i class="fa-solid fa-circle-question"></i></div>
-            <h2>QUIZZ</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">15 questions, rapidité et culture générale !</p>
-          </div>
-
-          <div class="game-card disabled">
-            <span class="badge-disabled">Bientôt disponible</span>
-            <div class="game-icon"><i class="fa-solid fa-headphones"></i></div>
-            <h2>Blind Test</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">Devinez l'artiste ou le titre du morceau !</p>
-          </div>
-
-          <div class="game-card disabled">
-            <span class="badge-disabled">Bientôt disponible</span>
-            <div class="game-icon"><i class="fa-solid fa-tag"></i></div>
-            <h2>Le Juste Prix</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">Estimez le vrai prix des objets !</p>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- ÉCRAN 2: CONFIGURATION DU QUIZZ (HÔTE) -->
-    <section id="screenConfig" class="screen">
-      <div class="card">
-        <h2 class="title-large">⚙️ Configuration de la Partie</h2>
-        
-        <div class="config-group">
-          <label><i class="fa-solid fa-layer-group"></i> Thème du Quizz</label>
-          <div class="options-grid" id="themeOptions">
-            <div class="option-btn selected" data-value="general">Culture Générale</div>
-            <div class="option-btn" data-value="cinema">Cinéma & Séries</div>
-            <div class="option-btn" data-value="sport">Sport</div>
-            <div class="option-btn" data-value="music">Musique</div>
-            <div class="option-btn" data-value="geek">Geek & Tech</div>
-          </div>
-        </div>
-
-        <div class="config-group">
-          <label><i class="fa-solid fa-gauge-high"></i> Niveau de Difficulté</label>
-          <div class="options-grid" id="diffOptions">
-            <div class="option-btn selected" data-value="facile">Facile</div>
-            <div class="option-btn" data-value="moyen">Moyen</div>
-            <div class="option-btn" data-value="difficile">Difficile</div>
-          </div>
-        </div>
-
-        <div style="text-align: center; margin-top: 30px;">
-          <button class="btn btn-accent" id="btnCreateLobby">
-            <i class="fa-solid fa-door-open"></i> Ouvrir le salon d'attente
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ÉCRAN 3: SALON D'ATTENTE (HÔTE) -->
-    <section id="screenLobby" class="screen">
-      <div class="card">
-        <div class="lobby-container">
-          
-          <div class="qr-box">
-            <h3 style="color:#000; margin-bottom:10px; font-weight:700;">Scanne pour Jouer</h3>
-            <div id="qrcode"></div>
-            <p style="color:#666; font-size:0.8rem; margin-top:10px; text-align:center;">
-              Pointe l'appareil photo de ton téléphone
-            </p>
-          </div>
-
-          <div>
-            <h2 style="margin-bottom: 10px;">Salon de Jeu</h2>
-            <p style="color: var(--text-muted); margin-bottom: 15px;">
-              Thème : <span id="lobbyThemeName" style="color: var(--primary); font-weight:700;"></span> | 
-              Difficute : <span id="lobbyDiffName" style="color: var(--accent); font-weight:700;"></span>
-            </p>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-              <h3>Joueurs en attente (<span id="playerCount">0</span>)</h3>
-              <button class="btn btn-secondary" id="btnAddBot" style="padding: 5px 12px; font-size: 0.8rem;">
-                + Ajouter un Bot
-              </button>
-            </div>
-
-            <div class="players-list" id="lobbyPlayersList">
-              <!-- Les cartes joueurs / bots s'affichent ici -->
-            </div>
-
-            <div style="margin-top: 25px;">
-              <button class="btn btn-accent" id="btnStartGame" style="width: 100%; padding: 16px;">
-                🚀 Lancer la Partie !
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- ÉCRAN 4: QUESTION DE JEU (ÉCRAN PRINCIPAL HÔTE) -->
-    <section id="screenQuestion" class="screen">
-      <div class="card">
-        <div class="game-header">
-          <span style="font-weight: 700; color: var(--text-muted);">
-            Question <span id="currentQNum">1</span> / 15
-          </span>
-          <span id="timerDisplay" style="font-size: 1.5rem; font-weight: 900; color: var(--primary);">
-            ⏱️ 10s
-          </span>
-        </div>
-
-        <div class="timer-bar-container">
-          <div class="timer-bar" id="timerBar"></div>
-        </div>
-
-        <h2 class="question-title" id="questionText">Chargement...</h2>
-
-        <div class="answers-grid-host" id="hostAnswersGrid">
-          <div class="answer-host" id="hostAns0">
-            <span class="answer-prefix prefix-a">A</span>
-            <span class="ans-text">Option A</span>
-            <span class="count-badge" id="countAns0">0</span>
-          </div>
-          <div class="answer-host" id="hostAns1">
-            <span class="answer-prefix prefix-b">B</span>
-            <span class="ans-text">Option B</span>
-            <span class="count-badge" id="countAns1">0</span>
-          </div>
-          <div class="answer-host" id="hostAns2">
-            <span class="answer-prefix prefix-c">C</span>
-            <span class="ans-text">Option C</span>
-            <span class="count-badge" id="countAns2">0</span>
-          </div>
-          <div class="answer-host" id="hostAns3">
-            <span class="answer-prefix prefix-d">D</span>
-            <span class="ans-text">Option D</span>
-            <span class="count-badge" id="countAns3">0</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ÉCRAN 5: PODIUM & CLASSEMENT (HÔTE) -->
-    <section id="screenPodium" class="screen">
-      <div class="card" style="text-align: center;">
-        <h1 class="title-large">🏆 Classement Final 🏆</h1>
-        
-        <div class="podium-container" id="podiumDisplay">
-          <!-- Les marches 2, 1, 3 s'afficheront ici -->
-        </div>
-
-        <div style="margin-top: 30px;">
-          <button class="btn btn-danger" id="btnEndGame" style="padding: 16px 32px;">
-            <i class="fa-solid fa-power-off"></i> Terminer la partie
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ÉCRAN 6: INTERFACE REJOINDRE JOUEUR (SMARTPHONE) -->
-    <section id="screenPlayerJoin" class="screen">
-      <div class="mobile-container">
-        <div class="card" style="margin: auto 0;">
-          <h2 style="text-align: center; margin-bottom: 20px;">Rejoindre le Quiz</h2>
-          
-          <input type="text" id="playerPseudoInput" class="input-field" placeholder="Entre ton pseudo..." maxlength="12">
-          
-          <label style="display:block; font-size:0.9rem; color:var(--text-muted); margin-bottom: 5px;">Choisis ton émoji :</label>
-          <div class="emoji-selector" id="emojiSelector">
-            <div class="emoji-opt selected">😎</div>
-            <div class="emoji-opt">🚀</div>
-            <div class="emoji-opt">🔥</div>
-            <div class="emoji-opt">🦄</div>
-            <div class="emoji-opt">🍕</div>
-            <div class="emoji-opt">🎉</div>
-            <div class="emoji-opt">🤖</div>
-            <div class="emoji-opt">🐱</div>
-            <div class="emoji-opt">👑</div>
-            <div class="emoji-opt">⚡</div>
-          </div>
-
-          <button class="btn btn-accent" id="btnPlayerJoin" style="width: 100%; margin-top: 15px;">
-            Rejoindre le Salon
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ÉCRAN 7: MANETTE JOUEUR SUR SMARTPHONE -->
-    <section id="screenPlayerGame" class="screen">
-      <div class="mobile-container">
-        <div>
-          <div class="mobile-header-bar">
-            <div class="player-profile-badge">
-              <span id="pBadgeAvatar">😎</span>
-              <span id="pBadgeName">Joueur</span>
-            </div>
-            <button class="btn-leave" id="btnPlayerLeave">Quitter</button>
-          </div>
-
-          <div id="playerWaitArea" style="text-align: center; padding: 40px 10px;">
-            <i class="fa-solid fa-hourglass-half fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
-            <h3>En attente...</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;" id="playerWaitMsg">
-              Regarde l'écran principal pour la suite !
-            </p>
-          </div>
-
-          <div id="playerActiveQuestionArea" style="display: none;">
-            <div class="mobile-question-text" id="playerQuestionText">Question...</div>
-
-            <div class="mobile-answers-list">
-              <button class="mobile-answer-btn btn-a" data-choice="0">
-                <span>A.</span> <span class="m-ans-label">Option A</span>
-              </button>
-              <button class="mobile-answer-btn btn-b" data-choice="1">
-                <span>B.</span> <span class="m-ans-label">Option B</span>
-              </button>
-              <button class="mobile-answer-btn btn-c" data-choice="2">
-                <span>C.</span> <span class="m-ans-label">Option C</span>
-              </button>
-              <button class="mobile-answer-btn btn-d" data-choice="3">
-                <span>D.</span> <span class="m-ans-label">Option D</span>
-              </button>
-            </div>
-          </div>
-
-          <div id="playerFeedbackArea" style="display: none;">
-            <!-- Affichage bonne/mauvaise réponse -->
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ÉCRAN 8: DECONNEXION / PARTIE TERMINÉE -->
-    <section id="screenDisconnected" class="screen">
-      <div class="mobile-container" style="justify-content: center;">
-        <div class="card" style="text-align: center;">
-          <div style="font-size: 4rem; margin-bottom: 15px;" id="disconnIcon">👋</div>
-          <h2 id="disconnTitle" style="margin-bottom: 10px;">Déconnecté</h2>
-          <p id="disconnMsg" style="color: var(--text-muted); margin-bottom: 25px;">
-            Tu n'es plus connecté au salon de jeu.
-          </p>
-          <button class="btn" id="btnGoHome">
-            <i class="fa-solid fa-house"></i> Retour à l'accueil
-          </button>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <script>
-    /* ==========================================================================
-       SYNTHÉTISEUR AUDIO WEB AUDIO API (Effets sonores & Musique festive)
-       ========================================================================== */
-    class SoundEngine {
-      constructor() {
-        this.ctx = null;
-        this.musicMuted = false;
-        this.sfxMuted = false;
-        this.bgMusicTimer = null;
-        this.isMusicPlaying = false;
-      }
-
-      init() {
-        if (!this.ctx) {
-          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-      }
-
-      playClick() {
-        if (this.sfxMuted) return;
-        this.init();
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(600, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1200, this.ctx.currentTime + 0.08);
-        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.08);
-      }
-
-      playTick() {
-        if (this.sfxMuted) return;
-        this.init();
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.04);
-      }
-
-      playCorrect() {
-        if (this.sfxMuted) return;
-        this.init();
-        const now = this.ctx.currentTime;
-        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-          gain.gain.setValueAtTime(0.2, now + idx * 0.08);
-          gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.08 + 0.25);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start(now + idx * 0.08);
-          osc.stop(now + idx * 0.08 + 0.25);
-        });
-      }
-
-      playWrong() {
-        if (this.sfxMuted) return;
-        this.init();
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(150, now);
-        osc.frequency.linearRampToValueAtTime(90, now + 0.3);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.3);
-      }
-
-      // MUSIQUE FESTIVE & DYNAMIQUE (Synthwave / Electro Lounge - 120 BPM)
-      startFestiveMusic() {
-        if (this.isMusicPlaying || this.musicMuted) return;
-        this.init();
-        this.isMusicPlaying = true;
-        
-        let step = 0;
-        // Gamme pentatonique mineure dynamique
-        const bassNotes = [110, 110, 130.81, 146.83, 110, 110, 164.81, 146.83];
-        const melodyNotes = [220, 261.63, 293.66, 329.63, 392.00, 329.63, 293.66, 261.63];
-
-        this.bgMusicTimer = setInterval(() => {
-          if (this.musicMuted) return;
-          const now = this.ctx.currentTime;
-
-          // 1. Synthé Bass Punchy
-          const bassOsc = this.ctx.createOscillator();
-          const bassGain = this.ctx.createGain();
-          bassOsc.type = 'sawtooth';
-          bassOsc.frequency.setValueAtTime(bassNotes[step % bassNotes.length], now);
-          bassGain.gain.setValueAtTime(0.04, now);
-          bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-          bassOsc.connect(bassGain);
-          bassGain.connect(this.ctx.destination);
-          bassOsc.start(now);
-          bassOsc.stop(now + 0.2);
-
-          // 2. Beat Kick / Snare
-          if (step % 2 === 0) { // Kick
-            const kickOsc = this.ctx.createOscillator();
-            const kickGain = this.ctx.createGain();
-            kickOsc.frequency.setValueAtTime(120, now);
-            kickOsc.frequency.exponentialRampToValueAtTime(0.01, now + 0.12);
-            kickGain.gain.setValueAtTime(0.1, now);
-            kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-            kickOsc.connect(kickGain);
-            kickGain.connect(this.ctx.destination);
-            kickOsc.start(now);
-            kickOsc.stop(now + 0.12);
-          } else { // Snare
-            const snareOsc = this.ctx.createOscillator();
-            const snareGain = this.ctx.createGain();
-            snareOsc.type = 'triangle';
-            snareOsc.frequency.setValueAtTime(250, now);
-            snareGain.gain.setValueAtTime(0.03, now);
-            snareGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-            snareOsc.connect(snareGain);
-            snareGain.connect(this.ctx.destination);
-            snareOsc.start(now);
-            snareOsc.stop(now + 0.08);
-          }
-
-          // 3. Arpège Mélodie Festive
-          if (step % 4 === 0 || step % 4 === 3) {
-            const melOsc = this.ctx.createOscillator();
-            const melGain = this.ctx.createGain();
-            melOsc.type = 'sine';
-            melOsc.frequency.setValueAtTime(melodyNotes[(step * 2) % melodyNotes.length], now);
-            melGain.gain.setValueAtTime(0.02, now);
-            melGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-            melOsc.connect(melGain);
-            melGain.connect(this.ctx.destination);
-            melOsc.start(now);
-            melOsc.stop(now + 0.18);
-          }
-
-          step++;
-        }, 250); // 120 BPM
-      }
-
-      stopMusic() {
-        if (this.bgMusicTimer) clearInterval(this.bgMusicTimer);
-        this.isMusicPlaying = false;
-      }
-    }
-
-    const sound = new SoundEngine();
-
-    /* ==========================================================================
-       BANQUE DE QUESTIONS MULTI-THÈMES
-       ========================================================================== */
-    const QUESTIONS_DB = {
-      general: [
-        { q: "Quelle est la capitale de l'Australie ?", a: ["Sydney", "Canberra", "Melbourne", "Brisbane"], correct: 1 },
-        { q: "Combien de cœurs possède une pieuvre ?", a: ["1", "2", "3", "4"], correct: 2 },
-        { q: "En quelle année a eu lieu la Révolution Française ?", a: ["1789", "1799", "1815", "1776"], correct: 0 },
-        { q: "Quel est le plus grand océan de la planète ?", a: ["Océan Atlantique", "Océan Pacifique", "Océan Indien", "Océan Arctique"], correct: 1 }
-      ],
-      cinema: [
-        { q: "Quel film a remporté l'Oscar du Meilleur Film en 2020 ?", a: ["1917", "Parasite", "Joker", "Once Upon a Time in Hollywood"], correct: 1 },
-        { q: "Qui interprète le rôle de Jack Dawson dans Titanic ?", a: ["Brad Pitt", "Tom Cruise", "Leonardo DiCaprio", "Matt Damon"], correct: 2 },
-        { q: "Quel est le nom de la planète d'origine de Spock dans Star Trek ?", a: ["Klingon", "Vulcan", "Tatooine", "Pandora"], correct: 1 }
-      ],
-      sport: [
-        { q: "Combien de joueurs composent une équipe de basket sur le terrain ?", a: ["5", "6", "7", "11"], correct: 0 },
-        { q: "Dans quel pays se sont déroulés les JO d'été 2016 ?", a: ["Chine", "Royaume-Uni", "Brésil", "Japon"], correct: 2 }
-      ],
-      music: [
-        { q: "Quel groupe a chanté 'Bohemian Rhapsody' ?", a: ["The Beatles", "Queen", "Led Zeppelin", "Pink Floyd"], correct: 1 },
-        { q: "Quel instrument possède 88 touches ?", a: ["Le Piano", "La Harpe", "L'Accordéon", "Le Clavecin"], correct: 0 }
-      ],
-      geek: [
-        { q: "Que signifie l'acronyme HTML ?", a: ["HyperText Markup Language", "HighText Machine Language", "Hyperlink Text Mode Language", "Home Tool Markup Language"], correct: 0 },
-        { q: "En quelle année est sorti le tout premier iPhone ?", a: ["2005", "2007", "2009", "2010"], correct: 1 }
-      ]
-    };
-
-    /* ==========================================================================
-       GESTIONNAIRE D'ÉTAT DU JEU (Réseau PeerJS, Hôte, Joueur)
-       ========================================================================== */
-    const app = {
-      isHost: false,
-      roomId: null,
-      peer: null,
-      connections: {}, // Connexions réseau des joueurs pour l'Hôte
-      hostConn: null,  // Connexion Hôte pour le Joueur
-      
-      // Données de partie (Hôte)
-      selectedTheme: 'general',
-      selectedDiff: 'facile',
-      players: {}, // { id: { name, avatar, score, isBot } }
-      questions: [],
-      currentQIdx: 0,
-      answersReceived: {}, // { playerId: choiceIdx }
-      timerInterval: null,
-
-      // Données Joueur local
-      localPlayer: {
-        id: null,
-        name: '',
-        avatar: '😎',
-        choice: null
-      }
-    };
-
-    // DOM Elements
-    const screens = {
-      home: document.getElementById('screenHome'),
-      config: document.getElementById('screenConfig'),
-      lobby: document.getElementById('screenLobby'),
-      question: document.getElementById('screenQuestion'),
-      podium: document.getElementById('screenPodium'),
-      playerJoin: document.getElementById('screenPlayerJoin'),
-      playerGame: document.getElementById('screenPlayerGame'),
-      disconnected: document.getElementById('screenDisconnected')
-    };
-
-    function showScreen(screenKey) {
-      Object.values(screens).forEach(s => s.classList.remove('active'));
-      screens[screenKey].classList.add('active');
-
-      // Masquer le bandeau haut pour l'écran mobile joueur
-      const hostHeader = document.getElementById('hostHeader');
-      if (screenKey === 'playerJoin' || screenKey === 'playerGame' || screenKey === 'disconnected') {
-        hostHeader.style.display = 'none';
-      } else {
-        hostHeader.style.display = 'flex';
-      }
-    }
-
-    /* ==========================================================================
-       INITIALISATION & DECTECTION REJOINTE QR CODE
-       ========================================================================== */
-    window.addEventListener('DOMContentLoaded', () => {
-      // Démarrer la musique au premier clic
-      document.body.addEventListener('click', () => sound.startFestiveMusic(), { once: true });
-
-      // Vérifier si le joueur rejoint via QR Code (URL param ?room=xxxx)
-      const urlParams = new URLSearchParams(window.location.search);
-      const roomParam = urlParams.get('room');
-
-      if (roomParam) {
-        // Mode Joueur Mobile Direct
-        app.isHost = false;
-        app.roomId = roomParam;
-        showScreen('playerJoin');
-        initPlayerPeer();
-      } else {
-        // Mode Hôte (Grand Écran)
-        app.isHost = true;
-        showScreen('home');
-      }
-
-      setupEventListeners();
-    });
-
-    function setupEventListeners() {
-      // Toggles Audio
-      document.getElementById('musicToggle').addEventListener('click', () => {
-        sound.musicMuted = !sound.musicMuted;
-        document.getElementById('musicToggle').style.opacity = sound.musicMuted ? '0.4' : '1';
-        if (!sound.musicMuted) sound.startFestiveMusic();
-      });
-
-      document.getElementById('sfxToggle').addEventListener('click', () => {
-        sound.sfxMuted = !sound.sfxMuted;
-        document.getElementById('sfxToggle').style.opacity = sound.sfxMuted ? '0.4' : '1';
-      });
-
-      // Écran Accueil
-      document.getElementById('btnSelectQuizz').addEventListener('click', () => {
-        sound.playClick();
-        showScreen('config');
-      });
-
-      // Options Configuration
-      document.querySelectorAll('#themeOptions .option-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          sound.playClick();
-          document.querySelectorAll('#themeOptions .option-btn').forEach(b => b.classList.remove('selected'));
-          e.target.classList.add('selected');
-          app.selectedTheme = e.target.dataset.value;
-        });
-      });
-
-      document.querySelectorAll('#diffOptions .option-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          sound.playClick();
-          document.querySelectorAll('#diffOptions .option-btn').forEach(b => b.classList.remove('selected'));
-          e.target.classList.add('selected');
-          app.selectedDiff = e.target.dataset.value;
-        });
-      });
-
-      // Création du Salon (Hôte)
-      document.getElementById('btnCreateLobby').addEventListener('click', () => {
-        sound.playClick();
-        initHostLobby();
-      });
-
-      // Ajout Bot Simulation
-      document.getElementById('btnAddBot').addEventListener('click', () => {
-        sound.playClick();
-        addBotPlayer();
-      });
-
-      // Lancement de la partie (Hôte)
-      document.getElementById('btnStartGame').addEventListener('click', () => {
-        sound.playClick();
-        startQuizGame();
-      });
-
-      // Sélection d'émoji (Joueur)
-      document.querySelectorAll('.emoji-opt').forEach(opt => {
-        opt.addEventListener('click', (e) => {
-          sound.playClick();
-          document.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
-          e.target.classList.add('selected');
-          app.localPlayer.avatar = e.target.textContent;
-        });
-      });
-
-      // Rejoindre la partie (Joueur Mobile)
-      document.getElementById('btnPlayerJoin').addEventListener('click', () => {
-        sound.playClick();
-        const pseudoInput = document.getElementById('playerPseudoInput').value.trim();
-        if (!pseudoInput) return alert('Merci d\'entrer un pseudo !');
-
-        app.localPlayer.name = pseudoInput;
-        app.localPlayer.id = 'p_' + Math.random().toString(36).substr(2, 6);
-
-        // Envoyer l'inscription à l'Hôte
-        if (app.hostConn) {
-          app.hostConn.send({
-            type: 'JOIN',
-            player: app.localPlayer
-          });
-        }
-
-        document.getElementById('pBadgeName').textContent = app.localPlayer.name;
-        document.getElementById('pBadgeAvatar').textContent = app.localPlayer.avatar;
-        
-        showScreen('playerGame');
-      });
-
-      // Boutons de réponse (Joueur Mobile)
-      document.querySelectorAll('.mobile-answer-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          sound.playClick();
-          const choice = parseInt(e.currentTarget.dataset.choice);
-          submitPlayerAnswer(choice);
-        });
-      });
-
-      // Bouton Quitter (Joueur Mobile)
-      document.getElementById('btnPlayerLeave').addEventListener('click', () => {
-        sound.playClick();
-        if (app.hostConn) {
-          app.hostConn.send({ type: 'LEAVE', playerId: app.localPlayer.id });
-        }
-        showDisconnected("Tu as quitté la partie.", "👋");
-      });
-
-      // Bouton Terminer la Partie (Hôte Podium)
-      document.getElementById('btnEndGame').addEventListener('click', () => {
-        sound.playClick();
-        // Informer tous les joueurs
-        broadcastToPlayers({ type: 'GAME_OVER' });
-        showDisconnected("Partie terminée par l'hôte !", "🎉");
-      });
-
-      // Bouton Retour Accueil (Tout le monde)
-      document.getElementById('btnGoHome').addEventListener('click', () => {
-        sound.playClick();
-        window.location.href = window.location.pathname; // Reload propre sans params
-      });
-    }
-
-    /* ==========================================================================
-       LOGIQUE CÔTÉ HÔTE (CREATION SALON & RESEAU)
-       ========================================================================== */
-    function initHostLobby() {
-      // Toujours générer un identifiant de salon 100% unique et vierge
-      const uniqueRoomId = 'QUIZ-' + Math.floor(1000 + Math.random() * 9000);
-      app.roomId = uniqueRoomId;
-      app.players = {}; // Salon totalement vierge sans anciens joueurs
-
-      document.getElementById('lobbyThemeName').textContent = app.selectedTheme.toUpperCase();
-      document.getElementById('lobbyDiffName').textContent = app.selectedDiff.toUpperCase();
-
-      // Génération du QR Code contenant l'URL unique avec ?room=ROOM_ID
-      const joinUrl = window.location.origin + window.location.pathname + '?room=' + app.roomId;
-      document.getElementById('qrcode').innerHTML = '';
-      new QRCode(document.getElementById('qrcode'), {
-        text: joinUrl,
-        width: 180,
-        height: 180
-      });
-
-      showScreen('lobby');
-      updateLobbyUI();
-
-      // Initialisation du serveur PeerJS pour l'Hôte
-      app.peer = new Peer(app.roomId);
-
-      app.peer.on('connection', (conn) => {
-        conn.on('data', (data) => {
-          handleHostIncomingData(conn, data);
-        });
-
-        conn.on('close', () => {
-          // Gérer déconnexion imprévue
-          for (let pId in app.connections) {
-            if (app.connections[pId] === conn) {
-              delete app.players[pId];
-              delete app.connections[pId];
-              updateLobbyUI();
-              break;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Party Quiz Live 🌟</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QR Code Generator CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- PeerJS CDN pour WebRTC P2P direct -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        party: {
+                            pink: '#FF007A',
+                            purple: '#8B00FF',
+                            cyan: '#00F0FF',
+                            yellow: '#FFD700',
+                            dark: '#0B0B1A',
+                            card: '#16162E'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        arcade: ['"Press Start 2P"', 'cursive']
+                    }
+                }
             }
-          }
-        });
-      });
-    }
+        }
+    </script>
 
-    function handleHostIncomingData(conn, data) {
-      if (data.type === 'JOIN') {
-        const player = data.player;
-        app.players[player.id] = {
-          name: player.name,
-          avatar: player.avatar,
-          score: 0,
-          isBot: false
+    <style>
+        body {
+            background-color: #080811;
+            color: #FFFFFF;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 122, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(139, 0, 255, 0.1) 0%, transparent 60%);
+            background-attachment: fixed;
+        }
+
+        .glass-panel {
+            background: rgba(22, 22, 46, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .opt-0 { background: linear-gradient(135deg, #FF3366, #DA023C); }
+        .opt-1 { background: linear-gradient(135deg, #2196F3, #0062FF); }
+        .opt-2 { background: linear-gradient(135deg, #FF9800, #E65100); }
+        .opt-3 { background: linear-gradient(135deg, #4CAF50, #1B5E20); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between font-sans selection:bg-party-pink selection:text-white">
+
+    <!-- Entête Hôte Uniquement (Masqué sur Mobile Joueur) -->
+    <header id="globalHeader" class="p-4 border-b border-white/10 glass-panel sticky top-0 z-50 flex justify-between items-center">
+        <!-- Logo cliquable ramenant à l'accueil -->
+        <div class="flex items-center gap-3 cursor-pointer select-none" onclick="app.showHome()">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-party-pink to-party-cyan flex items-center justify-center shadow-lg">
+                <i class="fa-solid fa-bolt text-xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-wider bg-gradient-to-r from-party-pink via-purple-300 to-party-cyan bg-clip-text text-transparent">
+                    PARTY QUIZ
+                </h1>
+                <p class="text-xs text-gray-400">Soirée & Quiz Interactif</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button id="musicToggleBtn" onclick="app.toggleMusic()" class="p-2.5 px-3.5 rounded-xl glass-panel text-gray-300 hover:text-white flex items-center gap-2 border border-white/10 transition-all">
+                <i id="musicIcon" class="fa-solid fa-music text-party-pink"></i>
+                <span class="text-xs font-semibold hidden sm:inline" id="musicLabel">Musique ON</span>
+            </button>
+            <button id="soundToggleBtn" onclick="app.toggleSound()" class="p-2.5 px-3.5 rounded-xl glass-panel text-gray-300 hover:text-white flex items-center gap-2 border border-white/10 transition-all">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-party-cyan"></i>
+                <span class="text-xs font-semibold hidden sm:inline" id="soundLabel">Sons ON</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Conteneur Principal -->
+    <main class="flex-grow container mx-auto p-4 md:p-6 max-w-6xl flex flex-col justify-center">
+
+        <!-- Banner de Statut WebRTC -->
+        <div id="statusBanner" class="hidden mb-4 p-3 rounded-xl bg-party-purple/30 border border-party-purple/50 text-party-cyan text-xs text-center font-semibold">
+            <i class="fa-solid fa-network-wired animate-pulse"></i> <span id="statusBannerText">Initialisation du réseau...</span>
+        </div>
+
+        <!-- ================= PAGE 1: ACCUEIL ================= -->
+        <section id="pageHome" class="space-y-8 animate-fade-in">
+            <div class="text-center max-w-2xl mx-auto space-y-3">
+                <span class="px-3 py-1 rounded-full bg-party-purple/30 text-party-cyan text-xs font-bold uppercase tracking-widest border border-party-cyan/30">
+                    🎉 Soirée Festive
+                </span>
+                <h2 class="text-3xl md:text-5xl font-black tracking-tight">Choisissez votre jeu !</h2>
+                <p class="text-gray-400 text-sm md:text-base">Projetez cet écran. Les joueurs scannent le QR Code depuis leur téléphone pour participer.</p>
+            </div>
+
+            <!-- Grille des jeux -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- QUIZZ GAME -->
+                <div onclick="app.selectGameMode('quizz')" class="glass-panel p-6 rounded-2xl border-2 border-party-pink/60 hover:border-party-pink cursor-pointer transition-all duration-300 hover:scale-[1.02] group relative overflow-hidden flex flex-col justify-between">
+                    <div class="space-y-4 relative z-10">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-party-pink to-party-purple flex items-center justify-center shadow-lg text-2xl text-white">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-party-pink uppercase tracking-wider">DISPONIBLE</span>
+                            <h3 class="text-2xl font-black text-white mt-1">QUIZZ LIVE</h3>
+                            <p class="text-gray-400 text-xs mt-2 leading-relaxed">
+                                15 questions, 10s par réponse. Culture G, Cinéma, Sport, Musique & Geek !
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-white/10 flex justify-between items-center text-party-pink font-bold text-sm">
+                        <span>Créer le salon Hôte</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- AUTRES JEUX BIENTÔT DISPONIBLES -->
+                <div class="glass-panel p-6 rounded-2xl border border-white/5 opacity-50 cursor-not-allowed">
+                    <div class="space-y-4">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center text-2xl text-gray-500">
+                            <i class="fa-solid fa-music"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-gray-400">BLIND TEST</h3>
+                        <p class="text-gray-500 text-xs">Devinez les extraits musicaux !</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl border border-white/5 opacity-50 cursor-not-allowed">
+                    <div class="space-y-4">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center text-2xl text-gray-500">
+                            <i class="fa-solid fa-tags"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-gray-400">JUSTE PRIX</h3>
+                        <p class="text-gray-500 text-xs">Estimez le prix des objets insolites !</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl border border-white/5 opacity-50 cursor-not-allowed">
+                    <div class="space-y-4">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center text-2xl text-gray-500">
+                            <i class="fa-solid fa-microphone"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-gray-400">KARAOKÉ</h3>
+                        <p class="text-gray-500 text-xs">Complétez les paroles manquantes !</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= PAGE 2: SETUP DU QUIZZ ================= -->
+        <section id="pageSetup" class="hidden space-y-6 max-w-2xl mx-auto w-full">
+            <button onclick="app.showHome()" class="text-gray-400 hover:text-white flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-arrow-left"></i> Retour au choix du jeu
+            </button>
+
+            <div class="glass-panel p-6 md:p-8 rounded-3xl space-y-6 border border-party-pink/30">
+                <div class="border-b border-white/10 pb-4">
+                    <h2 class="text-2xl font-black bg-gradient-to-r from-party-pink to-party-cyan bg-clip-text text-transparent">
+                        Configuration du Quizz
+                    </h2>
+                    <p class="text-xs text-gray-400">Choisissez la thématique et la difficulté de la partie.</p>
+                </div>
+
+                <!-- Thèmes -->
+                <div class="space-y-3">
+                    <label class="text-sm font-bold text-gray-200 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-party-pink"></i> 1. Thématique
+                    </label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="themesGrid"></div>
+                </div>
+
+                <!-- Difficulté -->
+                <div class="space-y-3">
+                    <label class="text-sm font-bold text-gray-200 flex items-center gap-2">
+                        <i class="fa-solid fa-gauge-high text-party-cyan"></i> 2. Niveau de difficulté
+                    </label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" onclick="app.setDifficulty('facile')" id="diff-facile" class="diff-btn glass-panel p-3 rounded-xl border border-white/10 text-center font-bold text-sm hover:border-green-400 transition-all">🟢 Facile</button>
+                        <button type="button" onclick="app.setDifficulty('moyen')" id="diff-moyen" class="diff-btn glass-panel p-3 rounded-xl border border-white/10 text-center font-bold text-sm hover:border-yellow-400 transition-all">🟡 Moyen</button>
+                        <button type="button" onclick="app.setDifficulty('difficile')" id="diff-difficile" class="diff-btn glass-panel p-3 rounded-xl border border-white/10 text-center font-bold text-sm hover:border-red-500 transition-all">🔴 Difficile</button>
+                    </div>
+                </div>
+
+                <button id="createLobbyBtn" onclick="app.createLobbyHost()" class="w-full py-4 rounded-xl font-extrabold text-lg text-white bg-gradient-to-r from-party-pink to-party-purple shadow-lg hover:scale-[1.01] transition-all flex items-center justify-center gap-3">
+                    <span>Ouvrir le Salon (Écran Hôte)</span>
+                    <i class="fa-solid fa-qrcode"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 3: LOBBY / SALON D'ATTENTE (ÉCRAN HÔTE) ================= -->
+        <section id="pageLobby" class="hidden space-y-6 max-w-4xl mx-auto w-full">
+            
+            <!-- TITRE ET INFOS DU SALON EN HAUT CENTRÉS VERTICALEMENT -->
+            <div class="text-center space-y-2 glass-panel p-4 rounded-2xl border border-party-pink/30">
+                <h2 class="text-3xl font-black bg-gradient-to-r from-party-pink to-party-cyan bg-clip-text text-transparent">
+                    Salle d'attente
+                </h2>
+                <div class="flex justify-center items-center gap-4 text-xs font-semibold text-gray-300">
+                    <span class="px-3 py-1 rounded-full bg-party-pink/20 text-party-pink border border-party-pink/30" id="lobbyThemeBadge">Culture Générale</span>
+                    <span class="px-3 py-1 rounded-full bg-party-cyan/20 text-party-cyan border border-party-cyan/30" id="lobbyDifficultyInfo">Difficulté : Facile</span>
+                    <span class="px-3 py-1 rounded-full bg-party-purple/40 text-party-yellow border border-party-purple"><strong id="playerCount">0</strong> joueur(s)</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                
+                <!-- COLONNE GAUCHE: ENCADRÉ STYLISÉ QR CODE SIMPLIFIÉ -->
+                <div class="md:col-span-5 glass-panel p-6 rounded-3xl flex flex-col justify-center items-center text-center space-y-4 border border-party-cyan/40">
+                    <div class="p-4 bg-white rounded-2xl shadow-xl inline-block" id="qrcode"></div>
+                    <div class="w-full py-2.5 px-4 rounded-xl bg-party-cyan/10 border border-party-cyan/30 text-party-cyan font-extrabold text-sm uppercase tracking-wider">
+                        📱 Scanne pour rejoindre
+                    </div>
+                </div>
+
+                <!-- COLONNE DROITE: LISTE DES JOUEURS VERTICALE & LANCEUR -->
+                <div class="md:col-span-7 glass-panel p-6 rounded-3xl space-y-5 border border-white/10">
+                    
+                    <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-users text-party-pink"></i> Liste des joueurs
+                        </h3>
+                        <button onclick="app.addBotPlayer()" class="text-xs bg-party-purple/60 hover:bg-party-purple text-white px-3 py-1.5 rounded-xl border border-party-purple/80 font-bold transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-robot"></i> + Ajouter un Bot
+                        </button>
+                    </div>
+
+                    <!-- Liste des Joueurs sous forme de Liste Verticale Stylisée -->
+                    <div id="playerListVertical" class="flex flex-col gap-2.5 max-h-64 overflow-y-auto pr-1">
+                        <!-- Injecté dynamiquement en liste -->
+                    </div>
+
+                    <button id="startGameBtn" onclick="app.startQuizGame()" class="w-full py-4 rounded-2xl font-black text-xl text-white bg-gradient-to-r from-party-pink via-party-purple to-party-cyan shadow-xl hover:scale-[1.01] transition-all flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-play"></i>
+                        <span>LANCER LA PARTIE !</span>
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= PAGE 4: ÉCRAN DE JEU PRINCIPAL (HÔTE) ================= -->
+        <section id="pageGame" class="hidden space-y-6 max-w-4xl mx-auto w-full">
+            <div class="flex justify-between items-center glass-panel p-4 rounded-2xl border border-white/10">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold px-3 py-1 bg-party-pink/20 text-party-pink rounded-lg" id="gameQuestionIdx">Question 1/15</span>
+                    <span class="text-xs text-gray-400 font-semibold" id="gameThemeTitle">Culture Générale</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-clock text-party-cyan"></i>
+                    <span class="font-arcade text-2xl text-party-yellow" id="gameTimer">10</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-white/10 h-3 rounded-full overflow-hidden p-0.5 border border-white/10">
+                <div id="timerProgressBar" class="h-full bg-gradient-to-r from-party-cyan to-party-pink rounded-full transition-all duration-1000 ease-linear w-full"></div>
+            </div>
+
+            <!-- Intitulé Question -->
+            <div class="glass-panel p-8 rounded-3xl text-center space-y-4 border border-party-pink/40 shadow-2xl">
+                <p class="text-xs font-bold text-party-cyan uppercase tracking-widest">Question pour tous les téléphones</p>
+                <h2 class="text-xl md:text-3xl font-extrabold text-white min-h-[60px] flex items-center justify-center" id="gameQuestionText">
+                    Chargement...
+                </h2>
+            </div>
+
+            <!-- 4 Options A/B/C/D -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="gameOptionsGrid">
+                <div id="opt-card-0" class="opt-0 p-5 rounded-2xl flex justify-between items-center text-white shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center font-bold">A</span>
+                        <span class="font-bold text-base md:text-lg" id="opt-text-0">Option 1</span>
+                    </div>
+                    <span class="px-3 py-1 bg-black/30 rounded-full text-xs font-mono font-bold hidden" id="opt-count-0">0 rep</span>
+                </div>
+                <div id="opt-card-1" class="opt-1 p-5 rounded-2xl flex justify-between items-center text-white shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center font-bold">B</span>
+                        <span class="font-bold text-base md:text-lg" id="opt-text-1">Option 2</span>
+                    </div>
+                    <span class="px-3 py-1 bg-black/30 rounded-full text-xs font-mono font-bold hidden" id="opt-count-1">0 rep</span>
+                </div>
+                <div id="opt-card-2" class="opt-2 p-5 rounded-2xl flex justify-between items-center text-white shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center font-bold">C</span>
+                        <span class="font-bold text-base md:text-lg" id="opt-text-2">Option 3</span>
+                    </div>
+                    <span class="px-3 py-1 bg-black/30 rounded-full text-xs font-mono font-bold hidden" id="opt-count-2">0 rep</span>
+                </div>
+                <div id="opt-card-3" class="opt-3 p-5 rounded-2xl flex justify-between items-center text-white shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center font-bold">D</span>
+                        <span class="font-bold text-base md:text-lg" id="opt-text-3">Option 4</span>
+                    </div>
+                    <span class="px-3 py-1 bg-black/30 rounded-full text-xs font-mono font-bold hidden" id="opt-count-3">0 rep</span>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center text-xs text-gray-400 px-2">
+                <span>Réponses reçues : <strong class="text-party-cyan" id="answeredCount">0</strong> / <span id="totalPlayersCount">0</span></span>
+                <span id="questionStatusText" class="text-party-yellow font-semibold animate-pulse">⏰ Répondez sur votre téléphone !</span>
+            </div>
+
+            <!-- BOUTONS DE CONTRÔLE HÔTE PERMANENTS EN BAS DE PAGE -->
+            <div class="glass-panel p-3 rounded-2xl border border-white/10 flex justify-center items-center gap-3 sm:gap-6 mt-6">
+                <button onclick="app.togglePauseGame()" id="pauseGameBtn" class="px-4 py-2.5 rounded-xl bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 text-xs font-bold hover:bg-yellow-500/40 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-pause" id="pauseBtnIcon"></i> <span id="pauseBtnText">Mettre en pause</span>
+                </button>
+                <button onclick="app.restartQuizGame()" class="px-4 py-2.5 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/40 text-xs font-bold hover:bg-blue-500/40 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> <span>Recommencer la partie</span>
+                </button>
+                <button onclick="app.terminatePartyHost()" class="px-4 py-2.5 rounded-xl bg-red-500/20 text-red-300 border border-red-500/40 text-xs font-bold hover:bg-red-500/40 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-stop"></i> <span>Arrêter la partie</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 5: ÉCRAN MANETTE JOUEUR (SMARTPHONE) ================= -->
+        <section id="pagePlayerMobile" class="hidden space-y-5 max-w-sm mx-auto w-full">
+            
+            <div id="playerJoinForm" class="glass-panel p-6 rounded-3xl space-y-4 border border-party-cyan/40">
+                <div class="text-center space-y-1">
+                    <i class="fa-solid fa-mobile-screen text-3xl text-party-cyan mb-2"></i>
+                    <h3 class="text-xl font-black">Rejoindre la Partie</h3>
+                    <p class="text-xs text-gray-400">Saisissez votre pseudo</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <input type="text" id="playerInputPseudo" placeholder="Ex: Champion2026" maxlength="12" class="w-full p-3 rounded-xl bg-black/40 border border-white/20 text-center font-bold text-base focus:outline-none focus:border-party-pink">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-300 block mb-2">Sélectionnez votre Emoji</label>
+                        <div class="grid grid-cols-5 gap-2" id="avatarPickerGrid"></div>
+                    </div>
+
+                    <button onclick="app.joinAsMobilePlayer()" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-party-pink to-party-purple shadow-lg transition-all">
+                        Entrer dans le salon 🚀
+                    </button>
+                </div>
+            </div>
+
+            <div id="playerWaitingLobby" class="hidden glass-panel p-6 rounded-3xl text-center space-y-4 border border-party-cyan/40">
+                <div class="text-5xl animate-bounce">⏳</div>
+                <h3 class="text-lg font-extrabold text-white">Vous êtes connecté !</h3>
+                <p class="text-xs text-gray-300">Regardez l'écran principal, l'hôte va bientôt lancer le quiz...</p>
+                
+                <button onclick="app.quitParty()" class="w-full py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/40 text-red-300 border border-red-500/30 text-xs font-bold transition-all">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Quitter la partie
+                </button>
+            </div>
+
+            <div id="playerActiveView" class="hidden space-y-4">
+                <div class="glass-panel p-3.5 rounded-2xl flex justify-between items-center border border-white/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-party-purple flex items-center justify-center text-xl" id="myAvatar">😎</div>
+                        <div>
+                            <span class="font-bold text-sm block text-white" id="myPseudoName">Joueur</span>
+                            <span class="text-xs text-party-yellow font-bold"><span id="myScore">0</span> pts</span>
+                        </div>
+                    </div>
+                    <button onclick="app.quitParty()" class="px-2.5 py-1.5 rounded-lg bg-red-500/20 text-red-300 border border-red-500/30 text-xs font-bold transition-all">
+                        Quitter
+                    </button>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl text-center border border-party-pink/30">
+                    <span class="text-[10px] font-bold text-party-cyan uppercase tracking-widest block mb-1">Question en cours</span>
+                    <h3 class="text-base font-extrabold text-white leading-snug" id="mobileQuestionTitle">Chargement...</h3>
+                </div>
+
+                <div id="mobileAnswerButtons" class="flex flex-col gap-2.5">
+                    <button onclick="app.submitPlayerAnswer(0)" class="mobile-opt-btn opt-0 p-4 rounded-2xl font-bold text-sm text-white shadow-lg flex items-center gap-3 text-left transition-all active:scale-98">
+                        <span class="w-8 h-8 rounded-xl bg-black/20 flex items-center justify-center font-black text-base shrink-0">A</span>
+                        <span id="mobile-opt-text-0" class="flex-grow">Option A</span>
+                    </button>
+                    <button onclick="app.submitPlayerAnswer(1)" class="mobile-opt-btn opt-1 p-4 rounded-2xl font-bold text-sm text-white shadow-lg flex items-center gap-3 text-left transition-all active:scale-98">
+                        <span class="w-8 h-8 rounded-xl bg-black/20 flex items-center justify-center font-black text-base shrink-0">B</span>
+                        <span id="mobile-opt-text-1" class="flex-grow">Option B</span>
+                    </button>
+                    <button onclick="app.submitPlayerAnswer(2)" class="mobile-opt-btn opt-2 p-4 rounded-2xl font-bold text-sm text-white shadow-lg flex items-center gap-3 text-left transition-all active:scale-98">
+                        <span class="w-8 h-8 rounded-xl bg-black/20 flex items-center justify-center font-black text-base shrink-0">C</span>
+                        <span id="mobile-opt-text-2" class="flex-grow">Option C</span>
+                    </button>
+                    <button onclick="app.submitPlayerAnswer(3)" class="mobile-opt-btn opt-3 p-4 rounded-2xl font-bold text-sm text-white shadow-lg flex items-center gap-3 text-left transition-all active:scale-98">
+                        <span class="w-8 h-8 rounded-xl bg-black/20 flex items-center justify-center font-black text-base shrink-0">D</span>
+                        <span id="mobile-opt-text-3" class="flex-grow">Option D</span>
+                    </button>
+                </div>
+
+                <div id="mobileFeedbackBox" class="glass-panel p-6 rounded-2xl text-center space-y-2 border border-white/20 hidden">
+                    <div id="feedbackIcon" class="text-4xl">🎉</div>
+                    <h4 id="feedbackTitle" class="text-xl font-black text-white">Bonne Réponse !</h4>
+                    <p id="feedbackSubtitle" class="text-xs text-gray-300">+100 points</p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ================= PAGE DÉCONNEXION ================= -->
+        <section id="pageDisconnected" class="hidden space-y-6 max-w-md mx-auto w-full text-center">
+            <div class="glass-panel p-8 rounded-3xl space-y-4 border border-party-pink/40 shadow-2xl">
+                <div class="text-5xl" id="disconnectedEmoji">🔌</div>
+                <h2 class="text-2xl font-black text-white" id="disconnectedTitle">Déconnecté du salon</h2>
+                <p class="text-xs text-gray-300 leading-relaxed" id="disconnectedText">
+                    Vous avez été déconnecté ou la partie est terminée.
+                </p>
+                <button onclick="app.goHomeFromMobile()" class="w-full py-3.5 rounded-xl font-extrabold text-white bg-gradient-to-r from-party-pink to-party-purple shadow-lg hover:scale-105 transition-all">
+                    🏠 Retour à l'accueil
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 6: PODIUM / CLASSEMENT FINAL ================= -->
+        <section id="pagePodium" class="hidden space-y-8 max-w-3xl mx-auto w-full text-center">
+            <div class="space-y-2">
+                <span class="px-3 py-1 rounded-full bg-party-yellow/20 text-party-yellow text-xs font-bold uppercase tracking-widest border border-party-yellow/30">
+                    🏆 Fin du Quiz !
+                </span>
+                <h2 class="text-3xl md:text-5xl font-black bg-gradient-to-r from-party-yellow via-party-pink to-party-cyan bg-clip-text text-transparent">
+                    CLASSEMENT FINAL
+                </h2>
+            </div>
+
+            <div class="flex justify-center items-end gap-3 md:gap-6 pt-8 pb-4 min-h-[260px]" id="podiumSteps"></div>
+
+            <div class="glass-panel p-6 rounded-3xl border border-white/10 space-y-3">
+                <h3 class="text-sm font-bold text-gray-400 text-left border-b border-white/10 pb-2">Tableau des scores complet</h3>
+                <div id="fullLeaderboardList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+            </div>
+
+            <!-- Boutons du Podium -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="app.toggleMatchDetailsModal()" class="px-6 py-4 rounded-xl font-extrabold text-white bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-list-check"></i> Voir les détails de la partie
+                </button>
+                <button onclick="app.terminatePartyHost()" class="px-6 py-4 rounded-xl font-extrabold text-white bg-gradient-to-r from-red-600 to-party-pink shadow-lg hover:scale-105 transition-all">
+                    🔴 Terminer la partie
+                </button>
+            </div>
+        </section>
+
+        <!-- MODAL : DÉTAILS DE LA PARTIE (QUESTIONS & CHOIX DE CHAQUE JOUEUR) -->
+        <div id="matchDetailsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex justify-center items-center p-4">
+            <div class="glass-panel max-w-4xl w-full max-h-[85vh] rounded-3xl p-6 border border-party-cyan/40 flex flex-col space-y-4">
+                <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                    <h3 class="text-xl font-black text-party-cyan flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-list"></i> Récapitulatif détaillé des 15 questions
+                    </h3>
+                    <button onclick="app.toggleMatchDetailsModal()" class="text-gray-400 hover:text-white text-xl">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div id="matchDetailsContent" class="flex-grow overflow-y-auto space-y-4 pr-2">
+                    <!-- Contenu dynamique injecté par JS -->
+                </div>
+
+                <div class="pt-2 text-right">
+                    <button onclick="app.toggleMatchDetailsModal()" class="px-6 py-2.5 rounded-xl bg-party-purple text-white font-bold text-sm">
+                        Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer id="globalFooter" class="p-4 text-center text-xs text-gray-500 border-t border-white/5 glass-panel mt-6">
+        Party Quiz Web App &copy; 2026 - Soirées Festive
+    </footer>
+
+    <script>
+        // MOTEUR AUDIO AUDIO CONTEXT (HÔTE UNIQUEMENT)
+        class PartyAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.soundEnabled = true;
+                this.musicEnabled = true;
+                this.musicInterval = null;
+                this.musicStep = 0;
+                this.isMobilePlayer = false; // Désactivation totale sur mobile
+            }
+
+            init() {
+                if (this.isMobilePlayer) return;
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+            }
+
+            playClick() {
+                if (this.isMobilePlayer || !this.soundEnabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            }
+
+            playTick() {
+                if (this.isMobilePlayer || !this.soundEnabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.03);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.03);
+            }
+
+            playCorrect() {
+                if (this.isMobilePlayer || !this.soundEnabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.3);
+            }
+
+            playWrong() {
+                if (this.isMobilePlayer || !this.soundEnabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.2);
+            }
+
+            playFanfare() {
+                if (this.isMobilePlayer || !this.soundEnabled) return;
+                this.init();
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime + idx * 0.1);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.1 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + idx * 0.1);
+                    osc.stop(this.ctx.currentTime + idx * 0.1 + 0.25);
+                });
+            }
+
+            toggleLoungeMusic() {
+                if (this.isMobilePlayer) return false;
+                this.musicEnabled = !this.musicEnabled;
+                if (this.musicEnabled) {
+                    this.init();
+                    this.startLoungeLoop();
+                } else {
+                    clearInterval(this.musicInterval);
+                }
+                return this.musicEnabled;
+            }
+
+            startLoungeLoop() {
+                if (this.isMobilePlayer) return;
+                clearInterval(this.musicInterval);
+                const bassNotes = [130.81, 146.83, 164.81, 174.61];
+                const chordNotes = [261.63, 329.63, 392.00, 493.88];
+
+                this.musicInterval = setInterval(() => {
+                    if (!this.musicEnabled || !this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    this.musicStep = (this.musicStep + 1) % 16;
+
+                    if (this.musicStep % 4 === 0) {
+                        const bOsc = this.ctx.createOscillator();
+                        const bGain = this.ctx.createGain();
+                        bOsc.type = 'sine';
+                        bOsc.frequency.value = bassNotes[(this.musicStep / 4) % bassNotes.length];
+                        bGain.gain.setValueAtTime(0.04, now);
+                        bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                        bOsc.connect(bGain);
+                        bGain.connect(this.ctx.destination);
+                        bOsc.start(now);
+                        bOsc.stop(now + 0.4);
+                    }
+
+                    if (this.musicStep % 2 === 1 && Math.random() > 0.3) {
+                        const cOsc = this.ctx.createOscillator();
+                        const cGain = this.ctx.createGain();
+                        cOsc.type = 'triangle';
+                        cOsc.frequency.value = chordNotes[Math.floor(Math.random() * chordNotes.length)];
+                        cGain.gain.setValueAtTime(0.02, now);
+                        cGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                        cOsc.connect(cGain);
+                        cGain.connect(this.ctx.destination);
+                        cOsc.start(now);
+                        cOsc.stop(now + 0.3);
+                    }
+                }, 300);
+            }
+        }
+
+        const QUIZ_DATABASE = {
+            culture: [
+                { q: "Quelle est la capitale de l'Australie ?", options: ["Sydney", "Melbourne", "Canberra", "Brisbane"], answer: 2 },
+                { q: "Combien de républiques composent la France à ce jour ?", options: ["3e", "4e", "5e", "6e"], answer: 2 },
+                { q: "Qui a peint La Jeune Fille à la perle ?", options: ["Vermeer", "Da Vinci", "Rembrandt", "Van Gogh"], answer: 0 },
+                { q: "Quel est le plus grand océan de la Terre ?", options: ["Atlantique", "Pacifique", "Indien", "Arctique"], answer: 1 },
+                { q: "En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?", options: ["1965", "1969", "1972", "1959"], answer: 1 },
+                { q: "Quel est l'élément le plus abondant dans l'atmosphère terrestre ?", options: ["Oxygène", "Carbone", "Azote", "Hydrogène"], answer: 2 },
+                { q: "Quel pays a pour symbole le trèfle (Shamrock) ?", options: ["Écosse", "Irlande", "Pays de Galles", "Australie"], answer: 1 },
+                { q: "Qui a écrit 'Les Misérables' ?", options: ["Émile Zola", "Gustave Flaubert", "Victor Hugo", "Molière"], answer: 2 },
+                { q: "Quel fleuve traverse Londres ?", options: ["La Seine", "Le Danube", "La Tamise", "Le Rhin"], answer: 2 },
+                { q: "Quel est le plus petit pays du monde ?", options: ["Monaco", "Le Vatican", "Lichtenstein", "Andorre"], answer: 1 },
+                { q: "Quelle est la monnaie officielle du Japon ?", options: ["Yuan", "Won", "Yen", "Baht"], answer: 2 },
+                { q: "Dans quel pays se trouvent les Pyramides de Gizeh ?", options: ["Soudan", "Égypte", "Jordanie", "Maroc"], answer: 1 },
+                { q: "Quel célèbre scientifique a formulé la théorie de la relativité ?", options: ["Isaac Newton", "Albert Einstein", "Nikola Tesla", "Galilée"], answer: 1 },
+                { q: "Quel monument parisien a été construit pour l'Exposition Universelle de 1889 ?", options: ["Arc de Triomphe", "Tour Eiffel", "Panthéon", "Sacré-Cœur"], answer: 1 },
+                { q: "Combien de couleurs comporte l'arc-en-ciel officiel ?", options: ["5", "6", "7", "8"], answer: 2 }
+            ],
+            cinema: [
+                { q: "Quel film a remporté l'Oscar du Meilleur Film en 2024 ?", options: ["Oppenheimer", "Barbie", "Dune 2", "Anatomie d'une chute"], answer: 0 },
+                { q: "Qui interprète Jack Dawson dans le film Titanic ?", options: ["Brad Pitt", "Leonardo DiCaprio", "Tom Cruise", "Matt Damon"], answer: 1 },
+                { q: "Quel réalisateur est célèbre pour Pulp Fiction et Kill Bill ?", options: ["Steven Spielberg", "Christopher Nolan", "Quentin Tarantino", "Martin Scorsese"], answer: 2 },
+                { q: "Dans Star Wars, quel est le nom du monde natal de Luke Skywalker ?", options: ["Tatooine", "Alderaan", "Hoth", "Endor"], answer: 0 },
+                { q: "Quel sorcier est le pire ennemi de Harry Potter ?", options: ["Dumbledore", "Voldemort", "Grindelwald", "Rogue"], answer: 1 },
+                { q: "Quel est le nom du royaume où se déroule La Reine des Neiges ?", options: ["Arendelle", "Corona", "Atlantica", "Duloc"], answer: 0 },
+                { q: "Dans Matrix, quelle est la couleur de la pilule que prend Neo ?", options: ["Bleue", "Rouge", "Verte", "Jaune"], answer: 1 },
+                { q: "Qui incarne le Joker dans The Dark Knight (2008) ?", options: ["Joaquin Phoenix", "Heath Ledger", "Jared Leto", "Jack Nicholson"], answer: 1 },
+                { q: "Quel film d'animation présente le personnage de Wall-E ?", options: ["DreamWorks", "Pixar", "Studio Ghibli", "Illumination"], answer: 1 },
+                { q: "En quelle année est sorti le premier film Jurassic Park ?", options: ["1990", "1993", "1996", "1999"], answer: 1 },
+                { q: "Quel acteur interprète Iron Man dans l'univers Marvel ?", options: ["Chris Evans", "Chris Hemsworth", "Robert Downey Jr.", "Mark Ruffalo"], answer: 2 },
+                { q: "Quel est le nom du monstre géant japonais apparu en 1954 ?", options: ["King Kong", "Godzilla", "Mothra", "Gamera"], answer: 1 },
+                { q: "Qui a réalisé le film Avatar ?", options: ["James Cameron", "George Lucas", "Ridley Scott", "Peter Jackson"], answer: 0 },
+                { q: "Dans Le Seigneur des Anneaux, quel est le hobbit porteur de l'Anneau ?", options: ["Sam", "Pippin", "Frodon", "Merry"], answer: 2 },
+                { q: "Quel est le vrai nom de Spider-Man ?", options: ["Bruce Wayne", "Peter Parker", "Clark Kent", "Tony Stark"], answer: 1 }
+            ],
+            sport: [
+                { q: "Combien de joueurs composent une équipe de football sur le terrain ?", options: ["9", "10", "11", "12"], answer: 2 },
+                { q: "Dans quel pays se sont déroulés les Jeux Olympiques d'été 2024 ?", options: ["Japon", "France", "États-Unis", "Grèce"], answer: 1 },
+                { q: "Quel est le plus grand tournoi de tennis sur gazon ?", options: ["Roland-Garros", "Wimbledon", "US Open", "Open d'Australie"], answer: 1 },
+                { q: "Quel pilote de F1 détient 7 titres de champion du monde ?", options: ["Max Verstappen", "Lewis Hamilton", "Fernando Alonso", "Ayrton Senna"], answer: 1 },
+                { q: "Quel pays a remporté la Coupe du Monde de Football en 2022 ?", options: ["France", "Brésil", "Argentine", "Allemagne"], answer: 2 },
+                { q: "Combien de temps dure un quart-temps en NBA ?", options: ["10 min", "12 min", "15 min", "20 min"], answer: 1 },
+                { q: "Quel sport associe-t-on au terme 'Strike' ?", options: ["Baseball", "Bowling", "Tennis", "Golf"], answer: 1 },
+                { q: "Quel cycliste est surnommé 'Le Cannibale' ?", options: ["Bernard Hinault", "Eddy Merckx", "Lance Armstrong", "Tadej Pogačar"], answer: 1 },
+                { q: "Au rugby à XV, combien vaut un essai non transformé ?", options: ["3 pts", "5 pts", "7 pts", "2 pts"], answer: 1 },
+                { q: "Quelle nation détient le plus de victoires en Coupe du Monde de football ?", options: ["Allemagne", "Italie", "Brésil", "Argentine"], answer: 2 },
+                { q: "Quel athlète est l'homme le plus rapide de l'histoire du 100m ?", options: ["Tyson Gay", "Usain Bolt", "Yohan Blake", "Carl Lewis"], answer: 1 },
+                { q: "En judo, quelle est la récompense maximale donnant la victoire ?", options: ["Waza-ari", "Ippon", "Yuko", "Koka"], answer: 1 },
+                { q: "Sur quelle surface se joue le tournoi de Roland-Garros ?", options: ["Béton", "Gazon", "Terre battue", "Synthétique"], answer: 2 },
+                { q: "Dans quel sport utilise-t-on un palet (puck) ?", options: ["Rink Hockey", "Hockey sur glace", "Curling", "Polo"], answer: 1 },
+                { q: "Combien d'anneaux composent le drapeau olympique ?", options: ["4", "5", "6", "7"], answer: 1 }
+            ],
+            musique: [
+                { q: "Qui est le 'Roi de la Pop' ?", options: ["Elvis Presley", "Michael Jackson", "Prince", "George Michael"], answer: 1 },
+                { q: "Quel groupe est célèbre pour le titre 'Bohemian Rhapsody' ?", options: ["The Beatles", "Led Zeppelin", "Queen", "Rolling Stones"], answer: 2 },
+                { q: "Quel instrument possède 88 touches ?", options: ["L'orgue", "Le piano", "Le synthétiseur", "L'accordéon"], answer: 1 },
+                { q: "Quel artiste français chante 'Papaoutai' et 'Tous les mêmes' ?", options: ["Gims", "Stromae", "Orelsan", "Soprano"], answer: 1 },
+                { q: "Quelle chanteuse interprète 'Bad Romance' et 'Poker Face' ?", options: ["Rihanna", "Katy Perry", "Lady Gaga", "Beyoncé"], answer: 2 },
+                { q: "Quel festival de musique se déroule chaque été à Clisson en France ?", options: ["Solidays", "Hellfest", "Eurockéennes", "Vieilles Charrues"], answer: 1 },
+                { q: "Quel est le premier single à succès du groupe Daft Punk en 1997 ?", options: ["Get Lucky", "One More Time", "Da Funk", "Around the World"], answer: 2 },
+                { q: "Dans quelle ville est né le groupe The Beatles ?", options: ["Londres", "Manchester", "Liverpool", "Birmingham"], answer: 2 },
+                { q: "Qui interprète la chanson 'Get Lucky' avec Daft Punk ?", options: ["Pharrell Williams", "Bruno Mars", "Weeknd", "Drake"], answer: 0 },
+                { q: "Quel compositeur est devenu sourd à la fin de sa vie ?", options: ["Mozart", "Beethoven", "Chopin", "Bach"], answer: 1 },
+                { q: "Quel album de Michael Jackson est l'album le plus vendu de tous les temps ?", options: ["Thriller", "Bad", "Dangerous", "Off the Wall"], answer: 0 },
+                { q: "Quel groupe chante 'Smells Like Teen Spirit' ?", options: ["Pearl Jam", "Nirvana", "Foo Fighters", "Red Hot Chili Peppers"], answer: 1 },
+                { q: "Combien de cordes possède une guitare classique standard ?", options: ["4", "5", "6", "7"], answer: 2 },
+                { q: "Quel genre musical est associé à Bob Marley ?", options: ["Ska", "Reggae", "Dub", "Rocksteady"], answer: 1 },
+                { q: "Qui chante le hit mondial 'Shape of You' ?", options: ["Ed Sheeran", "Justin Bieber", "Shawn Mendes", "Charlie Puth"], answer: 0 }
+            ],
+            geek: [
+                { q: "Dans Pokémon, quel est le numéro 001 du Pokédex de Kanto ?", options: ["Salamèche", "Carapuce", "Bulbizarre", "Pikachu"], answer: 2 },
+                { q: "Quel jeu vidéo détient le record du monde du jeu le plus vendu ?", options: ["Tetris", "Minecraft", "GTA V", "Wii Sports"], answer: 1 },
+                { q: "Quel langage de programmation est représenté par un serpent ?", options: ["Java", "Python", "C++", "Ruby"], answer: 1 },
+                { q: "Quel est le nom du plombier vert, frère de Mario ?", options: ["Wario", "Luigi", "Yoshi", "Toad"], answer: 1 },
+                { q: "Quelle entreprise a développé la console PlayStation ?", options: ["Nintendo", "Sega", "Sony", "Microsoft"], answer: 2 },
+                { q: "Que signifie le sigle HTML ?", options: ["HyperText Markup Language", "HighTech Media Language", "HyperTransfer Main Language", "Home Tool Markup Language"], answer: 0 },
+                { q: "Quel est le nom de l'intelligence artificielle d'Iron Man ?", options: ["HAL", "JARVIS", "CORTANA", "FRIDAY"], answer: 1 },
+                { q: "Dans quel jeu vidéo s'affronte-t-on sur la carte 'Dust II' ?", options: ["Call of Duty", "Counter-Strike", "Valorant", "Overwatch"], answer: 1 },
+                { q: "Quel est le créateur du système d'exploitation Linux ?", options: ["Bill Gates", "Steve Jobs", "Linus Torvalds", "Mark Zuckerberg"], answer: 2 },
+                { q: "Quel objet permet de voyager dans le temps dans Back to the Future ?", options: ["La TARDIS", "La DeLorean", "Le VORTEX", "Le Chronoglace"], answer: 1 },
+                { q: "Quel est le nom de la princesse dans la saga The Legend of Zelda ?", options: ["Peach", "Zelda", "Daisy", "Samus"], answer: 1 },
+                { q: "Dans Half-Life, quelle est l'arme emblématique de Gordon Freeman ?", options: ["Un pied-de-biche", "Un pistolet laser", "Une tronçonneuse", "Une clé anglaise"], answer: 0 },
+                { q: "Quelle entreprise a inventé le smartphone iPhone ?", options: ["Samsung", "Google", "Apple", "Microsoft"], answer: 2 },
+                { q: "Quel jeu de bataille royale est célèbre pour ses danses ?", options: ["PUBG", "Apex Legends", "Fortnite", "Warzone"], answer: 2 },
+                { q: "Que signifie le sigle 'AI' en informatique ?", options: ["Automated Internet", "Artificial Intelligence", "Advanced Interface", "Active Integration"], answer: 1 }
+            ]
         };
-        app.connections[player.id] = conn;
-        updateLobbyUI();
 
-        // Répondre la confirmation d'accès au joueur
-        conn.send({ type: 'JOIN_ACK', room: app.roomId });
-      } 
-      else if (data.type === 'LEAVE') {
-        delete app.players[data.playerId];
-        delete app.connections[data.playerId];
-        updateLobbyUI();
-      }
-      else if (data.type === 'ANSWER') {
-        // Enregistrer la réponse du joueur
-        app.answersReceived[data.playerId] = data.choice;
-      }
-    }
+        const THEMES_METADATA = [
+            { id: 'culture', label: 'Culture Générale', icon: 'fa-earth-europe', color: 'from-pink-500 to-purple-600' },
+            { id: 'cinema', label: 'Cinéma & Séries', icon: 'fa-film', color: 'from-blue-500 to-indigo-600' },
+            { id: 'sport', label: 'Sport', icon: 'fa-trophy', color: 'from-amber-500 to-orange-600' },
+            { id: 'musique', label: 'Musique', icon: 'fa-music', color: 'from-purple-500 to-pink-600' },
+            { id: 'geek', label: 'Sciences & Geek', icon: 'fa-gamepad', color: 'from-emerald-500 to-teal-600' }
+        ];
 
-    // Éjecter un joueur ou bot du salon (Hôte)
-    function ejectPlayer(playerId) {
-      sound.playClick();
-      
-      // Si c'est un vrai joueur connecté via PeerJS
-      if (app.connections[playerId]) {
-        app.connections[playerId].send({ type: 'EJECTED' });
-        app.connections[playerId].close();
-        delete app.connections[playerId];
-      }
-      
-      delete app.players[playerId];
-      updateLobbyUI();
-    }
+        const EMOJI_AVATARS = ['😎', '🦊', '🦄', '🐼', '🐯', '🤖', '👾', '🚀', '⭐', '🔥'];
+        const BOT_NAMES = ['Sacha', 'Léa', 'Maxime', 'Chloé', 'Alex', 'Lucas', 'Emma', 'Hugo'];
 
-    function addBotPlayer() {
-      const botNames = ['Robotix', 'CyberSam', 'Pixel', 'BotMaster', 'AlfaBot'];
-      const botAvatars = ['🤖', '👾', '⚡', '🎮', '🛸'];
-      const randomId = 'bot_' + Math.random().toString(36).substr(2, 5);
-      const name = botNames[Math.floor(Math.random() * botNames.length)] + '_' + Math.floor(Math.random() * 99);
-      const avatar = botAvatars[Math.floor(Math.random() * botAvatars.length)];
+        class PartyQuizAppWebRTC {
+            constructor() {
+                this.audio = new PartyAudioEngine();
+                this.selectedTheme = 'culture';
+                this.selectedDifficulty = 'facile';
+                this.selectedEmoji = '😎';
+                this.role = 'host';
+                this.peer = null;
+                this.hostConn = null;
+                this.clientConns = {};
+                this.isPaused = false;
+                this.timerRemaining = 10;
 
-      app.players[randomId] = {
-        name: name,
-        avatar: avatar,
-        score: 0,
-        isBot: true
-      };
-      updateLobbyUI();
-    }
+                this.matchHistory = []; // Historique complet pour les détails de partie
+                
+                this.roomData = {
+                    roomId: null,
+                    theme: 'culture',
+                    difficulty: 'facile',
+                    state: 'LOBBY',
+                    currentQuestionIndex: 0,
+                    players: {},
+                    questions: []
+                };
 
-    function updateLobbyUI() {
-      const listContainer = document.getElementById('lobbyPlayersList');
-      listContainer.innerHTML = '';
+                this.myPlayerId = null;
+                this.timerInterval = null;
 
-      const playerIds = Object.keys(app.players);
-      document.getElementById('playerCount').textContent = playerIds.length;
+                this.initApp();
+            }
 
-      playerIds.forEach(id => {
-        const p = app.players[id];
-        const card = document.createElement('div');
-        card.className = 'player-card';
-        card.innerHTML = `
-          <div class="player-card-info">
-            <span class="player-avatar">${p.avatar}</span>
-            <span class="player-name">${p.name} ${p.isBot ? '<small>(Bot)</small>' : ''}</span>
-          </div>
-          <button class="btn-eject" onclick="ejectPlayer('${id}')" title="Éjecter du salon">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        `;
-        listContainer.appendChild(card);
-      });
-    }
+            initApp() {
+                this.renderThemesGrid();
+                this.renderAvatarPicker();
+                this.setDifficulty('facile');
 
-    function broadcastToPlayers(message) {
-      Object.values(app.connections).forEach(conn => {
-        if (conn && conn.open) {
-          conn.send(message);
+                const urlParams = new URLSearchParams(window.location.search);
+                const roomParam = urlParams.get('room');
+                const savedPlayer = JSON.parse(localStorage.getItem('partyquiz_player_session') || 'null');
+
+                if (roomParam || (savedPlayer && savedPlayer.roomId)) {
+                    // MODE JOUEUR MOBILE : Désactiver tous les sons
+                    this.audio.isMobilePlayer = true;
+                    this.role = 'player';
+                    this.roomData.roomId = roomParam || savedPlayer.roomId;
+                    this.hideHeaderAndFooterForMobile();
+                    this.hideAllPages();
+                    document.getElementById('pagePlayerMobile').classList.remove('hidden');
+
+                    if (savedPlayer && savedPlayer.roomId === (roomParam || savedPlayer.roomId)) {
+                        this.myPlayerId = savedPlayer.playerId;
+                        this.selectedEmoji = savedPlayer.avatar;
+                        document.getElementById('myPseudoName').innerText = savedPlayer.pseudo;
+                        document.getElementById('myAvatar').innerText = savedPlayer.avatar;
+                        document.getElementById('playerJoinForm').classList.add('hidden');
+                        document.getElementById('playerWaitingLobby').classList.remove('hidden');
+                    }
+
+                    this.initPeerPlayer(roomParam || savedPlayer.roomId);
+                } else {
+                    // MODE HÔTE : Lancement automatique de la musique d'ambiance
+                    this.showHome();
+                    this.tryAutoplayHostMusic();
+                }
+            }
+
+            tryAutoplayHostMusic() {
+                this.audio.musicEnabled = true;
+                this.audio.startLoungeLoop();
+
+                // En cas de blocage d'autoplay par le navigateur, activer au 1er clic utilisateur
+                const unlockAudio = () => {
+                    if (this.audio.ctx && this.audio.ctx.state === 'suspended') {
+                        this.audio.ctx.resume();
+                    }
+                    this.audio.startLoungeLoop();
+                    document.removeEventListener('click', unlockAudio);
+                };
+                document.addEventListener('click', unlockAudio);
+            }
+
+            hideHeaderAndFooterForMobile() {
+                document.getElementById('globalHeader').classList.add('hidden');
+                document.getElementById('globalFooter').classList.add('hidden');
+            }
+
+            showHeaderAndFooter() {
+                document.getElementById('globalHeader').classList.remove('hidden');
+                document.getElementById('globalFooter').classList.remove('hidden');
+            }
+
+            renderAvatarPicker() {
+                const grid = document.getElementById('avatarPickerGrid');
+                if (!grid) return;
+                grid.innerHTML = EMOJI_AVATARS.map(emoji => `
+                    <button type="button" onclick="app.selectAvatar('${emoji}')" id="avatar-btn-${emoji}" class="avatar-btn p-2 rounded-xl text-2xl bg-white/5 border border-white/10 hover:border-party-pink transition-all">
+                        ${emoji}
+                    </button>
+                `).join('');
+                this.selectAvatar('😎');
+            }
+
+            selectAvatar(emoji) {
+                this.audio.playClick();
+                this.selectedEmoji = emoji;
+                document.querySelectorAll('.avatar-btn').forEach(btn => {
+                    btn.classList.remove('border-party-pink', 'bg-party-pink/30', 'scale-110');
+                });
+                const btn = document.getElementById(`avatar-btn-${emoji}`);
+                if (btn) btn.classList.add('border-party-pink', 'bg-party-pink/30', 'scale-110');
+            }
+
+            toggleSound() {
+                this.audio.soundEnabled = !this.audio.soundEnabled;
+                const icon = document.getElementById('soundIcon');
+                const label = document.getElementById('soundLabel');
+                if (this.audio.soundEnabled) {
+                    icon.className = "fa-solid fa-volume-high text-party-cyan";
+                    label.innerText = "Sons ON";
+                    this.audio.playClick();
+                } else {
+                    icon.className = "fa-solid fa-volume-xmark text-gray-500";
+                    label.innerText = "Sons OFF";
+                }
+            }
+
+            toggleMusic() {
+                const playing = this.audio.toggleLoungeMusic();
+                const icon = document.getElementById('musicIcon');
+                const label = document.getElementById('musicLabel');
+                if (playing) {
+                    icon.className = "fa-solid fa-music text-party-pink";
+                    label.innerText = "Musique ON";
+                } else {
+                    icon.className = "fa-solid fa-music text-gray-500";
+                    label.innerText = "Musique OFF";
+                }
+            }
+
+            showHome() {
+                this.showHeaderAndFooter();
+                this.audio.playClick();
+                this.hideAllPages();
+                document.getElementById('pageHome').classList.remove('hidden');
+            }
+
+            selectGameMode(mode) {
+                this.audio.playClick();
+                if (mode === 'quizz') this.showSetup();
+            }
+
+            showSetup() {
+                this.showHeaderAndFooter();
+                this.hideAllPages();
+                document.getElementById('pageSetup').classList.remove('hidden');
+            }
+
+            hideAllPages() {
+                ['pageHome', 'pageSetup', 'pageLobby', 'pageGame', 'pagePlayerMobile', 'pageDisconnected', 'pagePodium'].forEach(id => {
+                    const elem = document.getElementById(id);
+                    if (elem) elem.classList.add('hidden');
+                });
+            }
+
+            renderThemesGrid() {
+                const grid = document.getElementById('themesGrid');
+                grid.innerHTML = THEMES_METADATA.map(t => `
+                    <div onclick="app.setTheme('${t.id}')" id="theme-card-${t.id}" class="theme-card glass-panel p-4 rounded-2xl border border-white/10 cursor-pointer text-center space-y-2 hover:border-party-pink transition-all">
+                        <div class="w-10 h-10 mx-auto rounded-xl bg-gradient-to-tr ${t.color} flex items-center justify-center text-white text-lg">
+                            <i class="fa-solid ${t.icon}"></i>
+                        </div>
+                        <p class="text-xs font-bold text-white">${t.label}</p>
+                    </div>
+                `).join('');
+                this.setTheme('culture');
+            }
+
+            setTheme(themeId) {
+                this.audio.playClick();
+                this.selectedTheme = themeId;
+                document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('border-party-pink', 'bg-party-pink/20'));
+                const card = document.getElementById(`theme-card-${themeId}`);
+                if (card) card.classList.add('border-party-pink', 'bg-party-pink/20');
+            }
+
+            setDifficulty(diff) {
+                this.audio.playClick();
+                this.selectedDifficulty = diff;
+                document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('border-party-cyan', 'bg-party-cyan/20'));
+                const btn = document.getElementById(`diff-${diff}`);
+                if (btn) btn.classList.add('border-party-cyan', 'bg-party-cyan/20');
+            }
+
+            createLobbyHost() {
+                this.showHeaderAndFooter();
+                this.audio.playClick();
+                this.role = 'host';
+
+                const cleanRoomId = 'PARTY-' + Math.floor(1000 + Math.random() * 9000);
+                this.roomData.roomId = cleanRoomId;
+                this.roomData.theme = this.selectedTheme;
+                this.roomData.difficulty = this.selectedDifficulty;
+                this.roomData.questions = QUIZ_DATABASE[this.selectedTheme];
+                this.roomData.players = {};
+
+                this.hideAllPages();
+                document.getElementById('pageLobby').classList.remove('hidden');
+
+                const themeMeta = THEMES_METADATA.find(t => t.id === this.selectedTheme);
+                document.getElementById('lobbyThemeBadge').innerText = themeMeta.label;
+                document.getElementById('lobbyDifficultyInfo').innerText = `Difficulté : ${this.selectedDifficulty.toUpperCase()}`;
+
+                // GÉNÉRATION QR CODE SIMPLIFIÉ (Niveau L)
+                const qrContainer = document.getElementById('qrcode');
+                qrContainer.innerHTML = '';
+                const joinUrl = `${window.location.origin}${window.location.pathname}?room=${cleanRoomId}`;
+                new QRCode(qrContainer, {
+                    text: joinUrl,
+                    width: 160,
+                    height: 160,
+                    colorDark : "#080811",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.L // Graphisme simplifié et épuré
+                });
+
+                this.initPeerHost(cleanRoomId);
+            }
+
+            initPeerHost(roomId) {
+                this.showStatusBanner("Initialisation du salon WebRTC...");
+                const peerId = 'partyquiz_' + roomId;
+                this.peer = new Peer(peerId);
+
+                this.peer.on('open', () => {
+                    this.showStatusBanner("Salon prêt ! Scannez le QR Code.", false);
+                });
+
+                this.peer.on('connection', (conn) => {
+                    conn.on('data', (data) => this.handleHostIncomingData(conn, data));
+                    conn.on('close', () => {
+                        if (conn.playerId) {
+                            delete this.roomData.players[conn.playerId];
+                            delete this.clientConns[conn.playerId];
+                            this.broadcastRoomData();
+                        }
+                    });
+                });
+            }
+
+            handleHostIncomingData(conn, data) {
+                if (data.type === 'JOIN') {
+                    conn.playerId = data.playerId;
+                    this.clientConns[data.playerId] = conn;
+
+                    this.roomData.players[data.playerId] = {
+                        id: data.playerId,
+                        pseudo: data.pseudo,
+                        avatar: data.avatar || '😎',
+                        score: 0,
+                        currentAnswer: null,
+                        isBot: false
+                    };
+
+                    this.broadcastRoomData();
+                } else if (data.type === 'ANSWER') {
+                    if (this.roomData.players[data.playerId]) {
+                        this.roomData.players[data.playerId].currentAnswer = data.answerIdx;
+                        this.broadcastRoomData();
+                    }
+                } else if (data.type === 'QUIT') {
+                    if (conn.playerId) {
+                        delete this.roomData.players[conn.playerId];
+                        delete this.clientConns[conn.playerId];
+                        this.broadcastRoomData();
+                    }
+                }
+            }
+
+            broadcastRoomData() {
+                this.onRoomStateUpdate(this.roomData);
+                Object.values(this.clientConns).forEach(conn => {
+                    if (conn && conn.open) conn.send({ type: 'SYNC', roomData: this.roomData });
+                });
+            }
+
+            addBotPlayer() {
+                const name = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)] + ' 🤖';
+                const avatar = EMOJI_AVATARS[Math.floor(Math.random() * EMOJI_AVATARS.length)];
+                const botId = 'bot_' + Math.random().toString(36).substr(2, 9);
+
+                this.roomData.players[botId] = {
+                    id: botId,
+                    pseudo: name,
+                    avatar: avatar,
+                    score: 0,
+                    currentAnswer: null,
+                    isBot: true
+                };
+
+                this.broadcastRoomData();
+            }
+
+            ejectPlayer(playerId) {
+                this.audio.playClick();
+                if (this.clientConns[playerId]) {
+                    this.clientConns[playerId].send({ type: 'EJECTED' });
+                    delete this.clientConns[playerId];
+                }
+                delete this.roomData.players[playerId];
+                this.broadcastRoomData();
+            }
+
+            startQuizGame() {
+                const playerList = Object.values(this.roomData.players || {});
+                if (playerList.length === 0) {
+                    alert("Attendez qu'au moins un joueur scanne le QR code pour commencer !");
+                    return;
+                }
+
+                this.matchHistory = []; // Reset historique récapitulatif
+                this.audio.playFanfare();
+                this.hideAllPages();
+                document.getElementById('pageGame').classList.remove('hidden');
+
+                playerList.forEach(p => {
+                    p.score = 0;
+                    p.currentAnswer = null;
+                });
+
+                this.roomData.state = 'QUESTION_ACTIVE';
+                this.roomData.currentQuestionIndex = 0;
+                this.broadcastRoomData();
+            }
+
+            restartQuizGame() {
+                this.audio.playClick();
+                clearInterval(this.timerInterval);
+                this.isPaused = false;
+                document.getElementById('pauseBtnText').innerText = "Mettre en pause";
+                document.getElementById('pauseBtnIcon').className = "fa-solid fa-pause";
+                
+                this.startQuizGame();
+            }
+
+            togglePauseGame() {
+                this.audio.playClick();
+                this.isPaused = !this.isPaused;
+                const btnText = document.getElementById('pauseBtnText');
+                const btnIcon = document.getElementById('pauseBtnIcon');
+
+                if (this.isPaused) {
+                    btnText.innerText = "Reprendre la partie";
+                    btnIcon.className = "fa-solid fa-play";
+                } else {
+                    btnText.innerText = "Mettre en pause";
+                    btnIcon.className = "fa-solid fa-pause";
+                }
+            }
+
+            terminatePartyHost() {
+                this.audio.playClick();
+                clearInterval(this.timerInterval);
+                Object.values(this.clientConns).forEach(conn => {
+                    if (conn && conn.open) conn.send({ type: 'TERMINATED' });
+                });
+                this.showHome();
+            }
+
+            // PEERJS JOUEUR SMARTPHONE
+            initPeerPlayer(roomId) {
+                this.peer = new Peer();
+                this.peer.on('open', () => {
+                    const hostPeerId = 'partyquiz_' + roomId;
+                    this.hostConn = this.peer.connect(hostPeerId);
+
+                    this.hostConn.on('open', () => {
+                        const savedPlayer = JSON.parse(localStorage.getItem('partyquiz_player_session') || 'null');
+                        if (savedPlayer && savedPlayer.playerId && savedPlayer.roomId === roomId) {
+                            this.hostConn.send({
+                                type: 'JOIN',
+                                playerId: savedPlayer.playerId,
+                                pseudo: savedPlayer.pseudo,
+                                avatar: savedPlayer.avatar
+                            });
+                        }
+                    });
+
+                    this.hostConn.on('data', (data) => {
+                        if (data.type === 'SYNC') {
+                            this.roomData = data.roomData;
+                            this.onRoomStateUpdate(this.roomData);
+                        } else if (data.type === 'TERMINATED') {
+                            this.triggerDisconnectedView("La partie a été terminée par l'hôte.");
+                        } else if (data.type === 'EJECTED') {
+                            this.triggerDisconnectedView("Vous avez été éjecté du salon par l'hôte.");
+                        }
+                    });
+
+                    this.hostConn.on('close', () => {
+                        this.triggerDisconnectedView("Connexion au salon interrompue.");
+                    });
+                });
+            }
+
+            joinAsMobilePlayer() {
+                const pseudoInput = document.getElementById('playerInputPseudo').value.trim();
+                const pseudo = pseudoInput || 'Joueur' + Math.floor(Math.random() * 99);
+                this.myPlayerId = this.myPlayerId || 'player_' + Math.random().toString(36).substr(2, 9);
+
+                localStorage.setItem('partyquiz_player_session', JSON.stringify({
+                    roomId: this.roomData.roomId,
+                    playerId: this.myPlayerId,
+                    pseudo: pseudo,
+                    avatar: this.selectedEmoji
+                }));
+
+                document.getElementById('playerJoinForm').classList.add('hidden');
+                document.getElementById('playerWaitingLobby').classList.remove('hidden');
+                document.getElementById('myPseudoName').innerText = pseudo;
+                document.getElementById('myAvatar').innerText = this.selectedEmoji;
+
+                if (this.hostConn && this.hostConn.open) {
+                    this.hostConn.send({
+                        type: 'JOIN',
+                        playerId: this.myPlayerId,
+                        pseudo: pseudo,
+                        avatar: this.selectedEmoji
+                    });
+                }
+            }
+
+            quitParty() {
+                if (this.hostConn && this.hostConn.open) {
+                    this.hostConn.send({ type: 'QUIT', playerId: this.myPlayerId });
+                    this.hostConn.close();
+                }
+                this.triggerDisconnectedView("Vous avez quitté la partie.");
+            }
+
+            triggerDisconnectedView(message) {
+                localStorage.removeItem('partyquiz_player_session');
+                this.hideAllPages();
+                document.getElementById('disconnectedText').innerText = message;
+                document.getElementById('pageDisconnected').classList.remove('hidden');
+            }
+
+            goHomeFromMobile() {
+                localStorage.removeItem('partyquiz_player_session');
+                window.location.href = window.location.pathname;
+            }
+
+            submitPlayerAnswer(optionIdx) {
+                if (!this.myPlayerId) return;
+
+                document.querySelectorAll('.mobile-opt-btn').forEach((btn, idx) => {
+                    btn.disabled = true;
+                    if (idx !== optionIdx) btn.classList.add('opacity-40');
+                    else btn.classList.add('border-4', 'border-white');
+                });
+
+                if (this.hostConn && this.hostConn.open) {
+                    this.hostConn.send({
+                        type: 'ANSWER',
+                        playerId: this.myPlayerId,
+                        answerIdx: optionIdx
+                    });
+                }
+            }
+
+            onRoomStateUpdate(data) {
+                const state = data.state;
+
+                if (this.role === 'host') {
+                    this.updateHostLobbyUI(data);
+
+                    if (state === 'QUESTION_ACTIVE' && data.currentQuestionIndex !== this.lastHostQIndex) {
+                        this.lastHostQIndex = data.currentQuestionIndex;
+                        this.renderHostQuestion(data);
+                    } else if (state === 'QUESTION_ACTIVE') {
+                        this.updateHostAnswerCounters(data);
+                    } else if (state === 'REVEAL') {
+                        this.renderHostReveal(data);
+                    } else if (state === 'PODIUM') {
+                        this.renderHostPodium(data);
+                    }
+                } else {
+                    this.updatePlayerControllerUI(data);
+                }
+            }
+
+            updateHostLobbyUI(data) {
+                const playerList = Object.values(data.players || {});
+                document.getElementById('playerCount').innerText = playerList.length;
+
+                // LISTE VERTICALE STYLISÉE
+                const listElem = document.getElementById('playerListVertical');
+                if (playerList.length === 0) {
+                    listElem.innerHTML = `<div class="text-center text-xs text-gray-500 py-6">En attente des premiers joueurs...</div>`;
+                } else {
+                    listElem.innerHTML = playerList.map(p => `
+                        <div class="glass-panel p-3 rounded-xl flex justify-between items-center border border-white/10 hover:border-party-pink/50 transition-all">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">${p.avatar}</span>
+                                <span class="font-bold text-sm text-white">${p.pseudo}</span>
+                            </div>
+                            <button onclick="app.ejectPlayer('${p.id}')" class="text-xs bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white px-2.5 py-1 rounded-lg border border-red-500/30 transition-all flex items-center gap-1">
+                                <i class="fa-solid fa-user-xmark"></i> Éjecter
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            renderHostQuestion(data) {
+                this.isPaused = false;
+                document.getElementById('pauseBtnText').innerText = "Mettre en pause";
+                document.getElementById('pauseBtnIcon').className = "fa-solid fa-pause";
+
+                const currentQ = data.questions[data.currentQuestionIndex];
+
+                document.getElementById('gameQuestionIdx').innerText = `Question ${data.currentQuestionIndex + 1}/${data.questions.length}`;
+                document.getElementById('gameThemeTitle').innerText = THEMES_METADATA.find(t => t.id === data.theme).label;
+                document.getElementById('gameQuestionText').innerText = currentQ.q;
+                document.getElementById('questionStatusText').innerText = "⏰ Répondez sur votre téléphone !";
+
+                for (let i = 0; i < 4; i++) {
+                    const card = document.getElementById(`opt-card-${i}`);
+                    const text = document.getElementById(`opt-text-${i}`);
+                    const countBadge = document.getElementById(`opt-count-${i}`);
+                    
+                    card.className = `opt-${i} p-5 rounded-2xl flex justify-between items-center text-white shadow-lg transition-all duration-300 opacity-100 scale-100`;
+                    text.innerText = currentQ.options[i];
+                    countBadge.classList.add('hidden');
+                }
+
+                this.updateHostAnswerCounters(data);
+                this.triggerBotAnswers(data);
+                this.startTimer(10);
+            }
+
+            triggerBotAnswers(data) {
+                const botPlayers = Object.values(data.players || {}).filter(p => p.isBot);
+                botPlayers.forEach(bot => {
+                    const delay = Math.floor(1000 + Math.random() * 7000);
+                    setTimeout(() => {
+                        if (this.roomData.state !== 'QUESTION_ACTIVE') return;
+                        const correctIdx = data.questions[data.currentQuestionIndex].answer;
+                        const isCorrect = Math.random() < (data.difficulty === 'facile' ? 0.8 : data.difficulty === 'moyen' ? 0.6 : 0.4);
+                        bot.currentAnswer = isCorrect ? correctIdx : Math.floor(Math.random() * 4);
+                        this.broadcastRoomData();
+                    }, delay);
+                });
+            }
+
+            updateHostAnswerCounters(data) {
+                const playersList = Object.values(data.players || {});
+                document.getElementById('answeredCount').innerText = playersList.filter(p => p.currentAnswer !== null && p.currentAnswer !== undefined).length;
+                document.getElementById('totalPlayersCount').innerText = playersList.length;
+
+                for (let i = 0; i < 4; i++) {
+                    const countForOpt = playersList.filter(p => p.currentAnswer === i).length;
+                    document.getElementById(`opt-count-${i}`).innerText = `${countForOpt} rep`;
+                }
+            }
+
+            startTimer(seconds) {
+                clearInterval(this.timerInterval);
+                this.timerRemaining = seconds;
+                const timerElem = document.getElementById('gameTimer');
+                const progressBar = document.getElementById('timerProgressBar');
+
+                timerElem.innerText = this.timerRemaining;
+                progressBar.style.width = '100%';
+
+                this.timerInterval = setInterval(() => {
+                    if (this.isPaused) return; // Pause du timer
+
+                    this.timerRemaining--;
+                    timerElem.innerText = this.timerRemaining;
+                    progressBar.style.width = `${(this.timerRemaining / 10) * 100}%`;
+
+                    this.audio.playTick();
+
+                    if (this.timerRemaining <= 0) {
+                        clearInterval(this.timerInterval);
+                        this.revealQuestionAnswerHost();
+                    }
+                }, 1000);
+            }
+
+            revealQuestionAnswerHost() {
+                const currentQ = this.roomData.questions[this.roomData.currentQuestionIndex];
+                const correctIdx = currentQ.answer;
+
+                // Enregistrer l'historique détaillé des réponses
+                const qRecord = {
+                    question: currentQ.q,
+                    options: currentQ.options,
+                    correctAnswer: correctIdx,
+                    playerChoices: {}
+                };
+
+                Object.values(this.roomData.players).forEach(p => {
+                    qRecord.playerChoices[p.pseudo] = {
+                        avatar: p.avatar,
+                        choice: p.currentAnswer,
+                        isCorrect: p.currentAnswer === correctIdx
+                    };
+
+                    if (p.currentAnswer === correctIdx) {
+                        const pts = this.roomData.difficulty === 'facile' ? 100 : this.roomData.difficulty === 'moyen' ? 150 : 200;
+                        p.score = (p.score || 0) + pts;
+                    }
+                });
+
+                this.matchHistory.push(qRecord);
+
+                this.roomData.state = 'REVEAL';
+                this.broadcastRoomData();
+
+                setTimeout(() => {
+                    const nextQ = this.roomData.currentQuestionIndex + 1;
+                    if (nextQ < this.roomData.questions.length) {
+                        Object.values(this.roomData.players).forEach(p => p.currentAnswer = null);
+                        this.roomData.state = 'QUESTION_ACTIVE';
+                        this.roomData.currentQuestionIndex = nextQ;
+                        this.broadcastRoomData();
+                    } else {
+                        this.roomData.state = 'PODIUM';
+                        this.broadcastRoomData();
+                    }
+                }, 4000);
+            }
+
+            renderHostReveal(data) {
+                const currentQ = data.questions[data.currentQuestionIndex];
+                const correctIdx = currentQ.answer;
+
+                document.getElementById('questionStatusText').innerText = "RÉSULTATS DE LA QUESTION !";
+
+                for (let i = 0; i < 4; i++) {
+                    const card = document.getElementById(`opt-card-${i}`);
+                    const countBadge = document.getElementById(`opt-count-${i}`);
+                    countBadge.classList.remove('hidden');
+
+                    if (i === correctIdx) {
+                        card.className = "opt-3 p-5 rounded-2xl flex justify-between items-center text-white shadow-2xl scale-105 border-4 border-yellow-300 ring-4 ring-green-500/50";
+                    } else {
+                        card.className = "bg-gray-800/60 p-5 rounded-2xl flex justify-between items-center text-gray-500 opacity-40";
+                    }
+                }
+            }
+
+            renderHostPodium(data) {
+                this.hideAllPages();
+                document.getElementById('pagePodium').classList.remove('hidden');
+                this.audio.playFanfare();
+
+                if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+
+                const sorted = Object.values(data.players || {}).sort((a, b) => b.score - a.score);
+                const podiumContainer = document.getElementById('podiumSteps');
+                podiumContainer.innerHTML = '';
+
+                const podiumOrder = [
+                    { player: sorted[1], rank: 2, height: 'h-36', color: 'bg-slate-400', badge: '🥈 2ème' },
+                    { player: sorted[0], rank: 1, height: 'h-48', color: 'bg-gradient-to-t from-amber-500 to-yellow-300', badge: '👑 1er' },
+                    { player: sorted[2], rank: 3, height: 'h-28', color: 'bg-amber-700', badge: '🥉 3ème' }
+                ];
+
+                podiumOrder.forEach(item => {
+                    if (item.player) {
+                        podiumContainer.insertAdjacentHTML('beforeend', `
+                            <div class="flex flex-col items-center justify-end">
+                                <div class="text-3xl mb-1">${item.player.avatar}</div>
+                                <span class="font-bold text-xs truncate max-w-[80px] text-white">${item.player.pseudo}</span>
+                                <span class="text-xs text-party-yellow font-black mb-2">${item.player.score} pts</span>
+                                <div class="${item.height} ${item.color} w-20 md:w-28 rounded-t-2xl shadow-2xl flex flex-col items-center justify-start pt-3 text-black font-extrabold text-sm">
+                                    ${item.badge}
+                                </div>
+                            </div>
+                        `);
+                    }
+                });
+
+                document.getElementById('fullLeaderboardList').innerHTML = sorted.map((p, idx) => `
+                    <div class="glass-panel p-3 rounded-xl flex justify-between items-center text-sm border border-white/10">
+                        <div class="flex items-center gap-3">
+                            <span class="font-mono font-bold w-6 text-gray-400">#${idx + 1}</span>
+                            <span class="text-xl">${p.avatar}</span>
+                            <span class="font-bold text-white">${p.pseudo}</span>
+                        </div>
+                        <span class="font-black text-party-yellow">${p.score} pts</span>
+                    </div>
+                `).join('');
+            }
+
+            toggleMatchDetailsModal() {
+                this.audio.playClick();
+                const modal = document.getElementById('matchDetailsModal');
+                const content = document.getElementById('matchDetailsContent');
+
+                if (modal.classList.contains('hidden')) {
+                    content.innerHTML = this.matchHistory.map((rec, qIdx) => `
+                        <div class="glass-panel p-4 rounded-2xl border border-white/10 space-y-3">
+                            <div class="flex justify-between items-start">
+                                <h4 class="font-bold text-white text-sm">Q${qIdx + 1}. ${rec.question}</h4>
+                                <span class="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-lg border border-green-500/20">
+                                    Réponse : ${rec.options[rec.correctAnswer]}
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-white/10">
+                                ${Object.entries(rec.playerChoices).map(([pName, pData]) => `
+                                    <div class="p-2 rounded-xl text-xs flex justify-between items-center ${pData.isCorrect ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'}">
+                                        <span class="flex items-center gap-2">
+                                            <span>${pData.avatar}</span>
+                                            <strong class="text-white">${pName}</strong>
+                                        </span>
+                                        <span>${pData.choice !== null && pData.choice !== undefined ? rec.options[pData.choice] : 'Pas répondu'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('');
+                    modal.classList.remove('hidden');
+                } else {
+                    modal.classList.add('hidden');
+                }
+            }
+
+            updatePlayerControllerUI(data) {
+                const myData = data.players ? data.players[this.myPlayerId] : null;
+                const state = data.state;
+
+                if (state === 'LOBBY') {
+                    document.getElementById('playerWaitingLobby').classList.remove('hidden');
+                    document.getElementById('playerActiveView').classList.add('hidden');
+                } else if (state === 'QUESTION_ACTIVE') {
+                    document.getElementById('playerWaitingLobby').classList.add('hidden');
+                    document.getElementById('playerActiveView').classList.remove('hidden');
+
+                    const currentQ = data.questions[data.currentQuestionIndex];
+                    document.getElementById('mobileQuestionTitle').innerText = currentQ.q;
+
+                    for (let i = 0; i < 4; i++) {
+                        const optTxt = document.getElementById(`mobile-opt-text-${i}`);
+                        if (optTxt) optTxt.innerText = currentQ.options[i];
+                    }
+
+                    document.getElementById('myScore').innerText = myData ? (myData.score || 0) : 0;
+
+                    if (myData && (myData.currentAnswer === null || myData.currentAnswer === undefined)) {
+                        document.querySelectorAll('.mobile-opt-btn').forEach(btn => {
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-40', 'border-4', 'border-white');
+                        });
+                        document.getElementById('mobileFeedbackBox').classList.add('hidden');
+                        document.getElementById('mobileAnswerButtons').classList.remove('hidden');
+                    }
+                } else if (state === 'REVEAL') {
+                    const currentQ = data.questions[data.currentQuestionIndex];
+                    const correctIdx = currentQ.answer;
+
+                    document.getElementById('mobileAnswerButtons').classList.add('hidden');
+                    const feedbackBox = document.getElementById('mobileFeedbackBox');
+                    feedbackBox.classList.remove('hidden');
+
+                    if (myData && myData.currentAnswer === correctIdx) {
+                        document.getElementById('feedbackIcon').innerText = "🎉";
+                        document.getElementById('feedbackTitle').innerText = "BONNE RÉPONSE !";
+                        document.getElementById('feedbackTitle').className = "text-xl font-black text-green-400";
+                        document.getElementById('feedbackSubtitle').innerText = `Score total : ${myData.score} pts`;
+                    } else {
+                        document.getElementById('feedbackIcon').innerText = "❌";
+                        document.getElementById('feedbackTitle').innerText = "MAUVAISE RÉPONSE !";
+                        document.getElementById('feedbackTitle').className = "text-xl font-black text-red-500";
+                        document.getElementById('feedbackSubtitle').innerText = `La bonne réponse était : ${currentQ.options[correctIdx]}`;
+                    }
+                } else if (state === 'PODIUM') {
+                    this.renderHostPodium(data);
+                }
+            }
+
+            showStatusBanner(text, visible = true) {
+                const banner = document.getElementById('statusBanner');
+                const txt = document.getElementById('statusBannerText');
+                if (txt) txt.innerText = text;
+                if (banner) {
+                    if (visible) banner.classList.remove('hidden');
+                    else banner.classList.add('hidden');
+                }
+            }
         }
-      });
-    }
 
-    /* ==========================================================================
-       DÉROULEMENT DE LA PARTIE (QUIZZ 15 QUESTIONS)
-       ========================================================================== */
-    function startQuizGame() {
-      if (Object.keys(app.players).length === 0) {
-        return alert("Il faut au moins 1 joueur pour démarrer la partie !");
-      }
-
-      // Sélection des questions
-      const pool = QUESTIONS_DB[app.selectedTheme] || QUESTIONS_DB['general'];
-      app.questions = [...pool];
-      // Dupliquer si nécessaire pour atteindre 15 questions
-      while (app.questions.length < 15) {
-        app.questions = app.questions.concat(pool);
-      }
-      app.questions = app.questions.slice(0, 15);
-      app.currentQIdx = 0;
-
-      showQuestionScreen();
-    }
-
-    function showQuestionScreen() {
-      app.answersReceived = {};
-      const q = app.questions[app.currentQIdx];
-
-      document.getElementById('currentQNum').textContent = app.currentQIdx + 1;
-      document.getElementById('questionText').textContent = q.q;
-
-      // Reset visuel réponses Hôte
-      for (let i = 0; i < 4; i++) {
-        const card = document.getElementById(`hostAns${i}`);
-        card.className = 'answer-host';
-        card.querySelector('.ans-text').textContent = q.a[i];
-        
-        // Cacher les badges de comptage pendant la question
-        const badge = document.getElementById(`countAns${i}`);
-        badge.classList.remove('visible');
-        badge.textContent = '0';
-      }
-
-      showScreen('question');
-
-      // Informer les téléphones portables de la nouvelle question
-      broadcastToPlayers({
-        type: 'NEW_QUESTION',
-        qIndex: app.currentQIdx,
-        question: q.q,
-        answers: q.a
-      });
-
-      // Simulation des choix pour les bots
-      simulateBotAnswers();
-
-      // Démarrage du Compte à Rebours de 10 Secondes
-      start10sTimer(() => {
-        revealQuestionResults();
-      });
-    }
-
-    function start10sTimer(onComplete) {
-      let timeLeft = 10;
-      const timerDisplay = document.getElementById('timerDisplay');
-      const timerBar = document.getElementById('timerBar');
-
-      timerDisplay.textContent = `⏱️ ${timeLeft}s`;
-      timerBar.style.width = '100%';
-
-      if (app.timerInterval) clearInterval(app.timerInterval);
-
-      app.timerInterval = setInterval(() => {
-        timeLeft--;
-        sound.playTick();
-        timerDisplay.textContent = `⏱️ ${timeLeft}s`;
-        timerBar.style.width = `${(timeLeft / 10) * 100}%`;
-
-        if (timeLeft <= 0) {
-          clearInterval(app.timerInterval);
-          onComplete();
-        }
-      }, 1000);
-    }
-
-    function simulateBotAnswers() {
-      Object.keys(app.players).forEach(id => {
-        if (app.players[id].isBot) {
-          const delay = Math.random() * 7000 + 1000;
-          setTimeout(() => {
-            app.answersReceived[id] = Math.floor(Math.random() * 4);
-          }, delay);
-        }
-      });
-    }
-
-    function revealQuestionResults() {
-      const q = app.questions[app.currentQIdx];
-
-      // Compter les réponses
-      const counts = [0, 0, 0, 0];
-      Object.entries(app.answersReceived).forEach(([pId, choice]) => {
-        if (choice >= 0 && choice <= 3) {
-          counts[choice]++;
-          // Calcul des points
-          if (choice === q.correct) {
-            if (app.players[pId]) app.players[pId].score += 100;
-          }
-        }
-      });
-
-      // Révélation visuelle sur l'écran principal de l'Hôte
-      for (let i = 0; i < 4; i++) {
-        const card = document.getElementById(`hostAns${i}`);
-        const badge = document.getElementById(`countAns${i}`);
-
-        // Afficher les nombres de personnes ayant choisi la réponse
-        badge.textContent = counts[i] + ' vote' + (counts[i] > 1 ? 's' : '');
-        badge.classList.add('visible');
-
-        if (i === q.correct) {
-          card.classList.add('correct');
-        } else {
-          card.classList.add('wrong-dimmed');
-        }
-      }
-
-      // Envoyer le résultat aux smartphones joueurs
-      broadcastToPlayers({
-        type: 'REVEAL_RESULT',
-        correctChoice: q.correct
-      });
-
-      sound.playCorrect();
-
-      // Passer à la question suivante ou au podium après 4 secondes
-      setTimeout(() => {
-        app.currentQIdx++;
-        if (app.currentQIdx < app.questions.length) {
-          showQuestionScreen();
-        } else {
-          showPodiumScreen();
-        }
-      }, 4000);
-    }
-
-    function showPodiumScreen() {
-      showScreen('podium');
-      sound.playCorrect();
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-
-      // Trier les joueurs par score
-      const sorted = Object.values(app.players).sort((a, b) => b.score - a.score);
-
-      const podiumDisplay = document.getElementById('podiumDisplay');
-      podiumDisplay.innerHTML = '';
-
-      const p2 = sorted[1] || { name: '-', avatar: '🥈', score: 0 };
-      const p1 = sorted[0] || { name: '-', avatar: '🥇', score: 0 };
-      const p3 = sorted[2] || { name: '-', avatar: '🥉', score: 0 };
-
-      podiumDisplay.innerHTML = `
-        <div class="podium-step p2">
-          <div class="podium-avatar">${p2.avatar}</div>
-          <div class="podium-name">${p2.name}</div>
-          <div class="podium-score">${p2.score} pts</div>
-        </div>
-        <div class="podium-step p1">
-          <div class="podium-avatar">${p1.avatar}</div>
-          <div class="podium-name">${p1.name}</div>
-          <div class="podium-score">${p1.score} pts</div>
-        </div>
-        <div class="podium-step p3">
-          <div class="podium-avatar">${p3.avatar}</div>
-          <div class="podium-name">${p3.name}</div>
-          <div class="podium-score">${p3.score} pts</div>
-        </div>
-      `;
-
-      // Informer les mobiles
-      broadcastToPlayers({
-        type: 'FINAL_PODIUM',
-        rankings: sorted
-      });
-    }
-
-    /* ==========================================================================
-       LOGIQUE CÔTÉ JOUEUR MOBILE (CONNEXION PEERJS)
-       ========================================================================== */
-    function initPlayerPeer() {
-      app.peer = new Peer();
-
-      app.peer.on('open', () => {
-        // Se connecter au salon Hôte via WebRTC
-        app.hostConn = app.peer.connect(app.roomId);
-
-        app.hostConn.on('open', () => {
-          // Connexion réseau établie
+        window.addEventListener('DOMContentLoaded', () => {
+            window.app = new PartyQuizAppWebRTC();
         });
-
-        app.hostConn.on('data', (data) => {
-          handlePlayerIncomingData(data);
-        });
-
-        app.hostConn.on('close', () => {
-          showDisconnected("Connexion au salon perdue.", "⚠️");
-        });
-      });
-    }
-
-    function handlePlayerIncomingData(data) {
-      if (data.type === 'EJECTED') {
-        showDisconnected("Tu as été éjecté du salon par l'hôte.", "🚫");
-      }
-      else if (data.type === 'NEW_QUESTION') {
-        // Afficher la question et les boutons de réponse sur le smartphone
-        document.getElementById('playerWaitArea').style.display = 'none';
-        document.getElementById('playerFeedbackArea').style.display = 'none';
-        document.getElementById('playerActiveQuestionArea').style.display = 'block';
-
-        document.getElementById('playerQuestionText').textContent = data.question;
-
-        const btns = document.querySelectorAll('.mobile-answer-btn');
-        btns.forEach((btn, idx) => {
-          btn.classList.remove('locked', 'selected-choice');
-          btn.querySelector('.m-ans-label').textContent = data.answers[idx];
-        });
-
-        app.localPlayer.choice = null;
-      }
-      else if (data.type === 'REVEAL_RESULT') {
-        // Résultat de la question sur le téléphone
-        document.getElementById('playerActiveQuestionArea').style.display = 'none';
-        const feedbackArea = document.getElementById('playerFeedbackArea');
-        feedbackArea.style.display = 'block';
-
-        if (app.localPlayer.choice === data.correctChoice) {
-          feedbackArea.innerHTML = `
-            <div class="feedback-card success">
-              <h2>🎉 Bonne réponse !</h2>
-              <p>+100 points</p>
-            </div>
-          `;
-          sound.playCorrect();
-        } else {
-          feedbackArea.innerHTML = `
-            <div class="feedback-card error">
-              <h2>❌ Mauvaise réponse</h2>
-              <p>Regarde le grand écran !</p>
-            </div>
-          `;
-          sound.playWrong();
-        }
-      }
-      else if (data.type === 'GAME_OVER') {
-        showDisconnected("La partie est terminée !", "🎉");
-      }
-    }
-
-    function submitPlayerAnswer(choiceIdx) {
-      if (app.localPlayer.choice !== null) return; // Déjà répondu
-
-      app.localPlayer.choice = choiceIdx;
-
-      // Verrouiller visuellement les boutons
-      const btns = document.querySelectorAll('.mobile-answer-btn');
-      btns.forEach((btn, idx) => {
-        btn.classList.add('locked');
-        if (idx === choiceIdx) {
-          btn.classList.add('selected-choice');
-        }
-      });
-
-      // Envoyer le choix à l'Hôte
-      if (app.hostConn) {
-        app.hostConn.send({
-          type: 'ANSWER',
-          playerId: app.localPlayer.id,
-          choice: choiceIdx
-        });
-      }
-    }
-
-    function showDisconnected(msg, icon = "👋") {
-      document.getElementById('disconnTitle').textContent = "Information";
-      document.getElementById('disconnMsg').textContent = msg;
-      document.getElementById('disconnIcon').textContent = icon;
-      showScreen('disconnected');
-    }
-  </script>
+    </script>
 </body>
 </html>
