@@ -227,13 +227,13 @@
     }
     #pauseOverlay.active { display: flex; }
 
-    #restartOverlay, #gameStartLoadingOverlay {
+    #restartOverlay, #gameStartLoadingOverlay, #calcPointsOverlay, #fastestPlayerOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 150;
       display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center;
       animation: fadeIn 0.3s ease;
     }
-    #restartOverlay.active, #gameStartLoadingOverlay.active { display: flex; }
+    #restartOverlay.active, #gameStartLoadingOverlay.active, #calcPointsOverlay.active, #fastestPlayerOverlay.active { display: flex; }
 
     .host-controls-bar {
       display: flex; justify-content: center; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);
@@ -244,9 +244,14 @@
     .btn-ctrl-stop { background: rgba(255,23,68,0.2); border: 1px solid var(--danger); color: #ff5252; }
 
     .podium-layout-main {
-      display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start;
+      display: grid; grid-template-columns: 280px 1fr 300px; gap: 20px; align-items: start;
     }
-    @media (max-width: 900px) { .podium-layout-main { grid-template-columns: 1fr; } }
+    @media (max-width: 1000px) { .podium-layout-main { grid-template-columns: 1fr; } }
+
+    .fastest-stat-card {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius); padding: 20px; text-align: center;
+    }
 
     .podium-rest-card {
       background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
@@ -258,7 +263,7 @@
     }
     .rest-player-item.disconnected { opacity: 0.4; filter: grayscale(90%); }
 
-    /* Mobile Container avec scroll désactivé (overflow: hidden) */
+    /* Mobile Container avec scroll désactivé */
     .mobile-container {
       width: 100%; height: 100dvh; max-width: 450px; margin: 0 auto;
       display: flex; flex-direction: column; justify-content: space-between; padding-top: 65px; padding-bottom: 12px;
@@ -341,11 +346,26 @@
     </div>
   </div>
 
-  <!-- OVERLAY CHARGEMENT DÉBUT DE PARTIE -->
+  <!-- OVERLAY COMPTE À REBOURS DE DÉMARRAGE (5 SECONDES) -->
   <div id="gameStartLoadingOverlay">
-    <div style="font-size: 4rem; color: var(--primary); margin-bottom: 15px;"><i class="fa-solid fa-gamepad fa-bounce"></i></div>
+    <div style="font-size: 5rem; color: var(--primary); margin-bottom: 15px; font-weight: 900;" id="startCountdownNum">5</div>
     <h1 style="font-size: 2.2rem; color: #fff; margin-bottom: 10px;">La partie va commencer !</h1>
     <p style="color: var(--text-muted);">Préparez-vous...</p>
+  </div>
+
+  <!-- OVERLAY CALCUL DES POINTS -->
+  <div id="calcPointsOverlay">
+    <div style="font-size: 4rem; color: var(--gold); margin-bottom: 15px;"><i class="fa-solid fa-calculator fa-spin"></i></div>
+    <h1 style="font-size: 2.2rem; color: #fff; margin-bottom: 10px;">Calcul des points en cours...</h1>
+    <p style="color: var(--text-muted);">Analyse des statistiques et bonus de vitesse !</p>
+  </div>
+
+  <!-- OVERLAY JOUEUR LE PLUS RAPIDE (PAR QUESTION) -->
+  <div id="fastestPlayerOverlay">
+    <div style="font-size: 4.5rem; margin-bottom: 15px;" id="fastestModalAvatar">⚡</div>
+    <h1 style="font-size: 2rem; color: var(--primary); margin-bottom: 5px;" id="fastestModalName">Nom du joueur</h1>
+    <p style="color: var(--success); font-size: 1.3rem; font-weight: 700; margin-bottom: 15px;">A répondu le plus rapidement !</p>
+    <div style="background: rgba(255,255,255,0.1); padding: 10px 25px; border-radius: 20px; font-size: 1.2rem; font-weight: 600; color: #fff;">Bravo !</div>
   </div>
 
   <!-- OVERLAY PAUSE -->
@@ -604,27 +624,22 @@
 
     <!-- ÉCRAN 5: PODIUM HÔTE -->
     <section id="screenPodium" class="screen">
+      <h1 class="title-large" style="margin-bottom: 15px;"><i class="fa-solid fa-flag-checkered" style="color: var(--primary);"></i> La partie est terminée !</h1>
+
       <div class="podium-layout-main">
-        <div class="card" style="text-align: center; margin-bottom: 0;">
-          <h1 class="title-large"><i class="fa-solid fa-trophy" style="color: var(--gold);"></i> Classement Final</h1>
-          
-          <div class="podium-container" id="podiumDisplay"></div>
-
-          <div style="display:flex; justify-content:center; gap:15px; margin-top:20px; flex-wrap:wrap;">
-            <button class="btn btn-secondary" id="btnToggleDetails">
-              <i class="fa-solid fa-list-check"></i> Voir les détails
-            </button>
-            <button class="btn btn-danger" id="btnEndGameFinal">
-              <i class="fa-solid fa-power-off"></i> Terminer
-            </button>
-          </div>
-
-          <div id="gameDetailsBox" style="display: none; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">
-            <h3>Récapitulatif des Questions</h3>
-            <div id="recapQuestionsList" style="margin-top: 10px; max-height: 200px; overflow-y: auto;"></div>
-          </div>
+        <!-- STATS JOUEUR LE PLUS RAPIDE À GAUCHE -->
+        <div class="fastest-stat-card">
+          <h3 style="margin-bottom: 12px; font-size: 1rem; color: var(--text-muted);"><i class="fa-solid fa-bolt" style="color: var(--gold);"></i> Plus Rapide</h3>
+          <div id="fastestPlayerStatBox" style="font-size: 1.1rem; font-weight: 700;">-</div>
         </div>
 
+        <!-- ENCART PRINCIPAL PODIUM AU CENTRE -->
+        <div class="card" style="text-align: center; margin-bottom: 0;">
+          <h2 style="margin-bottom: 10px;"><i class="fa-solid fa-trophy" style="color: var(--gold);"></i> Classement Final</h2>
+          <div class="podium-container" id="podiumDisplay"></div>
+        </div>
+
+        <!-- SUITE DU CLASSEMENT À DROITE -->
         <div class="podium-rest-card">
           <h3 style="margin-bottom: 12px; font-size: 1rem; color: var(--text-muted);">
             <i class="fa-solid fa-list-ol"></i> Suite du classement
@@ -642,7 +657,6 @@
           <input type="text" id="playerPseudoInput" class="input-field" placeholder="Entre ton pseudo..." maxlength="12">
           
           <label style="display:block; font-size:0.85rem; color:var(--text-muted); margin-bottom: 5px;">Choisis ton avatar :</label>
-          <!-- Emoji robot remplacé par 👽, les bots auront automatiquement l'émoji robot 🤖 -->
           <div class="emoji-selector">
             <div class="emoji-opt selected">😎</div>
             <div class="emoji-opt">🚀</div>
@@ -680,7 +694,6 @@
           </div>
 
           <div id="playerActiveQuestionArea" style="display: none;">
-            <!-- Numéro de question centré verticalement au-dessus de la question -->
             <div id="playerQNumTracker" style="text-align: center; font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">Question 1 / 10</div>
             <div id="playerQuestionTitle" style="font-size: 1.05rem; font-weight: 700; text-align: center; margin-bottom: 10px;">Question...</div>
 
@@ -722,11 +735,6 @@
                 <i class="fa-solid fa-hands-clapping"></i> Applaudir !
               </button>
             </div>
-
-            <div style="margin-top: 15px;">
-              <h4>Détails de la partie</h4>
-              <div id="playerRecapList" style="margin-top: 10px;"></div>
-            </div>
           </div>
         </div>
       </div>
@@ -744,6 +752,9 @@
     </section>
 
   </main>
+
+  <!-- AUDIO BACKGROUND MUSIC PIXABAY -->
+  <audio id="bgAudioPlayer" src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf756.mp3?filename=jazz-lounge-relaxing-background-music-559761.mp3" preload="auto" loop></audio>
 
   <script>
     const AI_QUESTIONS_POOL = {
@@ -789,8 +800,6 @@
         this.ctx = null;
         this.musicMuted = false;
         this.sfxMuted = false;
-        this.bgMusicTimer = null;
-        this.isMusicPlaying = false;
         this.isDisabled = false;
       }
       init() {
@@ -831,30 +840,6 @@
           osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.18);
         });
       }
-      startFestiveMusic() {
-        if (this.isDisabled || this.isMusicPlaying || this.musicMuted) return;
-        this.init();
-        this.isMusicPlaying = true;
-        let step = 0;
-        const notes = [110, 130.81, 146.83, 164.81];
-        this.bgMusicTimer = setInterval(() => {
-          if (this.musicMuted || !this.ctx) return;
-          const now = this.ctx.currentTime;
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(notes[step % notes.length], now);
-          gain.gain.setValueAtTime(0.025, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-          osc.connect(gain); gain.connect(this.ctx.destination);
-          osc.start(now); osc.stop(now + 0.18);
-          step++;
-        }, 250);
-      }
-      stopMusic() {
-        if (this.bgMusicTimer) clearInterval(this.bgMusicTimer);
-        this.isMusicPlaying = false;
-      }
     }
 
     const sound = new SoundEngine();
@@ -872,10 +857,13 @@
       questions: [],
       currentQIdx: 0,
       answersReceived: {},
+      answerTimes: {}, // Stocke les temps de réponse pour chaque question par joueur
+      playerTotalResponseTime: {}, // Cumul des temps de réponse pour la moyenne
+      playerAnswerCounts: {}, // Nombre de réponses données
       timerInterval: null,
       isPaused: false,
       timeLeft: 10,
-      localPlayer: { id: null, name: '', avatar: '😎', choice: null }
+      localPlayer: { id: null, name: '', avatar: '😎', choice: null, answerStartTime: 0 }
     };
 
     const screens = {
@@ -934,12 +922,22 @@
       } else {
         app.isHost = true;
         showScreen('home');
-        setTimeout(() => sound.startFestiveMusic(), 500);
-        document.body.addEventListener('click', () => sound.startFestiveMusic(), { once: true });
+        setupAudioPlayer();
+        document.body.addEventListener('click', () => {
+          const bgAudio = document.getElementById('bgAudioPlayer');
+          if (bgAudio && bgAudio.paused && !sound.musicMuted) bgAudio.play().catch(e => {});
+        }, { once: true });
       }
 
       setupEvents();
     });
+
+    function setupAudioPlayer() {
+      const bgAudio = document.getElementById('bgAudioPlayer');
+      if (bgAudio) {
+        bgAudio.volume = 0.15; // Volume faible demandé
+      }
+    }
 
     function setupEvents() {
       document.getElementById('logoHomeLink').addEventListener('click', () => {
@@ -987,12 +985,13 @@
       document.getElementById('musicToggle').addEventListener('click', () => {
         sound.musicMuted = !sound.musicMuted;
         const btn = document.getElementById('musicToggle');
+        const bgAudio = document.getElementById('bgAudioPlayer');
         if (sound.musicMuted) {
           btn.classList.remove('active');
-          sound.stopMusic();
+          if (bgAudio) bgAudio.pause();
         } else {
           btn.classList.add('active');
-          sound.startFestiveMusic();
+          if (bgAudio) bgAudio.play().catch(e => {});
         }
       });
 
@@ -1036,7 +1035,7 @@
           showInfoModal("Attention", "Ajoute au moins 1 joueur avant de lancer la partie !");
           return;
         }
-        triggerGameStartSequence();
+        triggerGameStartCountdown();
       });
 
       document.querySelectorAll('.emoji-opt').forEach(opt => {
@@ -1102,24 +1101,12 @@
         window.location.href = window.location.pathname;
       });
 
-      document.getElementById('btnEndGameFinal').addEventListener('click', () => {
-        sound.playClick();
-        broadcastToPlayers({ type: 'GAME_OVER' });
-        window.location.href = window.location.pathname;
-      });
-
-      document.getElementById('btnToggleDetails').addEventListener('click', () => {
-        const box = document.getElementById('gameDetailsBox');
-        box.style.display = box.style.display === 'none' ? 'block' : 'none';
-      });
-
       document.getElementById('btnPlayerClap').addEventListener('click', () => {
         sound.playClick();
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
         if (app.hostConn) app.hostConn.send({ type: 'PLAYER_CLAP', id: app.localPlayer.id, name: app.localPlayer.name });
       });
 
-      // Bouton Quitter mobile : fermeture connexion, changement d'URL en générique et affichage écran déconnecté sans bouton
       document.getElementById('btnPlayerLeave').addEventListener('click', () => {
         if (app.hostConn) {
           app.hostConn.close();
@@ -1130,15 +1117,29 @@
       });
     }
 
-    function triggerGameStartSequence() {
+    /* COMPTE À REBOURS 5 SECONDES AU DÉMARRAGE AVEC SON ET ANIMATION */
+    function triggerGameStartCountdown() {
       const overlay = document.getElementById('gameStartLoadingOverlay');
+      const numDisplay = document.getElementById('startCountdownNum');
       overlay.style.display = 'flex';
-      broadcastToPlayers({ type: 'SHOW_START_LOADING' });
+      broadcastToPlayers({ type: 'SHOW_START_COUNTDOWN', count: 5 });
 
-      setTimeout(() => {
-        overlay.style.display = 'none';
-        startQuizGame();
-      }, 2500);
+      let count = 5;
+      numDisplay.textContent = count;
+      sound.playTick();
+
+      const timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+          numDisplay.textContent = count;
+          sound.playTick();
+          broadcastToPlayers({ type: 'UPDATE_START_COUNTDOWN', count: count });
+        } else {
+          clearInterval(timer);
+          overlay.style.display = 'none';
+          startQuizGame();
+        }
+      }, 1000);
     }
 
     function triggerRestartAnimation(callback) {
@@ -1237,9 +1238,18 @@
       if (data.type === 'JOIN') {
         app.players[data.player.id] = { name: data.player.name, avatar: data.player.avatar, score: 0, isBot: false, disconnected: false };
         app.connections[data.player.id] = conn;
+        app.playerTotalResponseTime[data.player.id] = 0;
+        app.playerAnswerCounts[data.player.id] = 0;
         updateLobbyUI();
       } else if (data.type === 'ANSWER') {
-        app.answersReceived[data.playerId] = data.choice;
+        const responseTime = (Date.now() - app.localPlayer.answerStartTime) / 1000;
+        app.answersReceived[data.playerId] = { choice: data.choice, time: responseTime };
+        
+        if (!app.playerTotalResponseTime[data.playerId]) app.playerTotalResponseTime[data.playerId] = 0;
+        if (!app.playerAnswerCounts[data.playerId]) app.playerAnswerCounts[data.playerId] = 0;
+        app.playerTotalResponseTime[data.playerId] += responseTime;
+        app.playerAnswerCounts[data.playerId]++;
+
         updateLiveTrackSidebar();
       } else if (data.type === 'PLAYER_CLAP') {
         confetti({ particleCount: 50, spread: 50 });
@@ -1274,9 +1284,11 @@
       const id = 'bot_' + Math.random().toString(36).substr(2, 5);
       app.players[id] = {
         name: bNames[Math.floor(Math.random() * bNames.length)] + '_' + Math.floor(Math.random() * 99),
-        avatar: '🤖', // Avatar robot for bots by default
+        avatar: '🤖',
         score: 0, isBot: true, disconnected: false
       };
+      app.playerTotalResponseTime[id] = 0;
+      app.playerAnswerCounts[id] = 0;
       updateLobbyUI();
     }
 
@@ -1310,6 +1322,14 @@
       }
       app.questions = shuffled.slice(0, app.totalQuestions);
       app.currentQIdx = 0;
+      
+      // Réinitialisation des stats de temps
+      app.playerTotalResponseTime = {};
+      app.playerAnswerCounts = {};
+      Object.keys(app.players).forEach(id => {
+        app.playerTotalResponseTime[id] = 0;
+        app.playerAnswerCounts[id] = 0;
+      });
 
       showNextQuestion();
     }
@@ -1317,6 +1337,7 @@
     function showNextQuestion() {
       app.answersReceived = {};
       app.isPaused = false;
+      app.localPlayer.answerStartTime = Date.now();
       document.getElementById('pauseBtnLabel').textContent = "Mettre en pause";
       document.getElementById('pauseOverlay').classList.remove('active');
 
@@ -1391,12 +1412,17 @@
     function simulateBots() {
       Object.keys(app.players).forEach(id => {
         if (app.players[id].isBot && !app.players[id].disconnected) {
+          const delay = Math.random() * (app.questionTime * 700) + 500;
           setTimeout(() => {
             if (!app.answersReceived[id]) {
-              app.answersReceived[id] = Math.floor(Math.random() * 4);
+              const choice = Math.floor(Math.random() * 4);
+              const respTime = delay / 1000;
+              app.answersReceived[id] = { choice: choice, time: respTime };
+              app.playerTotalResponseTime[id] = (app.playerTotalResponseTime[id] || 0) + respTime;
+              app.playerAnswerCounts[id] = (app.playerAnswerCounts[id] || 0) + 1;
               updateLiveTrackSidebar();
             }
-          }, Math.random() * (app.questionTime * 700) + 500);
+          }, delay);
         }
       });
     }
@@ -1405,10 +1431,17 @@
       const q = app.questions[app.currentQIdx];
       const counts = [0, 0, 0, 0];
 
-      Object.entries(app.answersReceived).forEach(([pId, choice]) => {
-        counts[choice]++;
-        if (choice === q.correct && app.players[pId] && !app.players[pId].disconnected) {
+      let fastestPlayerId = null;
+      let minTime = Infinity;
+
+      Object.entries(app.answersReceived).forEach(([pId, data]) => {
+        counts[data.choice]++;
+        if (data.choice === q.correct && app.players[pId] && !app.players[pId].disconnected) {
           app.players[pId].score += 100;
+        }
+        if (data.time < minTime && app.players[pId] && !app.players[pId].disconnected) {
+          minTime = data.time;
+          fastestPlayerId = pId;
         }
       });
 
@@ -1421,21 +1454,97 @@
         else card.classList.add('wrong-dimmed');
       }
 
-      broadcastToPlayers({ type: 'REVEAL_RESULT', correctChoice: q.correct });
       sound.playCorrect();
 
+      // Affichage écran du joueur le plus rapide de la question
+      if (fastestPlayerId && app.players[fastestPlayerId]) {
+        const fp = app.players[fastestPlayerId];
+        showFastestPlayerOverlay(fp.avatar, fp.name);
+        broadcastToPlayers({ type: 'SHOW_FASTEST_PLAYER', avatar: fp.avatar, name: fp.name });
+      }
+
       setTimeout(() => {
+        hideFastestPlayerOverlay();
+        broadcastToPlayers({ type: 'HIDE_FASTEST_PLAYER' });
+
         app.currentQIdx++;
-        if (app.currentQIdx < app.questions.length) showNextQuestion();
-        else showPodium();
+        if (app.currentQIdx < app.questions.length) {
+          showNextQuestion();
+        } else {
+          // Écran de chargement "Calcul des points en cours" avant le podium
+          showCalcPointsScreen(() => {
+            showPodium();
+          });
+        }
       }, 4000);
+    }
+
+    function showFastestPlayerOverlay(avatar, name) {
+      document.getElementById('fastestModalAvatar').textContent = avatar;
+      document.getElementById('fastestModalName').textContent = name;
+      document.getElementById('fastestPlayerOverlay').classList.add('active');
+    }
+
+    function hideFastestPlayerOverlay() {
+      document.getElementById('fastestPlayerOverlay').classList.remove('active');
+    }
+
+    function showCalcPointsScreen(callback) {
+      const overlay = document.getElementById('calcPointsOverlay');
+      overlay.classList.add('active');
+      broadcastToPlayers({ type: 'SHOW_CALC_POINTS' });
+
+      setTimeout(() => {
+        overlay.classList.remove('active');
+        if (callback) callback();
+      }, 3000);
     }
 
     function showPodium() {
       showScreen('podium');
       confetti({ particleCount: 120, spread: 80 });
 
+      // Calcul du joueur ayant répondu le plus rapidement en moyenne
+      let bestAvgPlayer = null;
+      let lowestAvgTime = Infinity;
+
+      Object.keys(app.players).forEach(id => {
+        const count = app.playerAnswerCounts[id] || 0;
+        if (count > 0 && !app.players[id].disconnected) {
+          const avg = app.playerTotalResponseTime[id] / count;
+          if (avg < lowestAvgTime) {
+            lowestAvgTime = avg;
+            bestAvgPlayer = { id: id, name: app.players[id].name, avg: avg };
+          }
+        }
+      });
+
+      // Attribution du bonus de points (+ 300 pts par ex) au plus rapide en moyenne
+      const bonusPoints = 300;
+      Object.keys(app.players).forEach(id => {
+        if (bestAvgPlayer && id === bestAvgPlayer.id) {
+          app.players[id].score += bonusPoints;
+          app.players[id].hasBonus = true;
+        } else {
+          app.players[id].hasBonus = false;
+        }
+      });
+
       const sorted = Object.entries(app.players).sort((a, b) => b[1].score - a[1].score);
+
+      // Affichage de la stat du plus rapide à gauche
+      const fastestStatBox = document.getElementById('fastestPlayerStatBox');
+      if (bestAvgPlayer) {
+        const fpObj = app.players[bestAvgPlayer.id];
+        fastestStatBox.innerHTML = `
+          <div style="font-size:2rem; margin-bottom:5px;">${fpObj.avatar}</div>
+          <div>${fpObj.name}</div>
+          <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">Moyenne : ${bestAvgPlayer.avg.toFixed(2)}s</div>
+          <div style="color: var(--success); font-size: 1rem; margin-top: 8px;">+ ${bonusPoints} points</div>
+        `;
+      } else {
+        fastestStatBox.innerHTML = `<span style="color:var(--text-muted)">Aucune donnée</span>`;
+      }
 
       const podium = document.getElementById('podiumDisplay');
       const restList = document.getElementById('podiumRestList');
@@ -1455,12 +1564,15 @@
       podium.innerHTML = `
         <div class="podium-step p2 ${p2.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry2 ? entry2[0] : ''}">
           <div>${p2Avatar}</div><strong>${p2.name}</strong><small>${p2.score} pts</small>
+          ${p2.hasBonus ? '<div style="color:var(--success); font-size:0.7rem;">+bonus</div>' : ''}
         </div>
         <div class="podium-step p1 ${p1.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry1 ? entry1[0] : ''}">
           <div>${p1Avatar}</div><strong>${p1.name}</strong><small>${p1.score} pts</small>
+          ${p1.hasBonus ? '<div style="color:var(--success); font-size:0.7rem;">+bonus</div>' : ''}
         </div>
         <div class="podium-step p3 ${p3.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry3 ? entry3[0] : ''}">
           <div>${p3Avatar}</div><strong>${p3.name}</strong><small>${p3.score} pts</small>
+          ${p3.hasBonus ? '<div style="color:var(--success); font-size:0.7rem;">+bonus</div>' : ''}
         </div>
       `;
 
@@ -1474,28 +1586,13 @@
           const item = document.createElement('div');
           item.className = `rest-player-item ${p.disconnected ? 'disconnected' : ''}`;
           item.id = 'player_rest_node_' + id;
-          // Suppression du # à côté du numéro de classement
           item.innerHTML = `
-            <span><strong>${idx + 4}</strong> ${restAvatar} ${p.name}</span>
+            <span><strong>${idx + 4}</strong> ${restAvatar} ${p.name} ${p.hasBonus ? '<span style="color:var(--success); font-size:0.75rem;">(+bonus)</span>' : ''}</span>
             <span>${p.score} pts</span>
           `;
           restList.appendChild(item);
         });
       }
-
-      const recapList = document.getElementById('recapQuestionsList');
-      recapList.innerHTML = '';
-      app.questions.forEach((q, idx) => {
-        const div = document.createElement('div');
-        div.className = 'recap-accordion-item';
-        div.innerHTML = `<strong>Q${idx + 1}: ${q.q}</strong> <i class="fa-solid fa-chevron-down" style="float:right"></i>
-          <div class="recap-details">
-            <span style="color:var(--success)">Bonne réponse: ${q.a[q.correct]}</span>
-          </div>
-        `;
-        div.addEventListener('click', () => div.classList.toggle('open'));
-        recapList.appendChild(div);
-      });
 
       broadcastToPlayers({ type: 'FINAL_PODIUM', rankings: sorted.map(e => e[1]), questions: app.questions });
     }
@@ -1517,11 +1614,29 @@
       else if (data.type === 'HOST_LEFT_LOBBY') {
         showDisconnected("L'hôte a quitté le salon.", "🚪");
       }
-      else if (data.type === 'SHOW_START_LOADING') {
-        document.getElementById('gameStartLoadingOverlay').style.display = 'flex';
+      else if (data.type === 'SHOW_START_COUNTDOWN') {
+        const overlay = document.getElementById('gameStartLoadingOverlay');
+        const numDisplay = document.getElementById('startCountdownNum');
+        overlay.style.display = 'flex';
+        numDisplay.textContent = data.count;
+      }
+      else if (data.type === 'UPDATE_START_COUNTDOWN') {
+        const numDisplay = document.getElementById('startCountdownNum');
+        numDisplay.textContent = data.count;
+      }
+      else if (data.type === 'SHOW_CALC_POINTS') {
+        document.getElementById('gameStartLoadingOverlay').style.display = 'none';
+        document.getElementById('calcPointsOverlay').classList.add('active');
+      }
+      else if (data.type === 'SHOW_FASTEST_PLAYER') {
+        showFastestPlayerOverlay(data.avatar, data.name);
+      }
+      else if (data.type === 'HIDE_FASTEST_PLAYER') {
+        hideFastestPlayerOverlay();
       }
       else if (data.type === 'PAUSE_GAME') {
         document.getElementById('gameStartLoadingOverlay').style.display = 'none';
+        document.getElementById('calcPointsOverlay').classList.remove('active');
         document.getElementById('pauseOverlay').classList.add('active');
         document.getElementById('btnResumeGameHost').style.display = 'none';
       }
@@ -1533,6 +1648,7 @@
       }
       else if (data.type === 'NEW_QUESTION') {
         document.getElementById('gameStartLoadingOverlay').style.display = 'none';
+        document.getElementById('calcPointsOverlay').classList.remove('active');
         document.getElementById('pauseOverlay').classList.remove('active');
         document.getElementById('playerWaitArea').style.display = 'none';
         document.getElementById('playerFeedbackArea').style.display = 'none';
@@ -1564,6 +1680,7 @@
         }
       }
       else if (data.type === 'FINAL_PODIUM') {
+        document.getElementById('calcPointsOverlay').classList.remove('active');
         document.getElementById('playerWaitArea').style.display = 'none';
         document.getElementById('playerActiveQuestionArea').style.display = 'none';
         document.getElementById('playerFeedbackArea').style.display = 'none';
@@ -1576,19 +1693,6 @@
           <div class="podium-step p1 ${p[0]?.disconnected ? 'disconnected' : ''}"><div>${p[0]?.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : (p[0]?.avatar || '🥇')}</div><strong>${p[0]?.name || '-'}</strong></div>
           <div class="podium-step p3 ${p[2]?.disconnected ? 'disconnected' : ''}"><div>${p[2]?.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : (p[2]?.avatar || '🥉')}</div><strong>${p[2]?.name || '-'}</strong></div>
         `;
-
-        const recap = document.getElementById('playerRecapList');
-        recap.innerHTML = '';
-        data.questions.forEach((q, idx) => {
-          const div = document.createElement('div');
-          div.className = 'recap-accordion-item';
-          div.innerHTML = `<strong>Q${idx + 1}: ${q.q}</strong>
-            <div class="recap-details">
-              <span style="color:var(--success)">Bonne réponse : ${q.a[q.correct]}</span>
-            </div>`;
-          div.addEventListener('click', () => div.classList.toggle('open'));
-          recap.appendChild(div);
-        });
       }
       else if (data.type === 'GAME_OVER') {
         showDisconnected("Partie terminée !", "🎉");
