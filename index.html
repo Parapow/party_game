@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Party Quiz Live 🌟</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QR Code Generator CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        party: {
+                            pink: '#FF007A',
+                            purple: '#8B00FF',
+                            cyan: '#00F0FF',
+                            yellow: '#FFD700',
+                            dark: '#0B0B1A',
+                            card: '#16162E'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        arcade: ['"Press Start 2P"', 'cursive']
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'bounce-short': 'bounceShort 0.5s ease-in-out',
+                        'float': 'float 3s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { filter: 'drop-shadow(0 0 15px rgba(255, 0, 122, 0.6))' },
+                            '50%': { filter: 'drop-shadow(0 0 25px rgba(0, 240, 255, 0.8))' }
+                        },
+                        bounceShort: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-8px) rotate(2deg)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #080811;
+            color: #FFFFFF;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 122, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(139, 0, 255, 0.1) 0%, transparent 60%);
+            background-attachment: fixed;
+        }
+
+        /* Glassmorphism Styling */
+        .glass-panel {
+            background: rgba(22, 22, 46, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+        }
+
+        .glass-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Glowing text effects */
+        .neon-text-pink {
+            text-shadow: 0 0 10px #FF007A, 0 0 20px #FF007A, 0 0 40px #FF007A;
+        }
+        .neon-text-cyan {
+            text-shadow: 0 0 10px #00F0FF, 0 0 20px #00F0FF, 0 0 40px #00F0FF;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0B1A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #8B00FF;
+            border-radius: 4px;
+        }
+
+        /* Answer Option Colors */
+        .opt-0 { background: linear-gradient(135deg, #FF3366, #DA023C); }
+        .opt-1 { background: linear-gradient(135deg, #2196F3, #0062FF); }
+        .opt-2 { background: linear-gradient(135deg, #FF9800, #E65100); }
+        .opt-3 { background: linear-gradient(135deg, #4CAF50, #1B5E20); }
+
+        .opt-0:hover { box-shadow: 0 0 20px rgba(255, 51, 102, 0.6); }
+        .opt-1:hover { box-shadow: 0 0 20px rgba(33, 150, 243, 0.6); }
+        .opt-2:hover { box-shadow: 0 0 20px rgba(255, 152, 0, 0.6); }
+        .opt-3:hover { box-shadow: 0 0 20px rgba(76, 175, 80, 0.6); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between font-sans selection:bg-party-pink selection:text-white">
+
+    <!-- Top Navigation / Global Bar -->
+    <header class="p-4 border-b border-white/10 glass-panel sticky top-0 z-50 flex justify-between items-center">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="app.showHome()">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-party-pink to-party-cyan flex items-center justify-center shadow-lg animate-pulse-glow">
+                <i class="fa-solid fa-bolt text-xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-wider bg-gradient-to-r from-party-pink via-purple-300 to-party-cyan bg-clip-text text-transparent">
+                    PARTY QUIZ <span class="text-xs px-2 py-0.5 rounded-full bg-party-pink/20 text-party-pink border border-party-pink/30">LIVE</span>
+                </h1>
+                <p class="text-xs text-gray-400">Soirées & Quizz Interactifs</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <!-- Audio Toggle Button -->
+            <button id="soundToggleBtn" onclick="app.toggleSound()" class="p-2.5 px-4 rounded-xl glass-panel text-gray-300 hover:text-white flex items-center gap-2 border border-white/10 transition-all">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-party-cyan"></i>
+                <span class="text-xs font-semibold hidden sm:inline" id="soundLabel">Sons ON</span>
+            </button>
+
+            <!-- Mode Switcher (Main Screen / Mobile Switcher) -->
+            <div class="glass-panel p-1 rounded-xl flex border border-white/10 text-xs">
+                <button id="modeHostBtn" onclick="app.setDeviceMode('host')" class="px-3 py-1.5 rounded-lg font-bold transition-all bg-party-purple text-white shadow-md">
+                    <i class="fa-solid fa-desktop mr-1"></i> Écran Principal
+                </button>
+                <button id="modePlayerBtn" onclick="app.setDeviceMode('player')" class="px-3 py-1.5 rounded-lg font-bold transition-all text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-mobile-screen mr-1"></i> Joueur Mobile
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow container mx-auto p-4 md:p-6 max-w-6xl flex flex-col justify-center">
+
+        <!-- ================= PAGE 1: HOME PAGE ================= -->
+        <section id="pageHome" class="space-y-8 animate-fade-in">
+            <div class="text-center max-w-2xl mx-auto space-y-3">
+                <span class="px-3 py-1 rounded-full bg-party-purple/30 text-party-cyan text-xs font-bold uppercase tracking-widest border border-party-cyan/30">
+                    🎉 Soirée interactive
+                </span>
+                <h2 class="text-3xl md:text-5xl font-black tracking-tight">Choisissez votre jeu !</h2>
+                <p class="text-gray-400 text-sm md:text-base">Scannez le QR Code depuis vos smartphones et jouez en direct tous ensemble.</p>
+            </div>
+
+            <!-- Games Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- QUIZZ GAME (AVAILABLE) -->
+                <div onclick="app.selectGameMode('quizz')" class="glass-panel p-6 rounded-2xl border-2 border-party-pink/60 hover:border-party-pink cursor-pointer transition-all duration-300 hover:scale-[1.02] group relative overflow-hidden flex flex-col justify-between">
+                    <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-party-pink/20 rounded-full blur-2xl group-hover:bg-party-pink/40 transition-all"></div>
+                    <div class="space-y-4 relative z-10">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-party-pink to-party-purple flex items-center justify-center shadow-lg text-2xl text-white">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-party-pink uppercase tracking-wider">DISPONIBLE</span>
+                            <h3 class="text-2xl font-black text-white mt-1">QUIZZ LIVE</h3>
+                            <p class="text-gray-400 text-xs mt-2 leading-relaxed">
+                                15 questions, 10 secondes par réponse. Culture G, Cinéma, Sport, Musique & Geek !
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-white/10 flex justify-between items-center text-party-pink font-bold text-sm group-hover:translate-x-1 transition-transform">
+                        <span>Lancer le salon</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- BLIND TEST (DISABLED) -->
+                <div class="glass-panel p-6 rounded-2xl border border-white/5 opacity-60 cursor-not-allowed relative overflow-hidden flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center text-2xl text-gray-500">
+                            <i class="fa-solid fa-music"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">BIENTÔT DISPONIBLE</span>
+                            <h3 class="text-2xl font-black text-gray-400 mt-1">BLIND TEST</h3>
+                            <p class="text-gray-500 text-xs mt-2 leading-relaxed">
+                                Devinez les extraits musicaux le plus rapidement possible. Hits 80s, Pop, Rap & BO.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-white/10 flex justify-between items-center text-gray-500 font-semibold text-xs">
+                        <span>Prochainement...</span>
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                </div>
+
+                <!-- LE JUSTE PRIX (DISABLED) -->
+                <div class="glass-panel p-6 rounded-2xl border border-white/5 opacity-60 cursor-not-allowed relative overflow-hidden flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center text-2xl text-gray-500">
+                            <i class="fa-solid fa-tags"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">BIENTÔT DISPONIBLE</span>
+                            <h3 class="text-2xl font-black text-gray-400 mt-1">LE JUSTE PRIX</h3>
+                            <p class="text-gray-500 text-xs mt-2 leading-relaxed">
+                                Devinez le prix exact des objets déjantés. C'est plus ? C'est moins ?
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-white/10 flex justify-between items-center text-gray-500 font-semibold text-xs">
+                        <span>Prochainement...</span>
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                </div>
+
+                <!-- KARAOKE BATTLE (DISABLED) -->
+                <div class="glass-panel p-6 rounded-2xl border border-white/5 opacity-60 cursor-not-allowed relative overflow-hidden flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center text-2xl text-gray-500">
+                            <i class="fa-solid fa-microphone-lines"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">BIENTÔT DISPONIBLE</span>
+                            <h3 class="text-2xl font-black text-gray-400 mt-1">KARAOKÉ BATTLE</h3>
+                            <p class="text-gray-500 text-xs mt-2 leading-relaxed">
+                                Complétez les paroles manquantes et défiez vos amis en duel vocal !
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-white/10 flex justify-between items-center text-gray-500 font-semibold text-xs">
+                        <span>Prochainement...</span>
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE 2: QUIZZ SETUP ================= -->
+        <section id="pageSetup" class="hidden space-y-6 max-w-2xl mx-auto w-full">
+            <button onclick="app.showHome()" class="text-gray-400 hover:text-white flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-arrow-left"></i> Retour au choix du jeu
+            </button>
+
+            <div class="glass-panel p-6 md:p-8 rounded-3xl space-y-6 border border-party-pink/30">
+                <div class="border-b border-white/10 pb-4">
+                    <h2 class="text-2xl font-black bg-gradient-to-r from-party-pink to-party-cyan bg-clip-text text-transparent">
+                        Configuration du Quizz
+                    </h2>
+                    <p class="text-xs text-gray-400">Choisissez la thématique et la difficulté de la session.</p>
+                </div>
+
+                <!-- Step 1: Themes -->
+                <div class="space-y-3">
+                    <label class="text-sm font-bold text-gray-200 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-party-pink"></i> 1. Thématique
+                    </label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="themesGrid">
+                        <!-- Themes injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Step 2: Difficulty -->
+                <div class="space-y-3">
+                    <label class="text-sm font-bold text-gray-200 flex items-center gap-2">
+                        <i class="fa-solid fa-gauge-high text-party-cyan"></i> 2. Niveau de difficulté
+                    </label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" onclick="app.setDifficulty('facile')" id="diff-facile" class="diff-btn glass-panel p-3 rounded-xl border border-white/10 text-center font-bold text-sm hover:border-green-400 transition-all">
+                            🟢 Facile
+                        </button>
+                        <button type="button" onclick="app.setDifficulty('moyen')" id="diff-moyen" class="diff-btn glass-panel p-3 rounded-xl border border-white/10 text-center font-bold text-sm hover:border-yellow-400 transition-all">
+                            🟡 Moyen
+                        </button>
+                        <button type="button" onclick="app.setDifficulty('difficile')" id="diff-difficile" class="diff-btn glass-panel p-3 rounded-xl border border-white/10 text-center font-bold text-sm hover:border-red-500 transition-all">
+                            🔴 Difficile
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="app.createLobby()" class="w-full py-4 rounded-xl font-extrabold text-lg text-white bg-gradient-to-r from-party-pink to-party-purple shadow-lg hover:shadow-party-pink/40 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3">
+                    <span>Ouvrir le Salon d'attente</span>
+                    <i class="fa-solid fa-qrcode"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE 3: LOBBY / SALON D'ATTENTE ================= -->
+        <section id="pageLobby" class="hidden space-y-6 max-w-4xl mx-auto w-full">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+                
+                <!-- Left Box: Info & QR Code -->
+                <div class="md:col-span-5 glass-panel p-6 rounded-3xl flex flex-col justify-between text-center items-center space-y-4 border border-party-cyan/30">
+                    <div>
+                        <span class="px-3 py-1 rounded-full bg-party-cyan/20 text-party-cyan text-xs font-bold uppercase tracking-wider" id="lobbyThemeBadge">
+                            Culture Général
+                        </span>
+                        <h2 class="text-xl font-extrabold mt-2 text-white">Rejoindre la partie</h2>
+                        <p class="text-xs text-gray-400">Scannez le QR Code avec votre appareil photo</p>
+                    </div>
+
+                    <!-- QR Code Container -->
+                    <div class="p-3 bg-white rounded-2xl shadow-2xl inline-block" id="qrcode"></div>
+
+                    <div class="w-full bg-party-dark/80 p-3 rounded-xl border border-white/10">
+                        <span class="text-xs text-gray-400 block">CODE REJOINDRE:</span>
+                        <span class="font-mono text-2xl font-black text-party-yellow tracking-widest" id="lobbyRoomCode">PARTY88</span>
+                    </div>
+                </div>
+
+                <!-- Right Box: Joined Players & Host Control -->
+                <div class="md:col-span-7 glass-panel p-6 rounded-3xl flex flex-col justify-between space-y-6">
+                    <div>
+                        <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-users text-party-pink"></i> Joueurs dans le salon
+                                </h3>
+                                <p class="text-xs text-gray-400" id="lobbyDifficultyInfo">Difficulté: Facile</p>
+                            </div>
+                            <div class="px-3 py-1.5 rounded-xl bg-party-purple/40 border border-party-purple text-party-cyan font-black text-sm">
+                                <span id="playerCount">0</span> joueur(s)
+                            </div>
+                        </div>
+
+                        <!-- Player List Grid -->
+                        <div id="playerList" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 max-h-56 overflow-y-auto pr-1">
+                            <!-- Players dynamically inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Simulation / Quick Join Bar for testing on PC -->
+                    <div class="bg-white/5 p-3 rounded-xl border border-white/10 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-semibold text-gray-300">Simuler l'arrivée de bots ou joueurs :</span>
+                            <button onclick="app.addBotPlayer()" class="text-xs bg-party-purple/50 hover:bg-party-purple text-white px-2.5 py-1 rounded-lg transition-all">
+                                + Ajouter Bot 🤖
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Launch Button -->
+                    <button id="startGameBtn" onclick="app.startQuizGame()" class="w-full py-4 rounded-2xl font-black text-xl text-white bg-gradient-to-r from-party-pink via-party-purple to-party-cyan shadow-xl hover:shadow-party-cyan/40 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-play"></i>
+                        <span>LANCER LA PARTIE !</span>
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE 4: GAMEPLAY (MAIN HOST DISPLAY) ================= -->
+        <section id="pageGame" class="hidden space-y-6 max-w-4xl mx-auto w-full">
+            <!-- Game Top Header Bar -->
+            <div class="flex justify-between items-center glass-panel p-4 rounded-2xl border border-white/10">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold px-3 py-1 bg-party-pink/20 text-party-pink rounded-lg" id="gameQuestionIdx">Question 1/15</span>
+                    <span class="text-xs text-gray-400 font-semibold" id="gameThemeTitle">Culture Générale</span>
+                </div>
+                
+                <!-- Countdown Timer Display -->
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-clock text-party-cyan"></i>
+                    <span class="font-arcade text-2xl text-party-yellow" id="gameTimer">10</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-white/10 h-3 rounded-full overflow-hidden p-0.5 border border-white/10">
+                <div id="timerProgressBar" class="h-full bg-gradient-to-r from-party-cyan to-party-pink rounded-full transition-all duration-1000 ease-linear w-full"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="glass-panel p-8 rounded-3xl text-center space-y-4 border border-party-pink/40 shadow-2xl relative overflow-hidden">
+                <p class="text-xs font-bold text-party-cyan uppercase tracking-widest">Question pour tous</p>
+                <h2 class="text-xl md:text-3xl font-extrabold text-white leading-tight min-h-[60px] flex items-center justify-center" id="gameQuestionText">
+                    Chargement de la question...
+                </h2>
+            </div>
+
+            <!-- 4 Options Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="gameOptionsGrid">
+                <!-- Option 0 -->
+                <div id="opt-card-0" class="opt-0 p-5 rounded-2xl flex justify-between items-center text-white shadow-lg transition-all duration-300">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center font-bold text-sm">A</span>
+                        <span class="font-bold text-base md:text-lg" id="opt-text-0">Option 1</span>
+                    </div>
+                    <span class="px-3 py-1 bg-black/30 rounded-full text-xs font-mono font-bold" id="opt-count-0">0 rep</span>
+                </div>
+
+                <!-- Option 1 -->
+                <div id="opt-card-1" class="opt-1 p-5 rounded-2xl flex justify-between items-center text-white shadow-lg transition-all duration-300">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center font-bold text-sm">B</span>
+                        <span class="font-bold text-base md:text-lg" id="opt-text-1">Option 2</span>
+                    </div>
+                    <span class="px-3 py-1 bg-black/30 rounded-full text-xs font-mono font-bold" id="opt-count-1">0 rep</span>
+                </div>
+
+                <!-- Option 2 -->
+                <div id="opt-card-2" class="opt-2 p-5 rounded-2xl flex justify-between items-center text-white shadow-lg transition-all duration-300">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center font-bold text-sm">C</span>
+                        <span class="font-bold text-base md:text-lg" id="opt-text-2">Option 3</span>
+                    </div>
+                    <span class="px-3 py-1 bg-black/30 rounded-full text-xs font-mono font-bold" id="opt-count-2">0 rep</span>
+                </div>
+
+                <!-- Option 3 -->
+                <div id="opt-card-3" class="opt-3 p-5 rounded-2xl flex justify-between items-center text-white shadow-lg transition-all duration-300">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center font-bold text-sm">D</span>
+                        <span class="font-bold text-base md:text-lg" id="opt-text-3">Option 4</span>
+                    </div>
+                    <span class="px-3 py-1 bg-black/30 rounded-full text-xs font-mono font-bold" id="opt-count-3">0 rep</span>
+                </div>
+            </div>
+
+            <!-- Status Footer -->
+            <div class="flex justify-between items-center text-xs text-gray-400 px-2">
+                <span>Réponses enregistrées : <strong text-party-cyan id="answeredCount">0</strong> / <span id="totalPlayersCount">0</span></span>
+                <span id="questionStatusText" class="text-party-yellow font-semibold animate-pulse">⏰ Répondez vite !</span>
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE 5: PLAYER MOBILE CONTROLLER VIEW ================= -->
+        <section id="pagePlayerMobile" class="hidden space-y-5 max-w-sm mx-auto w-full">
+            
+            <!-- Join Form if not joined yet -->
+            <div id="playerJoinForm" class="glass-panel p-6 rounded-3xl space-y-4 border border-party-cyan/40">
+                <div class="text-center space-y-1">
+                    <i class="fa-solid fa-mobile-screen text-3xl text-party-cyan mb-2"></i>
+                    <h3 class="text-xl font-black">Rejoindre la partie</h3>
+                    <p class="text-xs text-gray-400">Entrez votre pseudo pour jouer</p>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-300">Code Partie</label>
+                        <input type="text" id="playerInputRoom" value="PARTY88" class="w-full p-3 rounded-xl bg-black/40 border border-white/20 text-center font-mono font-bold text-lg uppercase tracking-wider focus:outline-none focus:border-party-cyan">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-300">Votre Pseudo</label>
+                        <input type="text" id="playerInputPseudo" placeholder="Ex: MasterQuiz" maxlength="12" class="w-full p-3 rounded-xl bg-black/40 border border-white/20 text-center font-bold text-base focus:outline-none focus:border-party-pink">
+                    </div>
+                    <button onclick="app.joinAsMobilePlayer()" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-party-pink to-party-purple shadow-lg hover:opacity-90 transition-all">
+                        Entrer dans le salon 🚀
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Player View (When Joined) -->
+            <div id="playerActiveView" class="hidden space-y-4">
+                
+                <!-- Player Header -->
+                <div class="glass-panel p-4 rounded-2xl flex justify-between items-center border border-white/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-party-purple flex items-center justify-center text-xl" id="myAvatar">
+                            😎
+                        </div>
+                        <div>
+                            <span class="font-bold text-sm block text-white" id="myPseudoName">Pseudo</span>
+                            <span class="text-xs text-party-yellow font-bold"><span id="myScore">0</span> pts</span>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 bg-party-pink/20 text-party-pink text-xs font-bold rounded-lg" id="mobileStatusBadge">En attente</span>
+                </div>
+
+                <!-- Answer Buttons (4 Colorful Blocks) -->
+                <div id="mobileAnswerButtons" class="grid grid-cols-2 gap-3 min-h-[260px]">
+                    <button onclick="app.submitPlayerAnswer(0)" class="mobile-opt-btn opt-0 p-6 rounded-2xl font-black text-2xl text-white shadow-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all">
+                        <span>A</span>
+                        <span class="text-xs font-normal opacity-80" id="m-opt-0">Option A</span>
+                    </button>
+                    <button onclick="app.submitPlayerAnswer(1)" class="mobile-opt-btn opt-1 p-6 rounded-2xl font-black text-2xl text-white shadow-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all">
+                        <span>B</span>
+                        <span class="text-xs font-normal opacity-80" id="m-opt-1">Option B</span>
+                    </button>
+                    <button onclick="app.submitPlayerAnswer(2)" class="mobile-opt-btn opt-2 p-6 rounded-2xl font-black text-2xl text-white shadow-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all">
+                        <span>C</span>
+                        <span class="text-xs font-normal opacity-80" id="m-opt-2">Option C</span>
+                    </button>
+                    <button onclick="app.submitPlayerAnswer(3)" class="mobile-opt-btn opt-3 p-6 rounded-2xl font-black text-2xl text-white shadow-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all">
+                        <span>D</span>
+                        <span class="text-xs font-normal opacity-80" id="m-opt-3">Option D</span>
+                    </button>
+                </div>
+
+                <!-- Feedback Screen Overlay inside Mobile View -->
+                <div id="mobileFeedbackBox" class="glass-panel p-6 rounded-2xl text-center space-y-2 border border-white/20 hidden">
+                    <div id="feedbackIcon" class="text-4xl">🎉</div>
+                    <h4 id="feedbackTitle" class="text-xl font-black text-white">Bonne Réponse !</h4>
+                    <p id="feedbackSubtitle" class="text-xs text-gray-300">+100 points</p>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= PAGE 6: PODIUM / LEADERBOARD ================= -->
+        <section id="pagePodium" class="hidden space-y-8 max-w-3xl mx-auto w-full text-center">
+            
+            <div class="space-y-2">
+                <span class="px-3 py-1 rounded-full bg-party-yellow/20 text-party-yellow text-xs font-bold uppercase tracking-widest border border-party-yellow/30">
+                    🏆 Fin de la partie !
+                </span>
+                <h2 class="text-3xl md:text-5xl font-black bg-gradient-to-r from-party-yellow via-party-pink to-party-cyan bg-clip-text text-transparent">
+                    CLASSEMENT FINAL
+                </h2>
+            </div>
+
+            <!-- Podium Steps (2nd, 1st, 3rd) -->
+            <div class="flex justify-center items-end gap-3 md:gap-6 pt-8 pb-4 min-h-[260px]" id="podiumSteps">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Full Leaderboard Table -->
+            <div class="glass-panel p-6 rounded-3xl border border-white/10 space-y-3">
+                <h3 class="text-sm font-bold text-gray-400 text-left border-b border-white/10 pb-2">
+                    Tableau des scores complet
+                </h3>
+                <div id="fullLeaderboardList" class="space-y-2 max-h-60 overflow-y-auto">
+                    <!-- Leaderboard items injected via JS -->
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="app.showHome()" class="px-8 py-4 rounded-xl font-extrabold text-white bg-gradient-to-r from-party-pink to-party-purple shadow-lg hover:scale-105 transition-all">
+                    🏠 Choix du jeu
+                </button>
+                <button onclick="app.showSetup()" class="px-8 py-4 rounded-xl font-extrabold text-white bg-gradient-to-r from-party-cyan to-blue-600 shadow-lg hover:scale-105 transition-all">
+                    🔄 Rejouer un Quizz
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="p-4 text-center text-xs text-gray-500 border-t border-white/5 glass-panel mt-6">
+        Party Quiz Web App &copy; 2026 - Soirées Festive & Mini-jeux
+    </footer>
+
+    <!-- ================= JAVASCRIPT APP LOGIC ================= -->
+    <script>
+        /**
+         * Web Audio API Synthesizer (Instant SFX without external MP3 assets)
+         */
+        class SoundEffects {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+            }
+
+            playClick() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            }
+
+            playTick() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(1000, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.03);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.03);
+            }
+
+            playCorrect() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.4);
+            }
+
+            playWrong() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.25);
+            }
+
+            playFanfare() {
+                if (!this.enabled) return;
+                this.init();
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime + idx * 0.12);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.12 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + idx * 0.12);
+                    osc.stop(this.ctx.currentTime + idx * 0.12 + 0.3);
+                });
+            }
+        }
+
+        /**
+         * Quiz Questions Database (15 questions per theme)
+         */
+        const QUIZ_DATABASE = {
+            culture: [
+                { q: "Quelle est la capitale de l'Australie ?", options: ["Sydney", "Melbourne", "Canberra", "Brisbane"], answer: 2 },
+                { q: "Combien de républiques composent la France à ce jour ?", options: ["3e", "4e", "5e", "6e"], answer: 2 },
+                { q: "Qui a peint La Jeune Fille à la perle ?", options: ["Vermeer", "Da Vinci", "Rembrandt", "Van Gogh"], answer: 0 },
+                { q: "Quel est le plus grand océan de la Terre ?", options: ["Atlantique", "Pacifique", "Indien", "Arctique"], answer: 1 },
+                { q: "En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?", options: ["1965", "1969", "1972", "1959"], answer: 1 },
+                { q: "Quel est l'élément le plus abondant dans l'atmosphère terrestre ?", options: ["Oxygène", "Carbone", "Azote", "Hydrogène"], answer: 2 },
+                { q: "Quel pays a pour symbole le trèfle (Shamrock) ?", options: ["Écosse", "Irlande", "Pays de Galles", "Australie"], answer: 1 },
+                { q: "Qui a écrit 'Les Misérables' ?", options: ["Émile Zola", "Gustave Flaubert", "Victor Hugo", "Molière"], answer: 2 },
+                { q: "Quel fleuve traverse Londres ?", options: ["La Seine", "Le Danube", "La Tamise", "Le Rhin"], answer: 2 },
+                { q: "Quel est le plus petit pays du monde ?", options: ["Monaco", "Le Vatican", "Lichtenstein", "Andorre"], answer: 1 },
+                { q: "Quelle est la monnaie officielle du Japon ?", options: ["Yuan", "Won", "Yen", "Baht"], answer: 2 },
+                { q: "Dans quel pays se trouvent les Pyramides de Gizeh ?", options: ["Soudan", "Égypte", "Jordanie", "Maroc"], answer: 1 },
+                { q: "Quel célèbre scientifique a formulé la théorie de la relativité ?", options: ["Isaac Newton", "Albert Einstein", "Nikola Tesla", "Galilée"], answer: 1 },
+                { q: "Quel monument parisien a été construit pour l'Exposition Universelle de 1889 ?", options: ["Arc de Triomphe", "Tour Eiffel", "Panthéon", "Sacré-Cœur"], answer: 1 },
+                { q: "Combien de couleurs comporte l'arc-en-ciel officiel ?", options: ["5", "6", "7", "8"], answer: 2 }
+            ],
+            cinema: [
+                { q: "Quel film a remporté l'Oscar du Meilleur Film en 2024 ?", options: ["Oppenheimer", "Barbie", "Dune 2", "Anatomie d'une chute"], answer: 0 },
+                { q: "Qui interprète Jack Dawson dans le film Titanic ?", options: ["Brad Pitt", "Leonardo DiCaprio", "Tom Cruise", "Matt Damon"], answer: 1 },
+                { q: "Quel réalisateur est célèbre pour Pulp Fiction et Kill Bill ?", options: ["Steven Spielberg", "Christopher Nolan", "Quentin Tarantino", "Martin Scorsese"], answer: 2 },
+                { q: "Dans Star Wars, quel est le nom du monde natal de Luke Skywalker ?", options: ["Tatooine", "Alderaan", "Hoth", "Endor"], answer: 0 },
+                { q: "Quel sorcier est le pire ennemi de Harry Potter ?", options: ["Dumbledore", "Voldemort", "Grindelwald", "Rogue"], answer: 1 },
+                { q: "Quel est le nom du royaume où se déroule La Reine des Neiges ?", options: ["Arendelle", "Corona", "Atlantica", "Duloc"], answer: 0 },
+                { q: "Dans Matrix, quelle est la couleur de la pilule que prend Neo ?", options: ["Bleue", "Rouge", "Verte", "Jaune"], answer: 1 },
+                { q: "Qui incarne le Joker dans The Dark Knight (2008) ?", options: ["Joaquin Phoenix", "Heath Ledger", "Jared Leto", "Jack Nicholson"], answer: 1 },
+                { q: "Quel film d'animation présente le personnage de Wall-E ?", options: ["DreamWorks", "Pixar", "Studio Ghibli", "Illumination"], answer: 1 },
+                { q: "En quelle année est sorti le premier film Jurassic Park ?", options: ["1990", "1993", "1996", "1999"], answer: 1 },
+                { q: "Quel acteur interprète Iron Man dans l'univers Marvel ?", options: ["Chris Evans", "Chris Hemsworth", "Robert Downey Jr.", "Mark Ruffalo"], answer: 2 },
+                { q: "Quel est le nom du monstre géant japonais apparu en 1954 ?", options: ["King Kong", "Godzilla", "Mothra", "Gamera"], answer: 1 },
+                { q: "Qui a réalisé le film Avatar ?", options: ["James Cameron", "George Lucas", "Ridley Scott", "Peter Jackson"], answer: 0 },
+                { q: "Dans Le Seigneur des Anneaux, quel est le hobbit porteur de l'Anneau ?", options: ["Sam", "Pippin", "Frodon", "Merry"], answer: 2 },
+                { q: "Quel est le vrai nom de Spider-Man ?", options: "Bruce Wayne", options: ["Peter Parker", "Clark Kent", "Tony Stark", "Peter Parker"], answer: 3 }
+            ],
+            sport: [
+                { q: "Combien de joueurs composent une équipe de football sur le terrain ?", options: ["9", "10", "11", "12"], answer: 2 },
+                { q: "Dans quel pays se sont déroulés les Jeux Olympiques d'été 2024 ?", options: ["Japon", "France", "États-Unis", "Grèce"], answer: 1 },
+                { q: "Quel est le plus grand tournoi de tennis sur gazon ?", options: ["Roland-Garros", "Wimbledon", "US Open", "Open d'Australie"], answer: 1 },
+                { q: "Quel pilote de F1 détient 7 titres de champion du monde (avec Schumacher) ?", options: ["Max Verstappen", "Lewis Hamilton", "Fernando Alonso", "Ayrton Senna"], answer: 1 },
+                { q: "Quel pays a remporté la Coupe du Monde de Football en 2022 ?", options: ["France", "Brésil", "Argentine", "Allemagne"], answer: 2 },
+                { q: "Combien de temps dure un quart-temps en NBA ?", options: ["10 min", "12 min", "15 min", "20 min"], answer: 1 },
+                { q: "Quel sport associe-t-on au terme 'Strike' ?", options: ["Baseball", "Bowling", "Tennis", "Golf"], answer: 1 },
+                { q: "Quel cycliste est surnommé 'Le Cannibale' ?", options: ["Bernard Hinault", "Eddy Merckx", "Lance Armstrong", "Tadej Pogačar"], answer: 1 },
+                { q: "Au rugby à XV, combien vaut un essai non transformé ?", options: ["3 pts", "5 pts", "7 pts", "2 pts"], answer: 1 },
+                { q: "Quelle nation détient le plus de victoires en Coupe du Monde de football ?", options: ["Allemagne", "Italie", "Brésil", "Argentine"], answer: 2 },
+                { q: "Quel athlète est l'homme le plus rapide de l'histoire du 100m ?", options: ["Tyson Gay", "Usain Bolt", "Yohan Blake", "Carl Lewis"], answer: 1 },
+                { q: "En judo, quelle est la récompense maximale donnant immédiatement la victoire ?", options: ["Waza-ari", "Ippon", "Yuko", "Koka"], answer: 1 },
+                { q: "Sur quelle surface se joue le tournoi de Roland-Garros ?", options: ["Béton", "Gazon", "Terre battue", "Synthétique"], answer: 2 },
+                { q: "Dans quel sport utilise-t-on un palet (puck) ?", options: ["Rink Hockey", "Hockey sur glace", "Curling", "Polo"], answer: 1 },
+                { q: "Combien d'anneaux composent le drapeau olympique ?", options: ["4", "5", "6", "7"], answer: 1 }
+            ],
+            musique: [
+                { q: "Qui est le 'Roi de la Pop' ?", options: ["Elvis Presley", "Michael Jackson", "Prince", "George Michael"], answer: 1 },
+                { q: "Quel groupe est célèbre pour le titre 'Bohemian Rhapsody' ?", options: ["The Beatles", "Led Zeppelin", "Queen", "Rolling Stones"], answer: 2 },
+                { q: "Quel instrument possède 88 touches ?", options: ["L'orgue", "Le piano", "Le synthétiseur", "L'accordéon"], answer: 1 },
+                { q: "Quel artiste français chante 'Papaoutai' et 'Tous les mêmes' ?", options: ["Gims", "Stromae", "Orelsan", "Soprano"], answer: 1 },
+                { q: "Quelle chanteuse interprète 'Bad Romance' et 'Poker Face' ?", options: ["Rihanna", "Katy Perry", "Lady Gaga", "Beyoncé"], answer: 2 },
+                { q: "Quel festival de musique se déroule chaque été à Clisson en France ?", options: ["Solidays", "Hellfest", "Eurockéennes", "Vieilles Charrues"], answer: 1 },
+                { q: "Quel est le premier single à succès du groupe Daft Punk en 1997 ?", options: ["Get Lucky", "One More Time", "Da Funk", "Around the World"], answer: 2 },
+                { q: "Dans quelle ville est né le groupe The Beatles ?", options: ["Londres", "Manchester", "Liverpool", "Birmingham"], answer: 2 },
+                { q: "Qui interprète la chanson 'Get Lucky' avec Daft Punk ?", options: ["Pharrell Williams", "Bruno Mars", "Weeknd", "Drake"], answer: 0 },
+                { q: "Quel compositeur est devenu sourd à la fin de sa vie ?", options: ["Mozart", "Beethoven", "Chopin", "Bach"], answer: 1 },
+                { q: "Quel album d'Ayless ou Michael Jackson est l'album le plus vendu de tous les temps ?", options: ["Thriller", "Bad", "Dangerous", "Off the Wall"], answer: 0 },
+                { q: "Quel groupe chante 'Smells Like Teen Spirit' ?", options: ["Pearl Jam", "Nirvana", "Foo Fighters", "Red Hot Chili Peppers"], answer: 1 },
+                { q: "Combien de cordes possède une guitare classique standard ?", options: ["4", "5", "6", "7"], answer: 2 },
+                { q: "Quel genre musical est associé à Bob Marley ?", options: ["Ska", "Reggae", "Dub", "Rocksteady"], answer: 1 },
+                { q: "Qui chante le hit mondial 'Shape of You' ?", options: ["Ed Sheeran", "Justin Bieber", "Shawn Mendes", "Charlie Puth"], answer: 0 }
+            ],
+            geek: [
+                { q: "Dans Pokémon, quel est le numéro 001 du Pokédex de Kanto ?", options: ["Salamèche", "Carapuce", "Bulbizarre", "Pikachu"], answer: 2 },
+                { q: "Quel jeu vidéo détient le record du monde du jeu le plus vendu ?", options: ["Tetris", "Minecraft", "GTA V", "Wii Sports"], answer: 1 },
+                { q: "Quel langage de programmation est représenté par un serpent ?", options: ["Java", "Python", "C++", "Ruby"], answer: 1 },
+                { q: "Quel est le nom du plombier vert, frère de Mario ?", options: ["Wario", "Luigi", "Yoshi", "Toad"], answer: 1 },
+                { q: "Quelle entreprise a développé la console PlayStation ?", options: ["Nintendo", "Sega", "Sony", "Microsoft"], answer: 2 },
+                { q: "Que signifie le sigle HTML ?", options: ["HyperText Markup Language", "HighTech Media Language", "HyperTransfer Main Language", "Home Tool Markup Language"], answer: 0 },
+                { q: "Quel est le nom de l'intelligence artificielle d'Iron Man ?", options: ["HAL", "JARVIS", "CORTANA", "FRIDAY"], answer: 1 },
+                { q: "Dans quel jeu vidéo s'affronte-t-on sur la carte 'Dust II' ?", options: ["Call of Duty", "Counter-Strike", "Valorant", "Overwatch"], answer: 1 },
+                { q: "Quel est le créateur du système d'exploitation Linux ?", options: ["Bill Gates", "Steve Jobs", "Linus Torvalds", "Mark Zuckerberg"], answer: 2 },
+                { q: "Quel objet permet de voyager dans le temps dans Back to the Future ?", options: ["La TARDIS", "La DeLorean", "Le VORTEX", "Le Chronoglace"], answer: 1 },
+                { q: "Quel est le nom de la princesse dans la saga The Legend of Zelda ?", options: ["Peach", "Zelda", "Daisy", "Samus"], answer: 1 },
+                { q: "Dans Half-Life, quelle est l'arme emblématique de Gordon Freeman ?", options: ["Un pied-de-biche", "Un pistolet laser", "Une tronçonneuse", "Une clé anglaise"], answer: 0 },
+                { q: "Quelle entreprise a inventé le smartphone iPhone ?", options: ["Samsung", "Google", "Apple", "Microsoft"], answer: 2 },
+                { q: "Quel jeu de bataille royale est célèbre pour ses danses et ses bus volants ?", options: ["PUBG", "Apex Legends", "Fortnite", "Warzone"], answer: 2 },
+                { q: "Que signifie le sigle 'AI' en informatique ?", options: ["Automated Internet", "Artificial Intelligence", "Advanced Interface", "Active Integration"], answer: 1 }
+            ]
+        };
+
+        const THEMES_METADATA = [
+            { id: 'culture', label: 'Culture Générale', icon: 'fa-earth-europe', color: 'from-pink-500 to-purple-600' },
+            { id: 'cinema', label: 'Cinéma & Séries', icon: 'fa-film', color: 'from-blue-500 to-indigo-600' },
+            { id: 'sport', label: 'Sport', icon: 'fa-trophy', color: 'from-amber-500 to-orange-600' },
+            { id: 'musique', label: 'Musique', icon: 'fa-music', color: 'from-purple-500 to-pink-600' },
+            { id: 'geek', label: 'Sciences & Geek', icon: 'fa-gamepad', color: 'from-emerald-500 to-teal-600' }
+        ];
+
+        const BOT_NAMES = ['Sacha', 'Léa', 'Maxime', 'Chloé', 'Alex', 'Lucas', 'Emma', 'Hugo', 'Inès', 'Antoine'];
+        const BOT_AVATARS = ['🦊', '🦄', '🐼', '🐯', '🤖', '👾', '🚀', '⭐', '🔥', '👑'];
+
+        /**
+         * Main Web Application State & Controller
+         */
+        class PartyQuizApp {
+            constructor() {
+                this.sfx = new SoundEffects();
+                
+                // Game Configuration State
+                this.selectedTheme = 'culture';
+                this.selectedDifficulty = 'facile';
+                this.roomCode = 'PARTY' + Math.floor(100 + Math.random() * 900);
+                
+                // Players & Game Room State
+                this.players = []; // [{ id, pseudo, avatar, score, currentAnswer, isBot }]
+                this.currentQuestionIndex = 0;
+                this.activeQuestions = [];
+                this.timer = 10;
+                this.timerInterval = null;
+                this.isAnsweringLocked = false;
+
+                // Local Device Player state
+                this.mode = 'host'; // 'host' or 'player'
+                this.localPlayerId = null;
+
+                this.init();
+            }
+
+            init() {
+                this.renderThemesGrid();
+                this.setDifficulty('facile');
+                this.updateRoomCodeDisplay();
+            }
+
+            // --- NAVIGATION & VIEWS ---
+            showHome() {
+                this.sfx.playClick();
+                this.hideAllPages();
+                document.getElementById('pageHome').classList.remove('hidden');
+            }
+
+            selectGameMode(mode) {
+                this.sfx.playClick();
+                if (mode === 'quizz') {
+                    this.showSetup();
+                }
+            }
+
+            showSetup() {
+                this.hideAllPages();
+                document.getElementById('pageSetup').classList.remove('hidden');
+            }
+
+            hideAllPages() {
+                ['pageHome', 'pageSetup', 'pageLobby', 'pageGame', 'pagePlayerMobile', 'pagePodium'].forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                });
+            }
+
+            setDeviceMode(mode) {
+                this.sfx.playClick();
+                this.mode = mode;
+                const hostBtn = document.getElementById('modeHostBtn');
+                const playerBtn = document.getElementById('modePlayerBtn');
+
+                if (mode === 'host') {
+                    hostBtn.className = "px-3 py-1.5 rounded-lg font-bold transition-all bg-party-purple text-white shadow-md";
+                    playerBtn.className = "px-3 py-1.5 rounded-lg font-bold transition-all text-gray-400 hover:text-white";
+                    if (document.getElementById('pagePlayerMobile').classList.contains('hidden') === false) {
+                        this.showHome();
+                    }
+                } else {
+                    playerBtn.className = "px-3 py-1.5 rounded-lg font-bold transition-all bg-party-pink text-white shadow-md";
+                    hostBtn.className = "px-3 py-1.5 rounded-lg font-bold transition-all text-gray-400 hover:text-white";
+                    this.hideAllPages();
+                    document.getElementById('pagePlayerMobile').classList.remove('hidden');
+                }
+            }
+
+            toggleSound() {
+                this.sfx.enabled = !this.sfx.enabled;
+                const icon = document.getElementById('soundIcon');
+                const label = document.getElementById('soundLabel');
+                if (this.sfx.enabled) {
+                    icon.className = "fa-solid fa-volume-high text-party-cyan";
+                    label.innerText = "Sons ON";
+                    this.sfx.playClick();
+                } else {
+                    icon.className = "fa-solid fa-volume-xmark text-gray-500";
+                    label.innerText = "Sons OFF";
+                }
+            }
+
+            // --- QUIZZ SETUP ---
+            renderThemesGrid() {
+                const grid = document.getElementById('themesGrid');
+                grid.innerHTML = THEMES_METADATA.map(t => `
+                    <div onclick="app.setTheme('${t.id}')" id="theme-card-${t.id}" class="theme-card glass-panel p-4 rounded-2xl border border-white/10 cursor-pointer text-center space-y-2 hover:border-party-pink transition-all">
+                        <div class="w-10 h-10 mx-auto rounded-xl bg-gradient-to-tr ${t.color} flex items-center justify-center text-white text-lg">
+                            <i class="fa-solid ${t.icon}"></i>
+                        </div>
+                        <p class="text-xs font-bold text-white">${t.label}</p>
+                    </div>
+                `).join('');
+                this.setTheme('culture');
+            }
+
+            setTheme(themeId) {
+                this.sfx.playClick();
+                this.selectedTheme = themeId;
+                document.querySelectorAll('.theme-card').forEach(card => {
+                    card.classList.remove('border-party-pink', 'bg-party-pink/20');
+                });
+                const card = document.getElementById(`theme-card-${themeId}`);
+                if (card) {
+                    card.classList.add('border-party-pink', 'bg-party-pink/20');
+                }
+            }
+
+            setDifficulty(diff) {
+                this.sfx.playClick();
+                this.selectedDifficulty = diff;
+                document.querySelectorAll('.diff-btn').forEach(btn => {
+                    btn.classList.remove('border-party-cyan', 'bg-party-cyan/20');
+                });
+                const btn = document.getElementById(`diff-${diff}`);
+                if (btn) {
+                    btn.classList.add('border-party-cyan', 'bg-party-cyan/20');
+                }
+            }
+
+            updateRoomCodeDisplay() {
+                document.getElementById('lobbyRoomCode').innerText = this.roomCode;
+                document.getElementById('playerInputRoom').value = this.roomCode;
+            }
+
+            // --- LOBBY SYSTEM ---
+            createLobby() {
+                this.sfx.playClick();
+                this.hideAllPages();
+                document.getElementById('pageLobby').classList.remove('hidden');
+
+                const themeMeta = THEMES_METADATA.find(t => t.id === this.selectedTheme);
+                document.getElementById('lobbyThemeBadge').innerText = themeMeta.label;
+                document.getElementById('lobbyDifficultyInfo').innerText = `Difficulté : ${this.selectedDifficulty.toUpperCase()}`;
+
+                // Generate QR Code dynamically
+                const qrContainer = document.getElementById('qrcode');
+                qrContainer.innerHTML = '';
+                new QRCode(qrContainer, {
+                    text: window.location.href + `#join-${this.roomCode}`,
+                    width: 140,
+                    height: 140,
+                    colorDark : "#0B0B1A",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                // Pre-populate with 2 bots for instant demo playability
+                if (this.players.length === 0) {
+                    this.addBotPlayer();
+                    this.addBotPlayer();
+                }
+
+                this.updateLobbyPlayerList();
+            }
+
+            addBotPlayer() {
+                const name = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)] + ' 🤖';
+                const avatar = BOT_AVATARS[Math.floor(Math.random() * BOT_AVATARS.length)];
+                const botPlayer = {
+                    id: 'bot_' + Math.random().toString(36).substr(2, 9),
+                    pseudo: name,
+                    avatar: avatar,
+                    score: 0,
+                    currentAnswer: null,
+                    isBot: true
+                };
+                this.players.push(botPlayer);
+                this.sfx.playClick();
+                this.updateLobbyPlayerList();
+            }
+
+            joinAsMobilePlayer() {
+                const pseudo = document.getElementById('playerInputPseudo').value.trim() || 'Joueur' + Math.floor(Math.random() * 99);
+                this.localPlayerId = 'player_' + Date.now();
+                
+                const newPlayer = {
+                    id: this.localPlayerId,
+                    pseudo: pseudo,
+                    avatar: '😎',
+                    score: 0,
+                    currentAnswer: null,
+                    isBot: false
+                };
+
+                this.players.push(newPlayer);
+                this.sfx.playClick();
+
+                // Toggle Mobile UI to Active View
+                document.getElementById('playerJoinForm').classList.add('hidden');
+                document.getElementById('playerActiveView').classList.remove('hidden');
+                document.getElementById('myPseudoName').innerText = pseudo;
+                document.getElementById('myScore').innerText = '0';
+
+                this.updateLobbyPlayerList();
+            }
+
+            updateLobbyPlayerList() {
+                const list = document.getElementById('playerList');
+                document.getElementById('playerCount').innerText = this.players.length;
+
+                list.innerHTML = this.players.map(p => `
+                    <div class="glass-panel p-2.5 rounded-xl flex items-center gap-2 border border-white/10 animate-bounce-short">
+                        <span class="text-xl">${p.avatar}</span>
+                        <span class="font-bold text-xs truncate text-white">${p.pseudo}</span>
+                    </div>
+                `).join('');
+            }
+
+            // --- GAMEPLAY ENGINE ---
+            startQuizGame() {
+                if (this.players.length === 0) {
+                    alert("Veuillez ajouter au moins un joueur pour démarrer !");
+                    return;
+                }
+
+                this.sfx.playFanfare();
+                this.hideAllPages();
+                document.getElementById('pageGame').classList.remove('hidden');
+
+                // Load 15 questions from DB
+                this.activeQuestions = [...QUIZ_DATABASE[this.selectedTheme]];
+                this.currentQuestionIndex = 0;
+                
+                // Reset player scores
+                this.players.forEach(p => p.score = 0);
+
+                this.loadNextQuestion();
+            }
+
+            loadNextQuestion() {
+                if (this.currentQuestionIndex >= this.activeQuestions.length) {
+                    this.showPodium();
+                    return;
+                }
+
+                this.isAnsweringLocked = false;
+                const currentQ = this.activeQuestions[this.currentQuestionIndex];
+
+                // Reset answers state
+                this.players.forEach(p => p.currentAnswer = null);
+
+                // Update Host UI
+                document.getElementById('gameQuestionIdx').innerText = `Question ${this.currentQuestionIndex + 1}/${this.activeQuestions.length}`;
+                document.getElementById('gameThemeTitle').innerText = THEMES_METADATA.find(t => t.id === this.selectedTheme).label;
+                document.getElementById('gameQuestionText').innerText = currentQ.q;
+                document.getElementById('questionStatusText').innerText = "⏰ Répondez vite !";
+                document.getElementById('questionStatusText').className = "text-party-yellow font-semibold animate-pulse";
+
+                // Reset Options styling on Main Display
+                for (let i = 0; i < 4; i++) {
+                    const card = document.getElementById(`opt-card-${i}`);
+                    const text = document.getElementById(`opt-text-${i}`);
+                    const count = document.getElementById(`opt-count-${i}`);
+
+                    card.className = `opt-${i} p-5 rounded-2xl flex justify-between items-center text-white shadow-lg transition-all duration-300 opacity-100 scale-100`;
+                    text.innerText = currentQ.options[i];
+                    count.innerText = "0 rep";
+
+                    // Mobile button options text
+                    const mOpt = document.getElementById(`m-opt-${i}`);
+                    if (mOpt) mOpt.innerText = currentQ.options[i];
+                }
+
+                // Reset Mobile Controls View
+                document.querySelectorAll('.mobile-opt-btn').forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-40', 'border-4', 'border-white');
+                });
+                document.getElementById('mobileFeedbackBox').classList.add('hidden');
+                document.getElementById('mobileAnswerButtons').classList.remove('hidden');
+                document.getElementById('mobileStatusBadge').innerText = "À vous de jouer !";
+                document.getElementById('mobileStatusBadge').className = "px-2.5 py-1 bg-party-cyan/20 text-party-cyan text-xs font-bold rounded-lg";
+
+                this.updateAnswerCounters();
+
+                // Trigger Bot Auto-answers
+                this.triggerBotAnswers();
+
+                // Start 10-Second Countdown Timer
+                this.startTimer(10);
+            }
+
+            triggerBotAnswers() {
+                this.players.filter(p => p.isBot).forEach(bot => {
+                    const delay = Math.floor(1000 + Math.random() * 7000); // random time between 1s and 8s
+                    setTimeout(() => {
+                        if (!this.isAnsweringLocked) {
+                            // Bots have a difficulty-based accuracy
+                            const correctIdx = this.activeQuestions[this.currentQuestionIndex].answer;
+                            const isCorrect = Math.random() < (this.selectedDifficulty === 'facile' ? 0.8 : this.selectedDifficulty === 'moyen' ? 0.6 : 0.4);
+                            bot.currentAnswer = isCorrect ? correctIdx : Math.floor(Math.random() * 4);
+                            this.updateAnswerCounters();
+                        }
+                    }, delay);
+                });
+            }
+
+            submitPlayerAnswer(optionIdx) {
+                if (this.isAnsweringLocked) return;
+
+                const player = this.players.find(p => p.id === this.localPlayerId);
+                if (player) {
+                    player.currentAnswer = optionIdx;
+                    this.sfx.playClick();
+
+                    // Lock buttons UI on mobile
+                    document.querySelectorAll('.mobile-opt-btn').forEach((btn, idx) => {
+                        btn.disabled = true;
+                        if (idx !== optionIdx) {
+                            btn.classList.add('opacity-40');
+                        } else {
+                            btn.classList.add('border-4', 'border-white');
+                        }
+                    });
+
+                    document.getElementById('mobileStatusBadge').innerText = "Réponse verrouillée 🔒";
+                    document.getElementById('mobileStatusBadge').className = "px-2.5 py-1 bg-party-yellow/20 text-party-yellow text-xs font-bold rounded-lg";
+
+                    this.updateAnswerCounters();
+                }
+            }
+
+            updateAnswerCounters() {
+                const total = this.players.length;
+                const answered = this.players.filter(p => p.currentAnswer !== null).length;
+
+                document.getElementById('answeredCount').innerText = answered;
+                document.getElementById('totalPlayersCount').innerText = total;
+
+                // Update count per option on main screen
+                for (let i = 0; i < 4; i++) {
+                    const countForOpt = this.players.filter(p => p.currentAnswer === i).length;
+                    document.getElementById(`opt-count-${i}`).innerText = `${countForOpt} rep`;
+                }
+            }
+
+            startTimer(seconds) {
+                clearInterval(this.timerInterval);
+                this.timer = seconds;
+                const timerElem = document.getElementById('gameTimer');
+                const progressBar = document.getElementById('timerProgressBar');
+
+                timerElem.innerText = this.timer;
+                progressBar.style.width = '100%';
+
+                this.timerInterval = setInterval(() => {
+                    this.timer--;
+                    timerElem.innerText = this.timer;
+                    progressBar.style.width = `${(this.timer / 10) * 100}%`;
+
+                    this.sfx.playTick();
+
+                    if (this.timer <= 0) {
+                        clearInterval(this.timerInterval);
+                        this.revealQuestionAnswer();
+                    }
+                }, 1000);
+            }
+
+            revealQuestionAnswer() {
+                this.isAnsweringLocked = true;
+                const currentQ = this.activeQuestions[this.currentQuestionIndex];
+                const correctIdx = currentQ.answer;
+
+                document.getElementById('questionStatusText').innerText = "RESULTATS DE LA QUESTION !";
+                document.getElementById('questionStatusText').className = "text-party-pink font-bold";
+
+                // Main Display: Highlight Correct Answer & Gray out wrong ones
+                for (let i = 0; i < 4; i++) {
+                    const card = document.getElementById(`opt-card-${i}`);
+                    if (i === correctIdx) {
+                        card.className = "opt-3 p-5 rounded-2xl flex justify-between items-center text-white shadow-2xl scale-105 border-4 border-yellow-300 ring-4 ring-green-500/50";
+                    } else {
+                        card.className = "bg-gray-800/60 p-5 rounded-2xl flex justify-between items-center text-gray-500 opacity-40 shadow-none";
+                    }
+                }
+
+                // Award Points & Calculate Feedback
+                this.players.forEach(p => {
+                    if (p.currentAnswer === correctIdx) {
+                        // Bonus points based on difficulty
+                        const pts = this.selectedDifficulty === 'facile' ? 100 : this.selectedDifficulty === 'moyen' ? 150 : 200;
+                        p.score += pts;
+                    }
+                });
+
+                // Update Mobile Feedback for local player
+                const localPlayer = this.players.find(p => p.id === this.localPlayerId);
+                if (localPlayer) {
+                    const feedbackBox = document.getElementById('mobileFeedbackBox');
+                    const feedbackTitle = document.getElementById('feedbackTitle');
+                    const feedbackSubtitle = document.getElementById('feedbackSubtitle');
+                    const feedbackIcon = document.getElementById('feedbackIcon');
+
+                    document.getElementById('myScore').innerText = localPlayer.score;
+                    document.getElementById('mobileAnswerButtons').classList.add('hidden');
+                    feedbackBox.classList.remove('hidden');
+
+                    if (localPlayer.currentAnswer === correctIdx) {
+                        this.sfx.playCorrect();
+                        feedbackIcon.innerText = "🎉";
+                        feedbackTitle.innerText = "BONNE RÉPONSE !";
+                        feedbackTitle.className = "text-xl font-black text-green-400";
+                        feedbackSubtitle.innerText = `+${this.selectedDifficulty === 'facile' ? 100 : this.selectedDifficulty === 'moyen' ? 150 : 200} points ! Score: ${localPlayer.score}`;
+                    } else {
+                        this.sfx.playWrong();
+                        feedbackIcon.innerText = "❌";
+                        feedbackTitle.innerText = "MAUVAISE RÉPONSE !";
+                        feedbackTitle.className = "text-xl font-black text-red-500";
+                        feedbackSubtitle.innerText = `La bonne réponse était l'option ${['A','B','C','D'][correctIdx]}`;
+                    }
+                } else {
+                    this.sfx.playCorrect();
+                }
+
+                // Wait 4 seconds then advance to next question
+                setTimeout(() => {
+                    this.currentQuestionIndex++;
+                    this.loadNextQuestion();
+                }, 4000);
+            }
+
+            // --- PODIUM & LEADERBOARD ---
+            showPodium() {
+                this.hideAllPages();
+                document.getElementById('pagePodium').classList.remove('hidden');
+                this.sfx.playFanfare();
+
+                // Trigger confetti particles
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 120,
+                        spread: 80,
+                        origin: { y: 0.6 }
+                    });
+                }
+
+                // Sort players by score
+                const sorted = [...this.players].sort((a, b) => b.score - a.score);
+
+                // Render Top 3 Podium
+                const podiumContainer = document.getElementById('podiumSteps');
+                podiumContainer.innerHTML = '';
+
+                // Order for podium steps: [2nd, 1st, 3rd]
+                const podiumOrder = [
+                    { player: sorted[1], rank: 2, height: 'h-36', color: 'bg-slate-400', badge: '🥈 2ème' },
+                    { player: sorted[0], rank: 1, height: 'h-48', color: 'bg-gradient-to-t from-amber-500 to-yellow-300', badge: '👑 1er' },
+                    { player: sorted[2], rank: 3, height: 'h-28', color: 'bg-amber-700', badge: '🥉 3ème' }
+                ];
+
+                podiumOrder.forEach(item => {
+                    if (item.player) {
+                        const stepHtml = `
+                            <div class="flex flex-col items-center justify-end animate-bounce-short">
+                                <div class="text-3xl mb-1">${item.player.avatar}</div>
+                                <span class="font-bold text-xs truncate max-w-[80px] text-white">${item.player.pseudo}</span>
+                                <span class="text-xs text-party-yellow font-black mb-2">${item.player.score} pts</span>
+                                <div class="${item.height} ${item.color} w-20 md:w-28 rounded-t-2xl shadow-2xl flex flex-col items-center justify-start pt-3 text-black font-extrabold text-sm">
+                                    ${item.badge}
+                                </div>
+                            </div>
+                        `;
+                        podiumContainer.insertAdjacentHTML('beforeend', stepHtml);
+                    }
+                });
+
+                // Render full leaderboard table
+                const list = document.getElementById('fullLeaderboardList');
+                list.innerHTML = sorted.map((p, idx) => `
+                    <div class="glass-panel p-3 rounded-xl flex justify-between items-center text-sm border border-white/10">
+                        <div class="flex items-center gap-3">
+                            <span class="font-mono font-bold w-6 text-gray-400">#${idx + 1}</span>
+                            <span class="text-xl">${p.avatar}</span>
+                            <span class="font-bold text-white">${p.pseudo}</span>
+                        </div>
+                        <span class="font-black text-party-yellow">${p.score} pts</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Initialize App on DOM Load
+        let app;
+        window.addEventListener('DOMContentLoaded', () => {
+            app = new PartyQuizApp();
+        });
+    </script>
+</body>
+</html>
