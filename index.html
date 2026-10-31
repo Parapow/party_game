@@ -168,6 +168,8 @@
 
     .players-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .players-vertical-list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
+    .players-vertical-list.empty { min-height: 180px; justify-content: center; align-items: center; }
+    .lobby-empty-state { color: var(--text-muted); text-align: center; width: 100%; font-size: 0.95rem; }
     .player-row-item {
       background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
       border-radius: 12px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between;
@@ -538,12 +540,12 @@
             <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Faites deviner un max de mots</p>
           </div>
         </div>
+      </div>
 
-        <div class="card" style="margin-top: 25px; text-align: center; background: rgba(0,0,0,0.2);">
-          <div style="display: flex; gap: 10px; max-width: 550px; margin: 0 auto; align-items: center; justify-content: center; flex-wrap: nowrap;">
-            <input type="text" id="homeRoomIdInput" class="input-field" placeholder="Code du salon..." style="margin-bottom: 0; flex-grow: 1;" maxlength="12">
-            <button class="btn btn-accent" id="btnHomeJoinSession" style="white-space: nowrap; padding: 14px 22px; margin-bottom: 0;"><i class="fa-solid fa-right-to-bracket"></i> Rejoindre un salon</button>
-          </div>
+      <div class="home-join-section" style="margin-top: 25px; text-align: center;">
+        <div style="display: flex; gap: 10px; max-width: 550px; margin: 0 auto; align-items: center; justify-content: center; flex-wrap: nowrap;">
+          <input type="text" id="homeRoomIdInput" class="input-field" placeholder="Code du salon..." style="margin-bottom: 0; flex-grow: 1;" maxlength="12">
+          <button class="btn btn-accent" id="btnHomeJoinSession" style="white-space: nowrap; padding: 14px 22px; margin-bottom: 0;"><i class="fa-solid fa-right-to-bracket"></i> Rejoindre un salon</button>
         </div>
       </div>
     </section>
@@ -596,7 +598,7 @@
     <section id="screenLobby" class="screen">
       <div class="lobby-header">
         <button class="btn-back-top" id="btnBackToHomeFromLobby" style="position: absolute; left: 0; top: 0;">
-          <i class="fa-solid fa-arrow-left"></i> Retour
+          <i class="fa-solid fa-arrow-left"></i> Quitter
         </button>
         <h1 style="font-size: 2.2rem; font-weight: 900; color: #fff;">Salle d'attente</h1>
         
@@ -626,7 +628,7 @@
 
           <div>
             <div class="players-header-row">
-              <h3>Liste des joueurs - <span style="color: var(--primary);" id="playerCount">0</span></h3>
+              <h3>Liste des joueurs : <span style="color: var(--primary);" id="playerCount">0</span></h3>
               <button class="btn btn-secondary" id="btnAddBot" style="padding: 5px 12px; font-size: 0.8rem;">
                 <i class="fa-solid fa-robot"></i> + Ajouter un Bot
               </button>
@@ -736,7 +738,7 @@
 
       <div style="text-align: center; margin-top: 25px;">
         <button class="btn btn-danger" id="btnReturnToLobbyHost" style="padding: 14px 35px;">
-          <i class="fa-solid fa-right-from-bracket"></i> Terminer
+          <i class="fa-solid fa-right-from-bracket"></i> Retour au salon
         </button>
       </div>
     </section>
@@ -1076,7 +1078,28 @@
 
       document.getElementById('btnSelectQuizz').addEventListener('click', () => {
         sound.playClick();
-        showScreen('config');
+        app.selectedTheme = 'general';
+        app.totalQuestions = 10;
+        app.questionTime = 10;
+
+        ['themeOptions', 'modalThemeOptions'].forEach(containerId => {
+          const container = document.getElementById(containerId);
+          if (!container) return;
+          container.querySelectorAll('.option-btn').forEach(option => {
+            option.classList.toggle('selected', option.dataset.value === 'general');
+          });
+        });
+
+        document.getElementById('configSliderCount').value = 10;
+        document.getElementById('configValCount').textContent = '10';
+        document.getElementById('configSliderTime').value = 10;
+        document.getElementById('configValTime').textContent = '10s';
+        document.getElementById('sliderCount').value = 10;
+        document.getElementById('valCount').textContent = '10';
+        document.getElementById('sliderTime').value = 10;
+        document.getElementById('valTime').textContent = '10s';
+
+        initHostLobby();
       });
 
       document.getElementById('btnHomeJoinSession').addEventListener('click', () => {
@@ -1148,7 +1171,7 @@
         app.isHost = true;
         app.players = {};
         app.connections = {};
-        showScreen('config');
+        showScreen('home');
       });
 
       document.getElementById('btnCopySessionCode').addEventListener('click', () => {
@@ -1505,7 +1528,7 @@
       if (!screens.podium.classList.contains('active')) return;
       const bubble = document.createElement('div');
       bubble.className = 'floating-clap-bubble';
-      bubble.innerHTML = `<span>${avatar}</span> <strong>${name}</strong> <i class="fa-solid fa-hands-clapping" style="color:var(--accent);"></i>`;
+      bubble.innerHTML = `<i class="fa-solid fa-hands-clapping"></i> <strong>${name}</strong> <span>${avatar}</span>`;
       const x = Math.random() * (window.innerWidth - 180) + 20;
       const y = Math.random() * (window.innerHeight - 200) + 80;
       bubble.style.left = `${x}px`;
@@ -1546,9 +1569,17 @@
       const list = document.getElementById('lobbyPlayersList');
       list.innerHTML = '';
       const keys = Object.keys(app.players);
-      document.getElementById('playerCount').textContent = keys.length;
+      const connectedKeys = keys.filter(id => !app.players[id].disconnected);
+      document.getElementById('playerCount').textContent = connectedKeys.length;
 
-      keys.forEach(id => {
+      if (connectedKeys.length === 0) {
+        list.classList.add('empty');
+        list.innerHTML = '<div class="lobby-empty-state">Aucun joueur dans le salon</div>';
+        return;
+      }
+
+      list.classList.remove('empty');
+      connectedKeys.forEach(id => {
         const p = app.players[id];
         const row = document.createElement('div');
         row.className = `player-row-item ${p.disconnected ? 'disconnected' : ''}`;
@@ -1638,9 +1669,12 @@
         app.timeLeft--;
         sound.playTick();
         disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${app.timeLeft}s`;
-        bar.style.width = `${(app.timeLeft / app.questionTime) * 100}%`;
+        bar.style.width = `${Math.max(0, (app.timeLeft / app.questionTime) * 100)}%`;
 
         if (app.timeLeft <= 0) {
+          app.timeLeft = 0;
+          disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> 0s`;
+          bar.style.width = '0%';
           clearInterval(app.timerInterval);
           onDone();
         }
@@ -2048,8 +2082,13 @@
       window.pTimer = setInterval(() => {
         t--;
         count.textContent = t + 's';
-        bar.style.width = `${(t / totalSec) * 100}%`;
-        if (t <= 0) clearInterval(window.pTimer);
+        bar.style.width = `${Math.max(0, (t / totalSec) * 100)}%`;
+        if (t <= 0) {
+          t = 0;
+          count.textContent = '0s';
+          bar.style.width = '0%';
+          clearInterval(window.pTimer);
+        }
       }, 1000);
     }
 
