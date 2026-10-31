@@ -342,6 +342,8 @@
       display: flex; justify-content: space-between; align-items: center;
       padding: 12px 15px; z-index: 50; border-bottom: 1px solid rgba(255,255,255,0.08);
     }
+    .mobile-current-score { flex: 1; text-align: center; font-weight: 900; font-size: 1rem; color: var(--primary); white-space: nowrap; }
+    .mobile-fixed-top .player-profile-badge, .mobile-fixed-top .btn-leave { flex: 0 0 auto; }
     .player-profile-badge { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; }
     .btn-leave { background: rgba(255,23,68,0.2); border: 1px solid rgba(255,23,68,0.4); color: #ff4d4d; padding: 5px 10px; border-radius: 12px; font-size: 0.75rem; cursor: pointer; }
 
@@ -781,6 +783,7 @@
             <span id="pBadgeAvatar">😎</span>
             <span id="pBadgeName">Joueur</span>
           </div>
+          <div id="playerCurrentScore" class="mobile-current-score" style="display:none;">0 pts</div>
           <button class="btn-leave" id="btnPlayerLeave"><i class="fa-solid fa-right-from-bracket"></i> Quitter</button>
         </div>
 
@@ -975,7 +978,7 @@
       timerInterval: null,
       isPaused: false,
       timeLeft: 10,
-      localPlayer: { id: null, name: '', avatar: '😎', choice: null, answerStartTime: 0 },
+      localPlayer: { id: null, name: '', avatar: '😎', choice: null, answerStartTime: 0, score: 0 },
       clapCooldown: false
     };
 
@@ -1277,11 +1280,16 @@
         }
         app.localPlayer.name = name;
         app.localPlayer.id = 'p_' + Math.random().toString(36).substr(2, 6);
+        app.localPlayer.score = 0;
+        updatePlayerHeaderScore(false);
 
         if (app.hostConn) app.hostConn.send({ type: 'JOIN', player: app.localPlayer });
 
         document.getElementById('pBadgeName').textContent = app.localPlayer.name;
         document.getElementById('pBadgeAvatar').textContent = app.localPlayer.avatar;
+        updatePlayerHeaderScore(false);
+        document.getElementById('playerWaitArea').style.display = 'flex';
+        document.getElementById('playerLobbyViewListContainer').style.display = 'block';
         showScreen('playerGame');
       });
 
@@ -1658,32 +1666,44 @@
     function runTimer(onDone) {
       const disp = document.getElementById('timerDisplay');
       const bar = document.getElementById('timerBar');
-
       if (app.timerInterval) clearInterval(app.timerInterval);
 
+      const durationMs = Math.max(1, Number(app.questionTime) || 1) * 1000;
+      let elapsedMs = 0;
+      let lastFrame = performance.now();
+      let lastDisplayedSecond = app.questionTime;
+      app.timeLeft = app.questionTime;
       bar.classList.remove('running');
+      bar.style.transition = 'none';
       bar.style.width = '100%';
-
-      setTimeout(() => {
-        bar.classList.add('running');
-      }, 50);
+      disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${app.timeLeft}s`;
 
       app.timerInterval = setInterval(() => {
-        if (app.isPaused) return;
-
-        app.timeLeft--;
-        sound.playTick();
-        disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${app.timeLeft}s`;
-        bar.style.width = `${Math.max(0, (app.timeLeft / app.questionTime) * 100)}%`;
-
-        if (app.timeLeft <= 0) {
+        const now = performance.now();
+        if (app.isPaused) {
+          lastFrame = now;
+          return;
+        }
+        elapsedMs = Math.min(durationMs, elapsedMs + (now - lastFrame));
+        lastFrame = now;
+        const remainingMs = Math.max(0, durationMs - elapsedMs);
+        const remainingSeconds = Math.ceil(remainingMs / 1000);
+        app.timeLeft = remainingSeconds;
+        bar.style.width = `${(remainingMs / durationMs) * 100}%`;
+        if (remainingSeconds !== lastDisplayedSecond && remainingSeconds > 0) {
+          sound.playTick();
+          lastDisplayedSecond = remainingSeconds;
+        }
+        disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${remainingSeconds}s`;
+        if (remainingMs <= 0) {
           app.timeLeft = 0;
           disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> 0s`;
           bar.style.width = '0%';
           clearInterval(app.timerInterval);
+          app.timerInterval = null;
           onDone();
         }
-      }, 1000);
+      }, 20);
     }
 
     function updateLiveTrackSidebar() {
@@ -1769,7 +1789,7 @@
 
       sound.playCorrect();
       Object.entries(app.connections).forEach(([playerId, conn]) => {
-        if (conn && conn.open) conn.send({ type: 'REVEAL_RESULT', correctChoice: q.correct, points: pointsByPlayer[playerId] ?? 0 });
+        if (conn && conn.open) conn.send({ type: 'REVEAL_RESULT', correctChoice: q.correct, points: pointsByPlayer[playerId] ?? 0, score: app.players[playerId]?.score ?? 0 });
       });
 
       setTimeout(() => {
@@ -1937,6 +1957,13 @@
     }
 
     /* JOUEUR MOBILE WEBRTC */
+    function updatePlayerHeaderScore(visible = true) {
+      const scoreEl = document.getElementById('playerCurrentScore');
+      if (!scoreEl) return;
+      scoreEl.textContent = `${Math.max(0, Number(app.localPlayer.score) || 0)} pts`;
+      scoreEl.style.display = visible ? 'block' : 'none';
+    }
+
     function initPlayerPeer() {
       app.peer = new Peer();
       app.peer.on('open', () => {
@@ -1980,6 +2007,7 @@
         setTimeout(() => {
           document.getElementById('returnToLobbyOverlay').classList.remove('active');
           document.getElementById('playerPodiumArea').style.display = 'none';
+          updatePlayerHeaderScore(false);
           document.getElementById('playerWaitArea').style.display = 'flex';
           document.getElementById('playerLobbyViewListContainer').style.display = 'block';
         }, 2000);
@@ -2005,12 +2033,14 @@
         hideFastestPlayerOverlay();
       }
       else if (data.type === 'PAUSE_GAME') {
+        window.playerTimerPaused = true;
         document.getElementById('gameStartLoadingOverlay').style.display = 'none';
         document.getElementById('calcPointsOverlay').classList.remove('active');
         document.getElementById('pauseOverlay').classList.add('active');
         document.getElementById('btnResumeGameHost').style.display = 'none';
       }
       else if (data.type === 'RESUME_GAME') {
+        window.playerTimerPaused = false;
         document.getElementById('pauseOverlay').classList.remove('active');
       }
       else if (data.type === 'RESTART_ANIMATION') {
@@ -2029,6 +2059,7 @@
         document.getElementById('playerFeedbackArea').style.display = 'none';
         document.getElementById('playerPodiumArea').style.display = 'none';
         document.getElementById('playerActiveQuestionArea').style.display = 'block';
+        updatePlayerHeaderScore(true);
 
         // Stop any timer/answer state left by the previous question before rendering this one.
         if (window.pTimer) {
@@ -2053,6 +2084,9 @@
         startPlayerTimer(data.time);
       }
       else if (data.type === 'REVEAL_RESULT') {
+        if (Number.isFinite(Number(data.score))) app.localPlayer.score = Math.max(0, Number(data.score));
+        else app.localPlayer.score = Math.max(0, (Number(app.localPlayer.score) || 0) + (Number(data.points) || 0));
+        updatePlayerHeaderScore(true);
         if (window.pTimer) {
           clearInterval(window.pTimer);
           window.pTimer = null;
@@ -2083,6 +2117,9 @@
         document.getElementById('playerPodiumArea').style.display = 'block';
 
         const p = data.rankings;
+        const ownRanking = p.find(player => player.id === app.localPlayer.id);
+        if (ownRanking) app.localPlayer.score = Math.max(0, Number(ownRanking.finalScore) || 0);
+        updatePlayerHeaderScore(true);
         const disp = document.getElementById('playerPodiumDisplay');
         disp.innerHTML = `
           <div class="podium-step p2 ${p[1]?.disconnected ? 'disconnected' : ''}"><div>${p[1]?.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : (p[1]?.avatar || '🥈')}</div><strong>${p[1]?.name || '-'}</strong></div>
@@ -2115,27 +2152,45 @@
     }
 
     function startPlayerTimer(totalSec) {
-      const duration = Math.max(1, Number(totalSec) || 1);
-      let t = duration;
+      const durationMs = Math.max(1, Number(totalSec) || 1) * 1000;
+      let elapsedMs = 0;
+      let lastFrame = performance.now();
+      let lastDisplayedSecond = Math.ceil(durationMs / 1000);
       const bar = document.getElementById('playerTimerBar');
       const count = document.getElementById('playerTimerCount');
 
       if (window.pTimer) clearInterval(window.pTimer);
       const timerToken = (window.playerTimerToken || 0) + 1;
       window.playerTimerToken = timerToken;
+      window.playerTimerPaused = false;
+      bar.style.transition = 'none';
       bar.style.width = '100%';
-      count.textContent = t + 's';
+      count.textContent = lastDisplayedSecond + 's';
 
       window.pTimer = setInterval(() => {
         if (window.playerTimerToken !== timerToken) return;
-        t = Math.max(0, t - 1);
-        count.textContent = t + 's';
-        bar.style.width = `${(t / duration) * 100}%`;
-        if (t <= 0) {
+        const now = performance.now();
+        if (window.playerTimerPaused) {
+          lastFrame = now;
+          return;
+        }
+        elapsedMs = Math.min(durationMs, elapsedMs + (now - lastFrame));
+        lastFrame = now;
+        const remainingMs = Math.max(0, durationMs - elapsedMs);
+        const remainingSeconds = Math.ceil(remainingMs / 1000);
+        bar.style.width = `${(remainingMs / durationMs) * 100}%`;
+        count.textContent = remainingSeconds + 's';
+        if (remainingSeconds !== lastDisplayedSecond && remainingSeconds > 0) {
+          sound.playTick();
+          lastDisplayedSecond = remainingSeconds;
+        }
+        if (remainingMs <= 0) {
+          count.textContent = '0s';
+          bar.style.width = '0%';
           clearInterval(window.pTimer);
           window.pTimer = null;
         }
-      }, 1000);
+      }, 20);
     }
 
     function submitPlayerAnswer(choiceIdx) {
