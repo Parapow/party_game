@@ -167,13 +167,7 @@
     .qr-subtext { margin-top: 15px; font-weight: 700; color: var(--primary); text-transform: uppercase; font-size: 0.9rem; }
 
     .players-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .players-vertical-list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 5px; position: relative; }
-    
-    .empty-salon-message {
-      display: flex; align-items: center; justify-content: center; height: 180px;
-      color: var(--text-muted); font-style: italic; font-size: 0.95rem; text-align: center;
-    }
-
+    .players-vertical-list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
     .player-row-item {
       background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
       border-radius: 12px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between;
@@ -217,7 +211,8 @@
     .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .timer-bar-container { width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; margin-bottom: 20px; }
     
-    .timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 0.05s linear; }
+    .timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+    .timer-bar.running { transition: width 1s linear; }
 
     .question-title { font-size: 1.5rem; text-align: center; margin-bottom: 20px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
 
@@ -258,6 +253,7 @@
     .btn-ctrl-restart { background: rgba(0,242,254,0.2); border: 1px solid var(--primary); color: var(--primary); }
     .btn-ctrl-stop { background: rgba(255,23,68,0.2); border: 1px solid var(--danger); color: #ff5252; }
 
+    /* PODIUM LAYOUT HÔTE & CORRECTION DE L'ICÔNE COUPÉE (overflow visible + marge) */
     .podium-layout-main {
       display: grid; grid-template-columns: 280px 1fr 340px; gap: 20px; align-items: stretch;
     }
@@ -292,6 +288,7 @@
       color: var(--success); font-weight: 700;
     }
 
+    /* Icône animée d'applaudissement entièrement visible sans être coupée */
     .clap-badge-icon {
       position: absolute; top: -12px; left: -12px; background: var(--accent); color: #fff;
       font-size: 0.8rem; width: 28px; height: 28px; border-radius: 50%; display: flex;
@@ -300,7 +297,6 @@
     }
     @keyframes bounceClap { from { transform: scale(1); } to { transform: scale(1.3); } }
 
-    /* Bulle avec icône applaudissements, pseudo et émoji alignés dans l'ordre */
     .floating-clap-bubble {
       position: fixed; z-index: 9999; display: flex; align-items: center; gap: 8px;
       background: rgba(255, 0, 127, 0.9); border: 2px solid #fff; padding: 10px 18px; border-radius: 30px;
@@ -314,6 +310,7 @@
       100% { opacity: 0; transform: scale(0.8) translateY(-45px); }
     }
 
+    /* Stack de Notifications Éphémères (Max 5) */
     #globalNotificationsStack {
       position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
       display: flex; flex-direction: column-reverse; gap: 10px; z-index: 999; align-items: center; pointer-events: none;
@@ -429,13 +426,14 @@
     <p style="color: var(--text-muted);">Analyse des statistiques et bonus de vitesse !</p>
   </div>
 
-  <!-- OVERLAY JOUEUR LE PLUS RAPIDE -->
+  <!-- OVERLAY JOUEUR LE PLUS RAPIDE AVEC RAPPEL DE LA BONNE RÉPONSE -->
   <div id="fastestPlayerOverlay">
     <div style="font-size: 4.5rem; margin-bottom: 10px;" id="fastestModalAvatar">⚡</div>
     <h1 style="font-size: 1.8rem; color: var(--primary); margin-bottom: 3px;" id="fastestModalName">Nom du joueur</h1>
     <p style="color: var(--success); font-size: 1.1rem; font-weight: 700; margin-bottom: 10px;">A répondu le plus rapidement !</p>
     <div style="font-size: 1.5rem; font-weight: 800; color: #fff; text-shadow: 0 0 10px var(--primary); margin-bottom: 15px;">Bravo !</div>
     
+    <!-- BOUTON DE RAPPEL DE LA BONNE RÉPONSE (NON CLIQUABLE) -->
     <div id="fastestModalCorrectAnswerBox" style="width: 100%; max-width: 320px; margin: 0 auto; border-radius: 12px; color: #fff; font-size: 1rem; font-weight: 600; display: flex; align-items: center; text-align: left; overflow: hidden; pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
       <div id="fastestModalCorrectLetter" style="background: #fff; color: #000; width: 45px; padding: 14px 0; text-align: center; font-weight: 900; font-size: 1.1rem; flex-shrink: 0;">A</div>
       <div id="fastestModalCorrectText" style="padding: 12px 15px; flex-grow: 1;">Option correcte</div>
@@ -514,7 +512,7 @@
 
   <main>
 
-    <!-- ÉCRAN 1: ACCUEIL & CHOIX DE JEU + REJOINDRE HORS CADRE -->
+    <!-- ÉCRAN 1: ACCUEIL & CHOIX DE JEU -->
     <section id="screenHome" class="screen active">
       <div class="card">
         <h1 class="title-large"><i class="fa-solid fa-fire"></i> Choisissez votre Jeu de Soirée</h1>
@@ -540,13 +538,56 @@
             <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Faites deviner un max de mots</p>
           </div>
         </div>
-      </div>
 
-      <!-- Section "Rejoindre un salon" sans fond, placée en dessous à l'extérieur -->
-      <div style="margin-top: 20px; text-align: center;">
-        <div style="display: flex; gap: 10px; max-width: 550px; margin: 0 auto; align-items: center; justify-content: center; flex-wrap: nowrap;">
-          <input type="text" id="homeRoomIdInput" class="input-field" placeholder="Code du salon..." style="margin-bottom: 0; flex-grow: 1;" maxlength="12">
-          <button class="btn btn-accent" id="btnHomeJoinSession" style="white-space: nowrap; padding: 14px 22px; margin-bottom: 0;"><i class="fa-solid fa-right-to-bracket"></i> Rejoindre un salon</button>
+        <div class="card" style="margin-top: 25px; text-align: center; background: rgba(0,0,0,0.2);">
+          <div style="display: flex; gap: 10px; max-width: 550px; margin: 0 auto; align-items: center; justify-content: center; flex-wrap: nowrap;">
+            <input type="text" id="homeRoomIdInput" class="input-field" placeholder="Code du salon..." style="margin-bottom: 0; flex-grow: 1;" maxlength="12">
+            <button class="btn btn-accent" id="btnHomeJoinSession" style="white-space: nowrap; padding: 14px 22px; margin-bottom: 0;"><i class="fa-solid fa-right-to-bracket"></i> Rejoindre un salon</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ÉCRAN 2: CONFIGURATION DU QUIZZ -->
+    <section id="screenConfig" class="screen">
+      <button class="btn-back-top" id="btnBackToHomeFromConfig">
+        <i class="fa-solid fa-arrow-left"></i> Retour
+      </button>
+
+      <div class="card">
+        <h2 class="title-large"><i class="fa-solid fa-gears"></i> Configuration Initiale</h2>
+        
+        <div class="config-group">
+          <label>Thème du Quizz</label>
+          <div class="options-grid" id="themeOptions">
+            <div class="option-btn selected" data-value="general">Culture Générale</div>
+            <div class="option-btn" data-value="cinema">Cinéma</div>
+            <div class="option-btn" data-value="sport">Sport</div>
+            <div class="option-btn" data-value="music">Musique</div>
+            <div class="option-btn" data-value="geek">Geek</div>
+          </div>
+        </div>
+
+        <div class="config-group">
+          <label>Nombre de Questions</label>
+          <div class="slider-container">
+            <input type="range" id="configSliderCount" min="5" max="20" step="1" value="10">
+            <span class="slider-value" id="configValCount">10</span>
+          </div>
+        </div>
+
+        <div class="config-group">
+          <label>Temps par Question</label>
+          <div class="slider-container">
+            <input type="range" id="configSliderTime" min="5" max="30" step="5" value="10">
+            <span class="slider-value" id="configValTime">10s</span>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 25px;">
+          <button class="btn btn-accent" id="btnCreateLobby">
+            <i class="fa-solid fa-door-open"></i> Créer la partie
+          </button>
         </div>
       </div>
     </section>
@@ -554,9 +595,8 @@
     <!-- ÉCRAN 3: SALON D'ATTENTE -->
     <section id="screenLobby" class="screen">
       <div class="lobby-header">
-        <!-- Bouton retour renommé par "Quitter" -->
         <button class="btn-back-top" id="btnBackToHomeFromLobby" style="position: absolute; left: 0; top: 0;">
-          <i class="fa-solid fa-arrow-left"></i> Quitter
+          <i class="fa-solid fa-arrow-left"></i> Retour
         </button>
         <h1 style="font-size: 2.2rem; font-weight: 900; color: #fff;">Salle d'attente</h1>
         
@@ -585,17 +625,14 @@
           </div>
 
           <div>
-            <!-- Format "Liste des joueurs : X" -->
             <div class="players-header-row">
-              <h3 id="lobbyPlayerListHeaderTitle">Liste des joueurs : <span style="color: var(--primary);" id="playerCount">0</span></h3>
+              <h3>Liste des joueurs - <span style="color: var(--primary);" id="playerCount">0</span></h3>
               <button class="btn btn-secondary" id="btnAddBot" style="padding: 5px 12px; font-size: 0.8rem;">
                 <i class="fa-solid fa-robot"></i> + Ajouter un Bot
               </button>
             </div>
 
-            <div class="players-vertical-list" id="lobbyPlayersList">
-              <div class="empty-salon-message" id="emptySalonMsg">Aucun joueur dans le salon</div>
-            </div>
+            <div class="players-vertical-list" id="lobbyPlayersList"></div>
           </div>
         </div>
       </div>
@@ -674,7 +711,7 @@
       </div>
     </section>
 
-    <!-- ÉCRAN 5: PODIUM HÔTE (Bouton renommé par "Retour au salon") -->
+    <!-- ÉCRAN 5: PODIUM HÔTE -->
     <section id="screenPodium" class="screen">
       <h1 class="title-large" style="margin-bottom: 15px;"><i class="fa-solid fa-flag-checkered" style="color: var(--primary);"></i> La partie est terminée !</h1>
 
@@ -699,7 +736,7 @@
 
       <div style="text-align: center; margin-top: 25px;">
         <button class="btn btn-danger" id="btnReturnToLobbyHost" style="padding: 14px 35px;">
-          <i class="fa-solid fa-right-from-bracket"></i> Retour au salon
+          <i class="fa-solid fa-right-from-bracket"></i> Terminer
         </button>
       </div>
     </section>
@@ -744,18 +781,17 @@
 
         <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; padding-top: 10px;">
           
+          <!-- ÉCRAN D'ATTENTE MOBILE REORGANISE + COMPTEUR DE JOUEURS -->
           <div id="playerWaitArea" style="text-align: center; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 25vh;">
             <i class="fa-solid fa-hourglass-half fa-spin" style="font-size: 2.2rem; color: var(--primary); margin-bottom: 8px;"></i>
             <h3 style="font-size: 1.1rem;">En attente de l'hôte...</h3>
           </div>
 
-          <div id="playerLobbyViewListContainer" style="width: 100%; padding: 0 5px; flex-grow: 1; overflow-y: auto; max-height: 45vh; position: relative;">
+          <div id="playerLobbyViewListContainer" style="width: 100%; padding: 0 5px; flex-grow: 1; overflow-y: auto; max-height: 45vh;">
             <h4 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; text-align: center;">
               <i class="fa-solid fa-users"></i> Joueurs connectés (<span id="playerMobileCountNum" style="color:var(--primary); font-weight:700;">0</span>)
             </h4>
-            <div id="playerMobileLobbyList" style="display: flex; flex-direction: column; gap: 6px;">
-              <div class="empty-salon-message" id="emptyMobileSalonMsg">Aucun joueur dans le salon</div>
-            </div>
+            <div id="playerMobileLobbyList" style="display: flex; flex-direction: column; gap: 6px;"></div>
           </div>
 
           <!-- QUESTION ACTIVE -->
@@ -765,7 +801,7 @@
 
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
               <div style="flex-grow: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
-                <div id="playerTimerBar" style="height: 100%; width: 100%; background: var(--primary); transition: width 0.05s linear;"></div>
+                <div id="playerTimerBar" style="height: 100%; width: 100%; background: var(--primary); transition: width 1s linear;"></div>
               </div>
               <span id="playerTimerCount" style="font-weight: 900; font-size: 0.9rem; color: var(--primary); width: 30px; text-align: right;">10s</span>
             </div>
@@ -828,72 +864,43 @@
   <audio id="bgAudioPlayer" src="background-music.mp3" preload="auto" loop></audio>
 
   <script>
-    /* ========================================================
-       SYSTÈME D'IA DYNAMIQUE - GÉNÉRATION DE QUESTIONS À LA VOLÉE
-       Aucun stockage en base ou fichier. Généré par algorithme IA.
-       ======================================================== */
-    class QuizAIGenerator {
-      static generateQuestions(theme, count) {
-        const questionsList = [];
-        const questionTemplates = {
-          general: [
-            { q: "Quel est l'élément chimique représenté par le symbole '{sym}' ?", a: ["Argent", "Or", "Cuivre", "Aluminium"], correct: 1, vars: { sym: "Au" } },
-            { q: "Dans quel pays se trouve la ville historique de {ville} ?", a: ["Mali", "Sénégal", "Maroc", "Égypte"], correct: 0, vars: { ville: "Tombouctou" } },
-            { q: "Combien de pattes possède une araignée adulte standard ?", a: ["6", "8", "10", "12"], correct: 1 },
-            { q: "Quel artiste de la Renaissance a peint le plafond de la chapelle Sixtine ?", a: ["Léonard de Vinci", "Michel-Ange", "Raphaël", "Donatello"], correct: 1 },
-            { q: "Quelle est la plus haute montagne du monde terrestre ?", a: ["K2", "Mont Blanc", "Everest", "Kilimandjaro"], correct: 2 },
-            { q: "Quel pays européen est berceau des jeux olympiques antiques ?", a: ["Italie", "Grèce", "Égypte", "Turquie"], correct: 1 },
-            { q: "Quel est l'animal terrestre connu le plus rapide au sprint ?", a: ["Lion", "Guépard", "Gazelle", "Antilope"], correct: 1 },
-            { q: "Combien de planètes principales constituent notre système solaire actuel ?", a: ["7", "8", "9", "10"], correct: 1 },
-            { q: "Quelle langue compte le plus grand nombre de locuteurs natifs dans le monde ?", a: ["Anglais", "Mandarin", "Espagnol", "Hindi"], correct: 1 },
-            { q: "Quel océan baigne la côte est des États-Unis ?", a: ["Pacifique", "Atlantique", "Indien", "Arctique"], correct: 1 }
-          ],
-          cinema: [
-            { q: "Quel célèbre réalisateur a mis en scène les films 'Inception' et 'Interstellar' ?", a: ["Steven Spielberg", "Christopher Nolan", "Quentin Tarantino", "James Cameron"], correct: 1 },
-            { q: "Quel est le nom du petit robot nettoyeur solitaire dans le film d'animation Wall-E ?", a: ["R2-D2", "Wall-E", "Terminator", "Data"], correct: 1 },
-            { q: "Dans le film Matrix, quelle couleur de pilule Neo choisit-il d'avaler ?", a: ["La bleue", "La rouge", "La verte", "La jaune"], correct: 1 },
-            { q: "Quel acteur charismatique incarne le capitaine pirate Jack Sparrow ?", a: ["Orlando Bloom", "Johnny Depp", "Brad Pitt", "Tom Hanks"], correct: 1 },
-            { q: "Quelle actrice incarna brillamment Katniss Everdeen dans la saga Hunger Games ?", a: ["Jennifer Lawrence", "Emma Watson", "Scarlett Johansson", "Natalie Portman"], correct: 0 }
-          ],
-          sport: [
-            { q: "Combien de joueurs actifs composent une équipe de rugby à XV sur le terrain ?", a: ["11", "13", "15", "18"], correct: 2 },
-            { q: "Dans quelle capitale européenne ou mondiale se déroule le tournoi de tennis sur terre battue de Roland-Garros ?", a: ["Londres", "New York", "Paris", "Melbourne"], correct: 2 },
-            { q: "Quelle nation a remporté la prestigieuse Coupe du Monde de football en 2018 ?", a: ["Brésil", "Allemagne", "France", "Argentine"], correct: 2 },
-            { q: "Combien de sets gagnants faut-il pour s'imposer en match de Grand Chelem masculin au tennis ?", a: ["2", "3", "4", "5"], correct: 1 }
-          ],
-          music: [
-            { q: "Quel artiste légendaire est mondialement surnommé le 'King of Pop' ?", a: ["Elvis Presley", "Michael Jackson", "Prince", "Freddie Mercury"], correct: 1 },
-            { q: "Quel groupe de rock légendaire est l'interprète de la chanson culte 'Stairway to Heaven' ?", a: ["Queen", "Led Zeppelin", "AC/DC", "The Rolling Stones"], correct: 1 },
-            { q: "Quel instrument de la famille des cordes se joue traditionnellement à l'aide d'un archet ?", a: ["La guitare", "Le violon", "La trompette", "La flûte"], correct: 1 }
-          ],
-          geek: [
-            { q: "Que signifie précisément l'acronyme informatique 'CPU' ?", a: ["Central Processing Unit", "Computer Personal Unit", "Core Power Utility", "Central Program Utility"], correct: 0 },
-            { q: "Quel célèbre système d'exploitation mobile utilise pour emblème un petit robot vert ?", a: ["iOS", "Android", "Windows Phone", "BlackBerry"], correct: 1 },
-            { q: "En quelle année précise le World Wide Web (WWW) a-t-il été inventé et ouvert au public ?", a: ["1985", "1989", "1995", "2000"], correct: 1 }
-          ]
-        };
-
-        const templatePool = questionTemplates[theme] || questionTemplates['general'];
-        
-        for (let i = 0; i < count; i++) {
-          const baseTmpl = templatePool[i % templatePool.length];
-          // Mélange aléatoire des réponses pour garantir l'unicité et le dynamisme IA
-          const answersCopy = [...baseTmpl.a];
-          const correctText = answersCopy[baseTmpl.correct];
-          
-          // Shuffle
-          answersCopy.sort(() => Math.random() - 0.5);
-          const newCorrectIdx = answersCopy.indexOf(correctText);
-
-          questionsList.push({
-            q: baseTmpl.q,
-            a: answersCopy,
-            correct: newCorrectIdx
-          });
-        }
-        return questionsList;
-      }
-    }
+    const AI_QUESTIONS_POOL = {
+      general: [
+        { q: "Quel est l'élément chimique représenté par le symbole 'Au' ?", a: ["Argent", "Or", "Cuivre", "Aluminium"], correct: 1 },
+        { q: "Dans quel pays se trouve la ville de Tombouctou ?", a: ["Mali", "Sénégal", "Maroc", "Égypte"], correct: 0 },
+        { q: "Combien de pattes possède une araignée ?", a: ["6", "8", "10", "12"], correct: 1 },
+        { q: "Quel artiste a peint le plafond de la chapelle Sixtine ?", a: ["Léonard de Vinci", "Michel-Ange", "Raphaël", "Donatello"], correct: 1 },
+        { q: "Quelle est la plus haute montagne du monde ?", a: ["K2", "Mont Blanc", "Everest", "Kilimandjaro"], correct: 2 },
+        { q: "Quel pays a inventé les jeux olympiques antiques ?", a: ["Italie", "Grèce", "Égypte", "Turquie"], correct: 1 },
+        { q: "Quel est l'animal terrestre le plus rapide ?", a: ["Lion", "Guépard", "Gazelle", "Antilope"], correct: 1 },
+        { q: "Combien y a-t-il de planètes dans notre système solaire ?", a: ["7", "8", "9", "10"], correct: 1 },
+        { q: "Quelle est la langue la plus parlée au monde en nombre de locuteurs natifs ?", a: ["Anglais", "Mandarin", "Espagnol", "Hindi"], correct: 1 },
+        { q: "Quel océan borde la côte est des États-Unis ?", a: ["Pacifique", "Atlantique", "Indien", "Arctique"], correct: 1 }
+      ],
+      cinema: [
+        { q: "Quel réalisateur a dirigé 'Inception' et 'Interstellar' ?", a: ["Steven Spielberg", "Christopher Nolan", "Quentin Tarantino", "James Cameron"], correct: 1 },
+        { q: "Quel est le nom du robot principal dans Wall-E ?", a: ["R2-D2", "Wall-E", "Terminator", "Data"], correct: 1 },
+        { q: "Dans Matrix, quelle pilule Neo choisit-il ?", a: ["La bleue", "La rouge", "La verte", "La jaune"], correct: 1 },
+        { q: "Quel acteur incarne le personnage de Jack Sparrow ?", a: ["Orlando Bloom", "Johnny Depp", "Brad Pitt", "Tom Hanks"], correct: 1 },
+        { q: "Quelle actrice joue Katniss Everdeen dans Hunger Games ?", a: ["Jennifer Lawrence", "Emma Watson", "Scarlett Johansson", "Natalie Portman"], correct: 0 }
+      ],
+      sport: [
+        { q: "Combien de joueurs composent une équipe de rugby à XV ?", a: ["11", "13", "15", "18"], correct: 2 },
+        { q: "Dans quelle ville se déroule le tournoi de tennis de Roland-Garros ?", a: ["Londres", "New York", "Paris", "Melbourne"], correct: 2 },
+        { q: "Quel pays a remporté la Coupe du Monde de football en 2018 ?", a: ["Brésil", "Allemagne", "France", "Argentine"], correct: 2 },
+        { q: "Combien de sets faut-il remporter pour gagner un match de Grand Chelem masculin ?", a: ["2", "3", "4", "5"], correct: 1 }
+      ],
+      music: [
+        { q: "Quel artiste est surnommé le 'King of Pop' ?", a: ["Elvis Presley", "Michael Jackson", "Prince", "Freddie Mercury"], correct: 1 },
+        { q: "Quel groupe est l'interprète du titre 'Stairway to Heaven' ?", a: ["Queen", "Led Zeppelin", "AC/DC", "The Rolling Stones"], correct: 1 },
+        { q: "Quel instrument joue-t-on avec un archet ?", a: ["La guitare", "Le violon", "La trompette", "La flûte"], correct: 1 }
+      ],
+      geek: [
+        { q: "Que signifie l'abréviation 'CPU' en informatique ?", a: ["Central Processing Unit", "Computer Personal Unit", "Core Power Utility", "Central Program Utility"], correct: 0 },
+        { q: "Quel système d'exploitation mobile utilise le logo d'un petit robot vert ?", a: ["iOS", "Android", "Windows Phone", "BlackBerry"], correct: 1 },
+        { q: "En quelle année est né le World Wide Web (WWW) ?", a: ["1985", "1989", "1995", "2000"], correct: 1 }
+      ]
+    };
 
     class SoundEngine {
       constructor() {
@@ -997,6 +1004,7 @@
       return result;
     }
 
+    /* Gestion des messages éphémères (Max 5) diffusés globalement aux hôtes et mobiles */
     function showGlobalToast(message, type = 'info', icon = 'fa-info-circle') {
       const stack = document.getElementById('globalNotificationsStack');
       if (!stack) return;
@@ -1066,13 +1074,9 @@
         if (app.isHost) window.location.href = window.location.pathname;
       });
 
-      /* Sélection directe du jeu QUIZZ : Crée instantanément la session avec paramètres par défaut et va au salon */
       document.getElementById('btnSelectQuizz').addEventListener('click', () => {
         sound.playClick();
-        app.selectedTheme = 'general';
-        app.totalQuestions = 10;
-        app.questionTime = 10;
-        initHostLobby();
+        showScreen('config');
       });
 
       document.getElementById('btnHomeJoinSession').addEventListener('click', () => {
@@ -1129,6 +1133,11 @@
         });
       });
 
+      document.getElementById('btnBackToHomeFromConfig').addEventListener('click', () => {
+        sound.playClick();
+        showScreen('home');
+      });
+
       document.getElementById('btnBackToHomeFromLobby').addEventListener('click', () => {
         sound.playClick();
         if (Object.keys(app.players).length > 0) {
@@ -1139,7 +1148,7 @@
         app.isHost = true;
         app.players = {};
         app.connections = {};
-        showScreen('home');
+        showScreen('config');
       });
 
       document.getElementById('btnCopySessionCode').addEventListener('click', () => {
@@ -1177,8 +1186,11 @@
         else btn.classList.add('active');
       });
 
+      setupOptionGroup('themeOptions', (val) => app.selectedTheme = val);
       setupOptionGroup('modalThemeOptions', (val) => { app.selectedTheme = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
 
+      setupSlider('configSliderCount', 'configValCount', (val) => app.totalQuestions = val);
+      setupSlider('configSliderTime', 'configValTime', (val) => app.questionTime = val, 's');
       setupSlider('sliderCount', 'valCount', (val) => { app.totalQuestions = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
       setupSlider('sliderTime', 'valTime', (val) => { app.questionTime = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); }, 's');
 
@@ -1189,6 +1201,11 @@
       document.getElementById('btnCloseSettings').addEventListener('click', () => {
         sound.playClick();
         document.getElementById('settingsModal').classList.remove('active');
+      });
+
+      document.getElementById('btnCreateLobby').addEventListener('click', () => {
+        sound.playClick();
+        initHostLobby();
       });
 
       document.getElementById('btnAddBot').addEventListener('click', () => {
@@ -1484,12 +1501,11 @@
       }
     }
 
-    /* Bulle avec icône de mains, pseudo et emoji alignés dans l'ordre */
     function showFloatingClapBubble(name, avatar) {
       if (!screens.podium.classList.contains('active')) return;
       const bubble = document.createElement('div');
       bubble.className = 'floating-clap-bubble';
-      bubble.innerHTML = `<i class="fa-solid fa-hands-clapping"></i> <strong>${name}</strong> <span>${avatar}</span>`;
+      bubble.innerHTML = `<span>${avatar}</span> <strong>${name}</strong> <i class="fa-solid fa-hands-clapping" style="color:var(--accent);"></i>`;
       const x = Math.random() * (window.innerWidth - 180) + 20;
       const y = Math.random() * (window.innerHeight - 200) + 80;
       bubble.style.left = `${x}px`;
@@ -1528,42 +1544,32 @@
 
     function updateLobbyUI() {
       const list = document.getElementById('lobbyPlayersList');
+      list.innerHTML = '';
       const keys = Object.keys(app.players);
       document.getElementById('playerCount').textContent = keys.length;
 
-      // Gestion du message "Aucun joueur dans le salon"
-      const existingEmpty = document.getElementById('emptySalonMsg');
-      if (keys.length === 0) {
-        if (!existingEmpty) {
-          const emptyDiv = document.createElement('div');
-          emptyDiv.className = 'empty-salon-message';
-          emptyDiv.id = 'emptySalonMsg';
-          emptyDiv.textContent = "Aucun joueur dans le salon";
-          list.appendChild(emptyDiv);
-        }
-      } else {
-        if (existingEmpty) existingEmpty.remove();
-        // Supprime les éléments de joueurs actuels pour les recréer proprement
-        list.querySelectorAll('.player-row-item').forEach(el => el.remove());
-        keys.forEach(id => {
-          const p = app.players[id];
-          const row = document.createElement('div');
-          row.className = `player-row-item ${p.disconnected ? 'disconnected' : ''}`;
-          row.innerHTML = `
-            <div class="player-info-group">
-              <span class="player-avatar">${p.avatar}</span>
-              <span class="player-name">${p.name} ${p.isBot ? '<span class="bot-badge">BOT</span>' : ''} ${p.disconnected ? '<i class="fa-solid fa-plug-circle-xmark disconnect-badge" title="Déconnecté"></i>' : ''}</span>
-            </div>
-            <button class="btn-eject-icon" onclick="ejectPlayer('${id}')" title="Éjecter"><i class="fa-solid fa-xmark"></i></button>
-          `;
-          list.appendChild(row);
-        });
-      }
+      keys.forEach(id => {
+        const p = app.players[id];
+        const row = document.createElement('div');
+        row.className = `player-row-item ${p.disconnected ? 'disconnected' : ''}`;
+        row.innerHTML = `
+          <div class="player-info-group">
+            <span class="player-avatar">${p.avatar}</span>
+            <span class="player-name">${p.name} ${p.isBot ? '<span class="bot-badge">BOT</span>' : ''} ${p.disconnected ? '<i class="fa-solid fa-plug-circle-xmark disconnect-badge" title="Déconnecté"></i>' : ''}</span>
+          </div>
+          <button class="btn-eject-icon" onclick="ejectPlayer('${id}')" title="Éjecter"><i class="fa-solid fa-xmark"></i></button>
+        `;
+        list.appendChild(row);
+      });
     }
 
-    /* Génération IA des questions à la volée, aucun stockage */
     function startQuizGame() {
-      app.questions = QuizAIGenerator.generateQuestions(app.selectedTheme, app.totalQuestions);
+      const pool = AI_QUESTIONS_POOL[app.selectedTheme] || AI_QUESTIONS_POOL['general'];
+      let shuffled = [...pool].sort(() => 0.5 - Math.random());
+      while (shuffled.length < app.totalQuestions) {
+        shuffled = shuffled.concat([...pool].sort(() => 0.5 - Math.random()));
+      }
+      app.questions = shuffled.slice(0, app.totalQuestions);
       app.currentQIdx = 0;
       
       app.playerTotalResponseTime = {};
@@ -1613,41 +1619,32 @@
       runTimer(() => revealResults());
     }
 
-    /* Correction de la progression fluide qui se vide à 0s */
     function runTimer(onDone) {
       const disp = document.getElementById('timerDisplay');
       const bar = document.getElementById('timerBar');
 
       if (app.timerInterval) clearInterval(app.timerInterval);
 
-      const startTime = Date.now();
-      const totalMs = app.questionTime * 1000;
-
+      bar.classList.remove('running');
       bar.style.width = '100%';
+
+      setTimeout(() => {
+        bar.classList.add('running');
+      }, 50);
 
       app.timerInterval = setInterval(() => {
         if (app.isPaused) return;
 
-        const elapsed = Date.now() - startTime;
-        const remainingMs = Math.max(0, totalMs - elapsed);
-        const percentage = (remainingMs / totalMs) * 100;
-        
-        bar.style.width = `${percentage}%`;
+        app.timeLeft--;
+        sound.playTick();
+        disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${app.timeLeft}s`;
+        bar.style.width = `${(app.timeLeft / app.questionTime) * 100}%`;
 
-        const currentSecLeft = Math.ceil(remainingMs / 1000);
-        if (currentSecLeft !== app.timeLeft) {
-          app.timeLeft = currentSecLeft;
-          sound.playTick();
-          disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${app.timeLeft}s`;
-        }
-
-        if (remainingMs <= 0) {
+        if (app.timeLeft <= 0) {
           clearInterval(app.timerInterval);
-          bar.style.width = '0%';
-          disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> 0s`;
           onDone();
         }
-      }, 50);
+      }, 1000);
     }
 
     function updateLiveTrackSidebar() {
@@ -1906,24 +1903,17 @@
         if (countNum) countNum.textContent = data.count;
         if (listContainer) {
           listContainer.innerHTML = '';
-          if (data.players.length === 0) {
-            const emptyDiv = document.createElement('div');
-            emptyDiv.className = 'empty-salon-message';
-            emptyDiv.textContent = "Aucun joueur dans le salon";
-            listContainer.appendChild(emptyDiv);
-          } else {
-            data.players.forEach(p => {
-              const row = document.createElement('div');
-              row.className = `player-row-item ${p.disconnected ? 'disconnected' : ''}`;
-              row.innerHTML = `
-                <div class="player-info-group">
-                  <span class="player-avatar">${p.avatar}</span>
-                  <span class="player-name">${p.name} ${p.isBot ? '<span class="bot-badge">BOT</span>' : ''}</span>
-                </div>
-              `;
-              listContainer.appendChild(row);
-            });
-          }
+          data.players.forEach(p => {
+            const row = document.createElement('div');
+            row.className = `player-row-item ${p.disconnected ? 'disconnected' : ''}`;
+            row.innerHTML = `
+              <div class="player-info-group">
+                <span class="player-avatar">${p.avatar}</span>
+                <span class="player-name">${p.name} ${p.isBot ? '<span class="bot-badge">BOT</span>' : ''}</span>
+              </div>
+            `;
+            listContainer.appendChild(row);
+          });
         }
       }
       else if (data.type === 'RETURN_TO_LOBBY') {
@@ -2051,29 +2041,16 @@
       let t = totalSec;
       const bar = document.getElementById('playerTimerBar');
       const count = document.getElementById('playerTimerCount');
-      const startTime = Date.now();
-      const totalMs = totalSec * 1000;
       bar.style.width = '100%';
       count.textContent = t + 's';
 
       if (window.pTimer) clearInterval(window.pTimer);
       window.pTimer = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const remainingMs = Math.max(0, totalMs - elapsed);
-        bar.style.width = `${(remainingMs / totalMs) * 100}%`;
-        
-        const secLeft = Math.ceil(remainingMs / 1000);
-        if (secLeft !== t) {
-          t = secLeft;
-          count.textContent = t + 's';
-        }
-
-        if (remainingMs <= 0) {
-          clearInterval(window.pTimer);
-          bar.style.width = '0%';
-          count.textContent = '0s';
-        }
-      }, 50);
+        t--;
+        count.textContent = t + 's';
+        bar.style.width = `${(t / totalSec) * 100}%`;
+        if (t <= 0) clearInterval(window.pTimer);
+      }, 1000);
     }
 
     function submitPlayerAnswer(choiceIdx) {
