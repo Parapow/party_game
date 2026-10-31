@@ -69,7 +69,6 @@
 
     .audio-controls { display: flex; align-items: center; gap: 12px; }
 
-    /* Slider de volume épuré */
     .volume-slider-box {
       display: flex; align-items: center; gap: 6px; background: transparent; border: none; padding: 0;
     }
@@ -254,7 +253,7 @@
     .btn-ctrl-restart { background: rgba(0,242,254,0.2); border: 1px solid var(--primary); color: var(--primary); }
     .btn-ctrl-stop { background: rgba(255,23,68,0.2); border: 1px solid var(--danger); color: #ff5252; }
 
-    /* PODIUM LAYOUT HÔTE */
+    /* PODIUM LAYOUT HÔTE & CORRECTION DE L'ICÔNE COUPÉE (overflow visible + marge) */
     .podium-layout-main {
       display: grid; grid-template-columns: 280px 1fr 340px; gap: 20px; align-items: stretch;
     }
@@ -267,7 +266,6 @@
       align-items: center; justify-content: center; height: 100%; box-shadow: var(--shadow);
     }
 
-    /* Classement Hôte : Titre fixe, seule la liste défile */
     .podium-rest-card {
       background: transparent; border: none; padding: 10px;
       display: flex; flex-direction: column; height: 400px;
@@ -279,7 +277,7 @@
     .rest-player-item {
       display: flex; justify-content: space-between; align-items: center; padding: 12px 14px;
       border-radius: 10px; background: rgba(255,255,255,0.05); margin-bottom: 8px; font-size: 0.9rem;
-      white-space: nowrap; overflow: visible; position: relative; margin-top: 10px;
+      white-space: nowrap; overflow: visible !important; position: relative; margin-top: 12px; margin-left: 8px; margin-right: 8px;
     }
     .rest-player-item.disconnected { opacity: 0.4; filter: grayscale(90%); }
 
@@ -290,16 +288,15 @@
       color: var(--success); font-weight: 700;
     }
 
-    /* Icône animée applaudissement avec espace suffisant */
+    /* Icône animée d'applaudissement entièrement visible sans être coupée */
     .clap-badge-icon {
-      position: absolute; top: -10px; left: -10px; background: var(--accent); color: #fff;
-      font-size: 0.8rem; width: 26px; height: 26px; border-radius: 50%; display: flex;
+      position: absolute; top: -12px; left: -12px; background: var(--accent); color: #fff;
+      font-size: 0.8rem; width: 28px; height: 28px; border-radius: 50%; display: flex;
       align-items: center; justify-content: center; animation: bounceClap 0.6s infinite alternate ease-in-out;
-      box-shadow: 0 0 10px var(--accent); z-index: 10;
+      box-shadow: 0 0 10px var(--accent); z-index: 20;
     }
     @keyframes bounceClap { from { transform: scale(1); } to { transform: scale(1.3); } }
 
-    /* Bulles flottantes d'applaudissements avec pseudo et emoji */
     .floating-clap-bubble {
       position: fixed; z-index: 9999; display: flex; align-items: center; gap: 8px;
       background: rgba(255, 0, 127, 0.9); border: 2px solid #fff; padding: 10px 18px; border-radius: 30px;
@@ -330,7 +327,6 @@
 
     @keyframes toastSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Mobile Container avec scroll désactivé */
     .mobile-container {
       width: 100%; height: 100dvh; max-width: 450px; margin: 0 auto;
       display: flex; flex-direction: column; justify-content: space-between; padding-top: 65px; padding-bottom: 12px;
@@ -373,9 +369,10 @@
     @keyframes successPop { 0% { transform: scale(1); } 50% { transform: scale(1.05); background: rgba(0,230,118,0.3); } 100% { transform: scale(1); } }
     @keyframes errorShake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 
-    .feedback-mobile-card { text-align: center; padding: 30px 15px; border-radius: var(--radius); margin-top: 15px; }
+    .feedback-mobile-card { text-align: center; padding: 25px 15px; border-radius: var(--radius); margin-top: 10px; }
     .feedback-mobile-card.success { background: rgba(0,230,118,0.2); border: 2px solid var(--success); color: var(--success); animation: successPop 0.5s ease; }
     .feedback-mobile-card.error { background: rgba(255,23,68,0.2); border: 2px solid var(--danger); color: var(--danger); animation: errorShake 0.4s ease; }
+    .feedback-mobile-card.timeout { background: rgba(160,174,192,0.2); border: 2px solid var(--text-muted); color: var(--text-muted); }
 
     .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: 10px; height: 180px; margin: 15px 0; }
     .podium-step { width: 85px; background: rgba(255,255,255,0.1); border-radius: 10px 10px 0 0; display: flex; flex-direction: column; align-items: center; padding-top: 8px; font-size: 0.85rem; }
@@ -429,12 +426,18 @@
     <p style="color: var(--text-muted);">Analyse des statistiques et bonus de vitesse !</p>
   </div>
 
-  <!-- OVERLAY JOUEUR LE PLUS RAPIDE -->
+  <!-- OVERLAY JOUEUR LE PLUS RAPIDE AVEC RAPPEL DE LA BONNE RÉPONSE -->
   <div id="fastestPlayerOverlay">
-    <div style="font-size: 4.5rem; margin-bottom: 15px;" id="fastestModalAvatar">⚡</div>
-    <h1 style="font-size: 2rem; color: var(--primary); margin-bottom: 5px;" id="fastestModalName">Nom du joueur</h1>
-    <p style="color: var(--success); font-size: 1.3rem; font-weight: 700; margin-bottom: 15px;">A répondu le plus rapidement !</p>
-    <div style="font-size: 1.8rem; font-weight: 800; color: #fff; text-shadow: 0 0 10px var(--primary);">Bravo !</div>
+    <div style="font-size: 4.5rem; margin-bottom: 10px;" id="fastestModalAvatar">⚡</div>
+    <h1 style="font-size: 1.8rem; color: var(--primary); margin-bottom: 3px;" id="fastestModalName">Nom du joueur</h1>
+    <p style="color: var(--success); font-size: 1.1rem; font-weight: 700; margin-bottom: 10px;">A répondu le plus rapidement !</p>
+    <div style="font-size: 1.5rem; font-weight: 800; color: #fff; text-shadow: 0 0 10px var(--primary); margin-bottom: 15px;">Bravo !</div>
+    
+    <!-- BOUTON DE RAPPEL DE LA BONNE RÉPONSE (NON CLIQUABLE) -->
+    <div id="fastestModalCorrectAnswerBox" style="width: 100%; max-width: 320px; margin: 0 auto; border-radius: 12px; color: #fff; font-size: 1rem; font-weight: 600; display: flex; align-items: center; text-align: left; overflow: hidden; pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+      <div id="fastestModalCorrectLetter" style="background: #fff; color: #000; width: 45px; padding: 14px 0; text-align: center; font-weight: 900; font-size: 1.1rem; flex-shrink: 0;">A</div>
+      <div id="fastestModalCorrectText" style="padding: 12px 15px; flex-grow: 1;">Option correcte</div>
+    </div>
   </div>
 
   <!-- OVERLAY PAUSE -->
@@ -622,9 +625,8 @@
           </div>
 
           <div>
-            <!-- TITRE CHANGÉ : Liste des joueurs - XX (XX en bleu) -->
             <div class="players-header-row">
-              <h3 id="lobbyPlayerListHeaderTitle">Liste des joueurs - <span style="color: var(--primary);" id="playerCount">0</span></h3>
+              <h3>Liste des joueurs - <span style="color: var(--primary);" id="playerCount">0</span></h3>
               <button class="btn btn-secondary" id="btnAddBot" style="padding: 5px 12px; font-size: 0.8rem;">
                 <i class="fa-solid fa-robot"></i> + Ajouter un Bot
               </button>
@@ -709,7 +711,7 @@
       </div>
     </section>
 
-    <!-- ÉCRAN 5: PODIUM HÔTE (Bouton Terminer changé en déconnexion, Titre fixe pour le classement) -->
+    <!-- ÉCRAN 5: PODIUM HÔTE -->
     <section id="screenPodium" class="screen">
       <h1 class="title-large" style="margin-bottom: 15px;"><i class="fa-solid fa-flag-checkered" style="color: var(--primary);"></i> La partie est terminée !</h1>
 
@@ -724,7 +726,6 @@
           <div class="podium-container" id="podiumDisplay"></div>
         </div>
 
-        <!-- Classement avec Titre Fixe et Scrollbar customisée -->
         <div class="podium-rest-card">
           <h3 style="margin-bottom: 4px; font-size: 1rem; color: var(--text-muted); flex-shrink: 0;">
             <i class="fa-solid fa-list-ol"></i> Classement
@@ -733,7 +734,6 @@
         </div>
       </div>
 
-      <!-- Bouton avec icône de déconnexion -->
       <div style="text-align: center; margin-top: 25px;">
         <button class="btn btn-danger" id="btnReturnToLobbyHost" style="padding: 14px 35px;">
           <i class="fa-solid fa-right-from-bracket"></i> Terminer
@@ -781,15 +781,16 @@
 
         <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; padding-top: 10px;">
           
-          <!-- ÉCRAN D'ATTENTE MOBILE REORGANISE : En haut, centré verticalement -->
+          <!-- ÉCRAN D'ATTENTE MOBILE REORGANISE + COMPTEUR DE JOUEURS -->
           <div id="playerWaitArea" style="text-align: center; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 25vh;">
             <i class="fa-solid fa-hourglass-half fa-spin" style="font-size: 2.2rem; color: var(--primary); margin-bottom: 8px;"></i>
             <h3 style="font-size: 1.1rem;">En attente de l'hôte...</h3>
           </div>
 
-          <!-- EN DESSOUS : La liste des joueurs connectés au salon -->
           <div id="playerLobbyViewListContainer" style="width: 100%; padding: 0 5px; flex-grow: 1; overflow-y: auto; max-height: 45vh;">
-            <h4 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; text-align: center;"><i class="fa-solid fa-users"></i> Joueurs connectés</h4>
+            <h4 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; text-align: center;">
+              <i class="fa-solid fa-users"></i> Joueurs connectés (<span id="playerMobileCountNum" style="color:var(--primary); font-weight:700;">0</span>)
+            </h4>
             <div id="playerMobileLobbyList" style="display: flex; flex-direction: column; gap: 6px;"></div>
           </div>
 
@@ -860,7 +861,6 @@
 
   </main>
 
-  <!-- AUDIO BACKGROUND MUSIC LOCALE (background-music.mp3) -->
   <audio id="bgAudioPlayer" src="background-music.mp3" preload="auto" loop></audio>
 
   <script>
@@ -1004,6 +1004,7 @@
       return result;
     }
 
+    /* Gestion des messages éphémères (Max 5) diffusés globalement aux hôtes et mobiles */
     function showGlobalToast(message, type = 'info', icon = 'fa-info-circle') {
       const stack = document.getElementById('globalNotificationsStack');
       if (!stack) return;
@@ -1048,7 +1049,6 @@
       setupEvents();
     });
 
-    /* Musique automatique au chargement sans clic préalable */
     function setupAudioPlayer() {
       const bgAudio = document.getElementById('bgAudioPlayer');
       const volSlider = document.getElementById('musicVolumeSlider');
@@ -1058,11 +1058,9 @@
           bgAudio.volume = parseFloat(e.target.value);
         });
         
-        // Lancement auto de la musique
         const playPromise = bgAudio.play();
         if (playPromise !== undefined) {
           playPromise.catch(() => {
-            // Fallback si le navigateur bloque l'autoplay, relancé au premier clic utilisateur
             document.body.addEventListener('click', () => {
               if (bgAudio.paused && !sound.musicMuted) bgAudio.play().catch(e => {});
             }, { once: true });
@@ -1140,7 +1138,6 @@
         showScreen('home');
       });
 
-      /* RETOUR DEPUIS LE SALON D'ATTENTE : Déconnecte tous les joueurs et clôture la session */
       document.getElementById('btnBackToHomeFromLobby').addEventListener('click', () => {
         sound.playClick();
         if (Object.keys(app.players).length > 0) {
@@ -1302,7 +1299,6 @@
         window.location.href = window.location.pathname;
       });
 
-      /* BOUTON APPLAUDIR SUR ÉCRAN PODIUM AVEC DÉLAI DE 3 SECONDES ET BULLE AVEC PSEUDO + ÉMOJI */
       document.getElementById('btnPlayerClap').addEventListener('click', () => {
         if (app.clapCooldown) return;
         app.clapCooldown = true;
@@ -1318,7 +1314,6 @@
         }, 3000);
 
         sound.playClick();
-        // Pas de confettis déclenchés ici
         if (app.hostConn) {
           app.hostConn.send({ type: 'PLAYER_CLAP', id: app.localPlayer.id, name: app.localPlayer.name, avatar: app.localPlayer.avatar });
         }
@@ -1437,12 +1432,17 @@
             delete app.players[pId];
             delete app.connections[pId];
             updateLobbyUI();
-            showGlobalToast(`${leavingName} a quitté le salon.`, 'leave', 'fa-user-minus');
+            broadcastPlayersListToMobile();
+            const msg = `${leavingName} a quitté le salon.`;
+            showGlobalToast(msg, 'leave', 'fa-user-minus');
+            broadcastToPlayers({ type: 'TOAST_MESSAGE', message: msg, subType: 'leave', icon: 'fa-user-minus' });
           } else {
             if (app.players[pId]) app.players[pId].disconnected = true;
             updateLiveTrackSidebar();
             if (screens.podium.classList.contains('active')) showPodium();
-            showGlobalToast(`${leavingName} s'est déconnecté.`, 'leave', 'fa-plug-circle-xmark');
+            const msg = `${leavingName} s'est déconnecté.`;
+            showGlobalToast(msg, 'leave', 'fa-plug-circle-xmark');
+            broadcastToPlayers({ type: 'TOAST_MESSAGE', message: msg, subType: 'leave', icon: 'fa-plug-circle-xmark' });
           }
           break;
         }
@@ -1457,7 +1457,9 @@
         app.playerAnswerCounts[data.player.id] = 0;
         updateLobbyUI();
         broadcastPlayersListToMobile();
-        showGlobalToast(`${data.player.avatar} ${data.player.name} a rejoint le salon !`, 'info', 'fa-user-check');
+        const msg = `${data.player.avatar} ${data.player.name} a rejoint le salon !`;
+        showGlobalToast(msg, 'info', 'fa-user-check');
+        broadcastToPlayers({ type: 'TOAST_MESSAGE', message: msg, subType: 'info', icon: 'fa-user-check' });
       } else if (data.type === 'ANSWER') {
         const responseTime = (Date.now() - app.localPlayer.answerStartTime) / 1000;
         app.answersReceived[data.playerId] = { choice: data.choice, time: responseTime };
@@ -1469,7 +1471,6 @@
 
         updateLiveTrackSidebar();
       } else if (data.type === 'PLAYER_CLAP') {
-        // Uniquement sur la page podium
         if (screens.podium.classList.contains('active')) {
           triggerCelebrationEffect(data.id);
           broadcastToPlayers({ type: 'TRIGGER_CLAP_ANIM', id: data.id, name: data.name, avatar: data.avatar });
@@ -1480,7 +1481,7 @@
 
     function broadcastPlayersListToMobile() {
       const listData = Object.values(app.players).map(p => ({ name: p.name, avatar: p.avatar, isBot: p.isBot, disconnected: p.disconnected }));
-      broadcastToPlayers({ type: 'UPDATE_MOBILE_LOBBY_PLAYERS', players: listData });
+      broadcastToPlayers({ type: 'UPDATE_MOBILE_LOBBY_PLAYERS', players: listData, count: listData.length });
     }
 
     function triggerCelebrationEffect(playerId) {
@@ -1500,7 +1501,6 @@
       }
     }
 
-    /* Affichage de la bulle flottante avec pseudo et emoji */
     function showFloatingClapBubble(name, avatar) {
       if (!screens.podium.classList.contains('active')) return;
       const bubble = document.createElement('div');
@@ -1563,7 +1563,6 @@
       });
     }
 
-    /* JEU & IA */
     function startQuizGame() {
       const pool = AI_QUESTIONS_POOL[app.selectedTheme] || AI_QUESTIONS_POOL['general'];
       let shuffled = [...pool].sort(() => 0.5 - Math.random());
@@ -1714,12 +1713,17 @@
       sound.playCorrect();
       broadcastToPlayers({ type: 'REVEAL_RESULT', correctChoice: q.correct });
 
-      // Affiche la bonne réponse quelques secondes avant d'afficher l'écran du plus rapide
       setTimeout(() => {
         if (fastestPlayerId && app.players[fastestPlayerId]) {
           const fp = app.players[fastestPlayerId];
-          showFastestPlayerOverlay(fp.avatar, fp.name);
-          broadcastToPlayers({ type: 'SHOW_FASTEST_PLAYER', avatar: fp.avatar, name: fp.name });
+          showFastestPlayerOverlay(fp.avatar, fp.name, q.correct, q.a[q.correct]);
+          broadcastToPlayers({ 
+            type: 'SHOW_FASTEST_PLAYER', 
+            avatar: fp.avatar, 
+            name: fp.name,
+            correctChoice: q.correct,
+            correctText: q.a[q.correct]
+          });
         }
 
         setTimeout(() => {
@@ -1738,9 +1742,18 @@
       }, 2500);
     }
 
-    function showFastestPlayerOverlay(avatar, name) {
+    function showFastestPlayerOverlay(avatar, name, correctIdx, correctText) {
       document.getElementById('fastestModalAvatar').textContent = avatar;
       document.getElementById('fastestModalName').textContent = name;
+      
+      const letterMap = ['A', 'B', 'C', 'D'];
+      const classMap = ['btn-a', 'btn-b', 'btn-c', 'btn-d'];
+      
+      const box = document.getElementById('fastestModalCorrectAnswerBox');
+      box.className = `mobile-answer-btn ${classMap[correctIdx]}`;
+      document.getElementById('fastestModalCorrectLetter').textContent = letterMap[correctIdx];
+      document.getElementById('fastestModalCorrectText').textContent = correctText;
+
       document.getElementById('fastestPlayerOverlay').classList.add('active');
     }
 
@@ -1881,8 +1894,13 @@
         sessionStorage.setItem('party_ejected', 'true');
         showDisconnected("L'hôte a quitté ou fermé le salon.", "🚫");
       }
+      else if (data.type === 'TOAST_MESSAGE') {
+        showGlobalToast(data.message, data.subType, data.icon);
+      }
       else if (data.type === 'UPDATE_MOBILE_LOBBY_PLAYERS') {
         const listContainer = document.getElementById('playerMobileLobbyList');
+        const countNum = document.getElementById('playerMobileCountNum');
+        if (countNum) countNum.textContent = data.count;
         if (listContainer) {
           listContainer.innerHTML = '';
           data.players.forEach(p => {
@@ -1922,7 +1940,7 @@
         document.getElementById('calcPointsOverlay').classList.add('active');
       }
       else if (data.type === 'SHOW_FASTEST_PLAYER') {
-        showFastestPlayerOverlay(data.avatar, data.name);
+        showFastestPlayerOverlay(data.avatar, data.name, data.correctChoice, data.correctText);
       }
       else if (data.type === 'HIDE_FASTEST_PLAYER') {
         hideFastestPlayerOverlay();
@@ -1973,6 +1991,8 @@
         if (app.localPlayer.choice === data.correctChoice) {
           fb.innerHTML = `<div class="feedback-mobile-card success"><h2><i class="fa-solid fa-circle-check"></i> Bonne réponse !</h2><p>+100 points</p></div>`;
           sound.playCorrect();
+        } else if (app.localPlayer.choice === null) {
+          fb.innerHTML = `<div class="feedback-mobile-card timeout"><h2><i class="fa-solid fa-clock"></i> Temps écoulé</h2><p style="color:var(--text-muted);">Aucune réponse n'a été sélectionnée</p></div>`;
         } else {
           fb.innerHTML = `<div class="feedback-mobile-card error"><h2><i class="fa-solid fa-circle-xmark"></i> Mauvaise réponse</h2><p>Dommage !</p></div>`;
         }
