@@ -279,8 +279,9 @@
     .rest-player-item {
       display: flex; justify-content: space-between; align-items: center; padding: 12px 14px;
       border-radius: 10px; background: rgba(255,255,255,0.05); margin-bottom: 8px; font-size: 0.9rem;
-      white-space: nowrap; overflow: visible !important; position: relative; margin-top: 12px; margin-left: 8px; margin-right: 8px;
+      white-space: nowrap; overflow: visible !important; position: relative; margin-top: 4px; margin-left: 12px; margin-right: 8px;
     }
+    #playerFullRankingList { padding: 14px 12px 6px; box-sizing: border-box; }
     .rest-player-item.disconnected { opacity: 0.4; filter: grayscale(90%); }
 
     .old-score-striked {
@@ -301,6 +302,7 @@
 
     .floating-clap-bubble {
       position: fixed; z-index: 9999; display: flex; align-items: center; gap: 8px;
+      max-width: calc(100vw - 32px); box-sizing: border-box; white-space: normal; overflow-wrap: anywhere;
       background: rgba(255, 0, 127, 0.9); border: 2px solid #fff; padding: 10px 18px; border-radius: 30px;
       backdrop-filter: blur(8px); color: #fff; font-weight: 700; font-size: 0.95rem;
       box-shadow: 0 8px 25px rgba(255,0,127,0.5); animation: floatBubbleAnim 3s forwards ease-in-out; pointer-events: none;
@@ -843,7 +845,7 @@
 
             <div style="margin-top: 25px; text-align: left; padding: 0 5px;">
               <h4 style="margin-bottom: 10px; font-size: 1rem; color: var(--text-muted); text-align: center;"><i class="fa-solid fa-list-ol"></i> Classement</h4>
-              <div id="playerFullRankingList" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;"></div>
+              <div id="playerFullRankingList" style="max-height: 170px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;"></div>
             </div>
           </div>
         </div>
@@ -1529,11 +1531,14 @@
       const bubble = document.createElement('div');
       bubble.className = 'floating-clap-bubble';
       bubble.innerHTML = `<i class="fa-solid fa-hands-clapping"></i> <strong>${name}</strong> <span>${avatar}</span>`;
-      const x = Math.random() * (window.innerWidth - 180) + 20;
-      const y = Math.random() * (window.innerHeight - 200) + 80;
+      document.body.appendChild(bubble);
+      const margin = 16;
+      const maxLeft = Math.max(margin, window.innerWidth - bubble.offsetWidth - margin);
+      const x = margin + Math.random() * Math.max(0, maxLeft - margin);
+      const maxTop = Math.max(margin, window.innerHeight - bubble.offsetHeight - margin);
+      const y = margin + Math.random() * Math.max(0, maxTop - margin);
       bubble.style.left = `${x}px`;
       bubble.style.top = `${y}px`;
-      document.body.appendChild(bubble);
       setTimeout(() => bubble.remove(), 3000);
     }
 
@@ -2005,19 +2010,34 @@
         document.getElementById('playerPodiumArea').style.display = 'none';
         document.getElementById('playerActiveQuestionArea').style.display = 'block';
 
+        // Stop any timer/answer state left by the previous question before rendering this one.
+        if (window.pTimer) {
+          clearInterval(window.pTimer);
+          window.pTimer = null;
+          window.playerTimerToken = (window.playerTimerToken || 0) + 1;
+        }
+        app.localPlayer.choice = null;
+        app.localPlayer.answerStartTime = Date.now();
+        document.getElementById('playerFeedbackArea').innerHTML = '';
         document.getElementById('playerQuestionTitle').textContent = data.question;
         document.getElementById('playerQNumTracker').textContent = `Question ${data.qIndex} / ${data.totalQ}`;
 
         const btns = document.querySelectorAll('.mobile-answer-btn');
         btns.forEach((btn, idx) => {
+          btn.disabled = false;
           btn.classList.remove('locked', 'selected-choice');
-          btn.querySelector('.m-ans-box-text').textContent = data.answers[idx];
+          const answerText = btn.querySelector('.m-ans-box-text');
+          if (answerText) answerText.textContent = data.answers[idx];
         });
 
-        app.localPlayer.choice = null;
         startPlayerTimer(data.time);
       }
       else if (data.type === 'REVEAL_RESULT') {
+        if (window.pTimer) {
+          clearInterval(window.pTimer);
+          window.pTimer = null;
+          window.playerTimerToken = (window.playerTimerToken || 0) + 1;
+        }
         document.getElementById('playerActiveQuestionArea').style.display = 'none';
         const fb = document.getElementById('playerFeedbackArea');
         fb.style.display = 'block';
@@ -2072,22 +2092,25 @@
     }
 
     function startPlayerTimer(totalSec) {
-      let t = totalSec;
+      const duration = Math.max(1, Number(totalSec) || 1);
+      let t = duration;
       const bar = document.getElementById('playerTimerBar');
       const count = document.getElementById('playerTimerCount');
+
+      if (window.pTimer) clearInterval(window.pTimer);
+      const timerToken = (window.playerTimerToken || 0) + 1;
+      window.playerTimerToken = timerToken;
       bar.style.width = '100%';
       count.textContent = t + 's';
 
-      if (window.pTimer) clearInterval(window.pTimer);
       window.pTimer = setInterval(() => {
-        t--;
+        if (window.playerTimerToken !== timerToken) return;
+        t = Math.max(0, t - 1);
         count.textContent = t + 's';
-        bar.style.width = `${Math.max(0, (t / totalSec) * 100)}%`;
+        bar.style.width = `${(t / duration) * 100}%`;
         if (t <= 0) {
-          t = 0;
-          count.textContent = '0s';
-          bar.style.width = '0%';
           clearInterval(window.pTimer);
+          window.pTimer = null;
         }
       }, 1000);
     }
@@ -2098,6 +2121,7 @@
 
       document.querySelectorAll('.mobile-answer-btn').forEach((btn, idx) => {
         btn.classList.add('locked');
+        btn.disabled = true;
         if (idx === choiceIdx) btn.classList.add('selected-choice');
       });
 
