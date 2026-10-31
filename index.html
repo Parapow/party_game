@@ -434,7 +434,8 @@
   <div id="fastestPlayerOverlay">
     <div style="font-size: 4.5rem; margin-bottom: 10px;" id="fastestModalAvatar">⚡</div>
     <h1 style="font-size: 1.8rem; color: var(--primary); margin-bottom: 3px;" id="fastestModalName">Nom du joueur</h1>
-    <p style="color: var(--success); font-size: 1.1rem; font-weight: 700; margin-bottom: 10px;">A répondu le plus rapidement !</p>
+    <p style="color: var(--success); font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">A répondu correctement le plus rapidement !</p>
+    <p style="color: #00e676; font-size: 1rem; font-weight: 800; margin-bottom: 12px;">Bonus de rapidité : +150 points</p>
     <div style="font-size: 1.5rem; font-weight: 800; color: #fff; text-shadow: 0 0 10px var(--primary); margin-bottom: 15px;">Bravo !</div>
     
     <!-- BOUTON DE RAPPEL DE LA BONNE RÉPONSE (NON CLIQUABLE) -->
@@ -970,6 +971,7 @@
       answersReceived: {},
       playerTotalResponseTime: {},
       playerAnswerCounts: {},
+      questionStartedAt: 0,
       timerInterval: null,
       isPaused: false,
       timeLeft: 10,
@@ -1486,14 +1488,11 @@
         showGlobalToast(msg, 'info', 'fa-user-check');
         broadcastToPlayers({ type: 'TOAST_MESSAGE', message: msg, subType: 'info', icon: 'fa-user-check' });
       } else if (data.type === 'ANSWER') {
-        const responseTime = (Date.now() - app.localPlayer.answerStartTime) / 1000;
-        app.answersReceived[data.playerId] = { choice: data.choice, time: responseTime };
-        
-        if (!app.playerTotalResponseTime[data.playerId]) app.playerTotalResponseTime[data.playerId] = 0;
-        if (!app.playerAnswerCounts[data.playerId]) app.playerAnswerCounts[data.playerId] = 0;
-        app.playerTotalResponseTime[data.playerId] += responseTime;
-        app.playerAnswerCounts[data.playerId]++;
-
+        if (app.answersReceived[data.playerId] || !app.players[data.playerId]) return;
+        const responseTime = Math.max(0, Math.min(app.questionTime, Number(data.responseTime) || 0));
+        const choice = Number(data.choice);
+        if (!Number.isInteger(choice) || choice < 0 || choice > 3) return;
+        app.answersReceived[data.playerId] = { choice, time: responseTime };
         updateLiveTrackSidebar();
       } else if (data.type === 'PLAYER_CLAP') {
         if (screens.podium.classList.contains('active')) {
@@ -1622,7 +1621,8 @@
     function showNextQuestion() {
       app.answersReceived = {};
       app.isPaused = false;
-      app.localPlayer.answerStartTime = Date.now();
+      app.questionStartedAt = Date.now();
+      app.localPlayer.answerStartTime = app.questionStartedAt;
       document.getElementById('pauseBtnLabel').textContent = "Mettre en pause";
       document.getElementById('pauseOverlay').classList.remove('active');
 
@@ -1713,8 +1713,6 @@
               const choice = Math.floor(Math.random() * 4);
               const respTime = delay / 1000;
               app.answersReceived[id] = { choice: choice, time: respTime };
-              app.playerTotalResponseTime[id] = (app.playerTotalResponseTime[id] || 0) + respTime;
-              app.playerAnswerCounts[id] = (app.playerAnswerCounts[id] || 0) + 1;
               updateLiveTrackSidebar();
             }
           }, delay);
@@ -1728,17 +1726,37 @@
 
       let fastestPlayerId = null;
       let minTime = Infinity;
+      const pointsByPlayer = {};
+      const correctResponders = [];
 
       Object.entries(app.answersReceived).forEach(([pId, data]) => {
-        counts[data.choice]++;
-        if (data.choice === q.correct && app.players[pId] && !app.players[pId].disconnected) {
-          app.players[pId].score += 100;
+        if (Number.isInteger(data.choice) && data.choice >= 0 && data.choice < 4) counts[data.choice]++;
+        const player = app.players[pId];
+        if (!player || player.disconnected) return;
+
+        let points = 0;
+        if (data.choice === q.correct) {
+          points = 100;
+          correctResponders.push({ id: pId, time: data.time });
+          app.playerTotalResponseTime[pId] = (app.playerTotalResponseTime[pId] || 0) + data.time;
+          app.playerAnswerCounts[pId] = (app.playerAnswerCounts[pId] || 0) + 1;
+          if (data.time < minTime) {
+            minTime = data.time;
+            fastestPlayerId = pId;
+          }
+        } else {
+          points = -25;
         }
-        if (data.time < minTime && app.players[pId] && !app.players[pId].disconnected) {
-          minTime = data.time;
-          fastestPlayerId = pId;
-        }
+        player.score = Math.max(0, (player.score || 0) + points);
+        pointsByPlayer[pId] = points;
       });
+
+      // Le joueur le plus rapide parmi les bonnes réponses gagne 50 points supplémentaires.
+      // Sa réponse rapporte donc 150 points au total.
+      if (fastestPlayerId) {
+        app.players[fastestPlayerId].score += 50;
+        pointsByPlayer[fastestPlayerId] = 150;
+      }
 
       for (let i = 0; i < 4; i++) {
         const card = document.getElementById(`hostAns${i}`);
@@ -1750,7 +1768,9 @@
       }
 
       sound.playCorrect();
-      broadcastToPlayers({ type: 'REVEAL_RESULT', correctChoice: q.correct });
+      Object.entries(app.connections).forEach(([playerId, conn]) => {
+        if (conn && conn.open) conn.send({ type: 'REVEAL_RESULT', correctChoice: q.correct, points: pointsByPlayer[playerId] ?? 0 });
+      });
 
       setTimeout(() => {
         if (fastestPlayerId && app.players[fastestPlayerId]) {
@@ -1829,7 +1849,7 @@
         }
       });
 
-      const bonusPoints = 300;
+      const bonusPoints = 200;
       Object.keys(app.players).forEach(id => {
         const p = app.players[id];
         p.rawScore = p.score;
@@ -2022,7 +2042,7 @@
         document.getElementById('playerQuestionTitle').textContent = data.question;
         document.getElementById('playerQNumTracker').textContent = `Question ${data.qIndex} / ${data.totalQ}`;
 
-        const btns = document.querySelectorAll('.mobile-answer-btn');
+        const btns = document.querySelectorAll('#playerActiveQuestionArea .mobile-answers-list .mobile-answer-btn');
         btns.forEach((btn, idx) => {
           btn.disabled = false;
           btn.classList.remove('locked', 'selected-choice');
@@ -2043,12 +2063,15 @@
         fb.style.display = 'block';
 
         if (app.localPlayer.choice === data.correctChoice) {
-          fb.innerHTML = `<div class="feedback-mobile-card success"><h2><i class="fa-solid fa-circle-check"></i> Bonne réponse !</h2><p>+100 points</p></div>`;
+          const earned = Number(data.points) || 0;
+          const bonus = earned === 150 ? '<p style="color:#00e676;font-weight:800;">Bonus de rapidité inclus : +50 points</p>' : '';
+          fb.innerHTML = `<div class="feedback-mobile-card success"><h2><i class="fa-solid fa-circle-check"></i> Bonne réponse !</h2><p>+${earned} points</p>${bonus}</div>`;
           sound.playCorrect();
         } else if (app.localPlayer.choice === null) {
-          fb.innerHTML = `<div class="feedback-mobile-card timeout"><h2><i class="fa-solid fa-clock"></i> Temps écoulé</h2><p style="color:var(--text-muted);">Aucune réponse n'a été sélectionnée</p></div>`;
+          fb.innerHTML = `<div class="feedback-mobile-card timeout"><h2><i class="fa-solid fa-clock"></i> Temps écoulé</h2><p style="color:var(--text-muted);">Aucune réponse n'a été sélectionnée</p><p>0 point</p></div>`;
         } else {
-          fb.innerHTML = `<div class="feedback-mobile-card error"><h2><i class="fa-solid fa-circle-xmark"></i> Mauvaise réponse</h2><p>Dommage !</p></div>`;
+          const earned = Number(data.points) || 0;
+          fb.innerHTML = `<div class="feedback-mobile-card error"><h2><i class="fa-solid fa-circle-xmark"></i> Mauvaise réponse</h2><p>${earned} points</p>`;
         }
       }
       else if (data.type === 'FINAL_PODIUM') {
@@ -2119,14 +2142,15 @@
       if (app.localPlayer.choice !== null) return;
       app.localPlayer.choice = choiceIdx;
 
-      document.querySelectorAll('.mobile-answer-btn').forEach((btn, idx) => {
+      document.querySelectorAll('#playerActiveQuestionArea .mobile-answers-list .mobile-answer-btn').forEach((btn, idx) => {
         btn.classList.add('locked');
         btn.disabled = true;
         if (idx === choiceIdx) btn.classList.add('selected-choice');
       });
 
       if (app.hostConn) {
-        app.hostConn.send({ type: 'ANSWER', playerId: app.localPlayer.id, choice: choiceIdx });
+        const responseTime = Math.max(0, (Date.now() - app.localPlayer.answerStartTime) / 1000);
+        app.hostConn.send({ type: 'ANSWER', playerId: app.localPlayer.id, choice: choiceIdx, responseTime });
       }
     }
 
