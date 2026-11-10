@@ -255,7 +255,7 @@
     .btn-ctrl-restart { background: rgba(0,242,254,0.2); border: 1px solid var(--primary); color: var(--primary); }
     .btn-ctrl-stop { background: rgba(255,23,68,0.2); border: 1px solid var(--danger); color: #ff5252; }
 
-    /* STYLING DU NOUVEAU PODIUM (Inspiré de l'image : Or au centre en haut, Argent à droite, Bronze à gauche) */
+    /* PODIUM STYLE IMAGE */
     .podium-layout-main {
       display: grid; grid-template-columns: 280px 1fr 340px; gap: 20px; align-items: stretch;
     }
@@ -291,7 +291,6 @@
       color: var(--success); font-weight: 700;
     }
 
-    /* Icône animée d'applaudissement entièrement visible sans être coupée */
     .clap-badge-icon {
       position: absolute; top: -12px; left: -12px; background: var(--accent); color: #fff;
       font-size: 0.8rem; width: 28px; height: 28px; border-radius: 50%; display: flex;
@@ -314,16 +313,15 @@
       100% { opacity: 0; transform: scale(0.8) translateY(-45px); }
     }
 
-    /* NOUVEAU CONTENEUR DE PODIUM STYLE IMAGE */
     .new-podium-flex {
       display: flex; align-items: flex-end; justify-content: center; gap: 15px; margin: 25px 0 15px 0; min-height: 230px; padding-bottom: 10px;
     }
     .new-podium-item {
       display: flex; flex-direction: column; align-items: center; position: relative; width: 95px;
     }
-    .new-podium-item.pos-1 { order: 2; margin-bottom: 25px; } /* Premier au milieu, plus haut */
-    .new-podium-item.pos-2 { order: 3; } /* Deuxième à droite */
-    .new-podium-item.pos-3 { order: 1; } /* Troisième à gauche */
+    .new-podium-item.pos-1 { order: 2; margin-bottom: 25px; }
+    .new-podium-item.pos-2 { order: 3; }
+    .new-podium-item.pos-3 { order: 1; }
 
     .new-podium-avatar-box {
       width: 70px; height: 70px; border-radius: 50%; border: 3px solid; background: #222;
@@ -331,7 +329,7 @@
       box-shadow: 0 6px 15px rgba(0,0,0,0.4); margin-bottom: 12px;
     }
     .new-podium-item.pos-1 .new-podium-avatar-box { width: 85px; height: 85px; border-color: var(--gold); }
-    .new-podium-item.pos-2 .new-podium-avatar-box { border-color: #cd7f32; } /* Argent/Bronze selon préférence, ici bronze/argent harmonisé */
+    .new-podium-item.pos-2 .new-podium-avatar-box { border-color: #cd7f32; }
     .new-podium-item.pos-3 .new-podium-avatar-box { border-color: #94a3b8; }
 
     .new-podium-avatar-box img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
@@ -356,7 +354,7 @@
     .new-podium-score { font-size: 0.85rem; color: var(--text-muted); text-align: center; font-weight: 600; }
     .new-podium-item.disconnected { opacity: 0.4; filter: grayscale(90%); }
 
-    /* STYLING SPÉCIFIQUE BLIND TEST VINYLE */
+    /* VINYLE BLIND TEST */
     .vinyl-container {
       display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 15px 0; position: relative;
     }
@@ -380,7 +378,7 @@
     }
     .vinyl-center-label img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: none; }
 
-    /* Stack de Notifications Éphémères (Max 5) */
+    /* Stack de Notifications Éphémères */
     #globalNotificationsStack {
       position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
       display: flex; flex-direction: column-reverse; gap: 10px; z-index: 999; align-items: center; pointer-events: none;
@@ -460,11 +458,8 @@
 </head>
 <body>
 
-  <!-- STACK DE NOTIFICATIONS ÉPHÉMÈRES (Max 5) -->
+  <!-- STACK DE NOTIFICATIONS ÉPHÉMÈRES -->
   <div id="globalNotificationsStack"></div>
-
-  <!-- AUDIO PLAYER POUR EXTRAITS BLIND TEST -->
-  <audio id="blindAudioPlayer" preload="auto"></audio>
 
   <!-- OVERLAY CHARGEMENT DE CONNEXION DEPUIS ACCUEIL -->
   <div id="homeJoinLoadingOverlay">
@@ -494,7 +489,7 @@
     <p style="color: var(--text-muted);">Analyse des statistiques et bonus de vitesse !</p>
   </div>
 
-  <!-- OVERLAY JOUEUR LE PLUS RAPIDE AVEC RAPPEL DE LA BONNE RÉPONSE -->
+  <!-- OVERLAY JOUEUR LE PLUS RAPIDE -->
   <div id="fastestPlayerOverlay">
     <div style="font-size: 4.5rem; margin-bottom: 10px;" id="fastestModalAvatar">⚡</div>
     <h1 style="font-size: 1.8rem; color: var(--primary); margin-bottom: 3px;" id="fastestModalName">Nom du joueur</h1>
@@ -502,7 +497,6 @@
     <p style="color: #00e676; font-size: 1rem; font-weight: 800; margin-bottom: 12px;">Bonus de rapidité : +150 points</p>
     <div style="font-size: 1.5rem; font-weight: 800; color: #fff; text-shadow: 0 0 10px var(--primary); margin-bottom: 15px;">Bravo !</div>
     
-    <!-- BOUTON DE RAPPEL DE LA BONNE RÉPONSE (NON CLIQUABLE) -->
     <div id="fastestModalCorrectAnswerBox" style="width: 100%; max-width: 320px; margin: 0 auto; border-radius: 12px; color: #fff; font-size: 1rem; font-weight: 600; display: flex; align-items: center; text-align: left; overflow: hidden; pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
       <div id="fastestModalCorrectLetter" style="background: #fff; color: #000; width: 45px; padding: 14px 0; text-align: center; font-weight: 900; font-size: 1.1rem; flex-shrink: 0;">A</div>
       <div id="fastestModalCorrectText" style="padding: 12px 15px; flex-grow: 1;">Option correcte</div>
@@ -519,7 +513,7 @@
     </button>
   </div>
 
-  <!-- OVERLAY REDÉMARRAGE ANIMÉ -->
+  <!-- OVERLAY REDÉMARRAGE -->
   <div id="restartOverlay">
     <div style="font-size: 4rem; color: var(--primary); margin-bottom: 15px;"><i class="fa-solid fa-rotate-right fa-spin"></i></div>
     <h1 style="font-size: 2.2rem; color: #fff; margin-bottom: 10px;">Redémarrage de la partie...</h1>
@@ -618,7 +612,7 @@
     <div class="audio-controls">
       <div class="volume-slider-box" title="Volume de la musique">
         <i class="fa-solid fa-volume-low" style="font-size:0.9rem; color:var(--text-muted);"></i>
-        <input type="range" id="musicVolumeSlider" min="0" max="1" step="0.01" value="0.05">
+        <input type="range" id="musicVolumeSlider" min="0" max="1" step="0.01" value="0.03">
       </div>
       <button class="icon-btn active" id="musicToggle" title="Activer/Désactiver Musique"><i class="fa-solid fa-music"></i></button>
       <button class="icon-btn active" id="sfxToggle" title="Sons"><i class="fa-solid fa-volume-high"></i></button>
@@ -766,7 +760,6 @@
           <i class="fa-solid fa-arrow-left"></i> Quitter
         </button>
         
-        <!-- Nom du jeu dynamique au-dessus avec icône et autre couleur -->
         <div id="lobbyGameIndicator" style="font-size: 1rem; font-weight: 700; color: var(--accent); margin-bottom: 2px; display: inline-flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-circle-question" id="lobbyGameIcon"></i> <span id="lobbyGameNameDisplay">Quizz</span>
         </div>
@@ -900,7 +893,7 @@
       </div>
     </section>
 
-    <!-- ÉCRAN 5: PODIUM HÔTE (Refondu selon l'image de référence) -->
+    <!-- ÉCRAN 5: PODIUM HÔTE -->
     <section id="screenPodium" class="screen">
       <h1 class="title-large" style="margin-bottom: 10px;"><i class="fa-solid fa-flag-checkered" style="color: var(--primary);"></i> La partie est terminée !</h1>
 
@@ -912,8 +905,6 @@
 
         <div class="card" style="text-align: center; margin-bottom: 0;">
           <h2 style="margin-bottom: 5px;"><i class="fa-solid fa-trophy" style="color: var(--gold);"></i> Podium</h2>
-          
-          <!-- PODIUM REFACTORISÉ STYLE IMAGE (Or au centre, Argent à droite, Bronze à gauche) -->
           <div class="new-podium-flex" id="podiumDisplay"></div>
         </div>
 
@@ -973,7 +964,6 @@
 
         <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; padding-top: 10px;">
           
-          <!-- ÉCRAN D'ATTENTE MOBILE REORGANISE + COMPTEUR DE JOUEURS -->
           <div id="playerWaitArea" style="text-align: center; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 25vh;">
             <i class="fa-solid fa-hourglass-half fa-spin" style="font-size: 2.2rem; color: var(--primary); margin-bottom: 8px;"></i>
             <h3 style="font-size: 1.1rem;">En attente de l'hôte...</h3>
@@ -1024,7 +1014,6 @@
           <div id="playerPodiumArea" style="display: none; text-align: center; overflow-y: auto; max-height: 75vh;">
             <h3 style="margin-bottom: 10px; font-size: 1.3rem; color: var(--primary);"><i class="fa-solid fa-flag-checkered"></i> La partie est terminée !</h3>
             
-            <!-- Podium mobile également refondu -->
             <div class="new-podium-flex" id="playerPodiumDisplay"></div>
             
             <div style="display: flex; justify-content: center; margin: 15px 0;">
@@ -1056,6 +1045,7 @@
   </main>
 
   <audio id="bgAudioPlayer" src="background-music.mp3" preload="auto" loop></audio>
+  <audio id="blindAudioPlayer" preload="auto" crossorigin="anonymous"></audio>
 
   <script>
     const AI_QUESTIONS_POOL = {
@@ -1096,35 +1086,29 @@
       ]
     };
 
-    /* POOL DE BLIND TEST FIABLES AVEC EXTRAITS DE REFRAIN (PREVIEW_URL) ET COCHES OFFICIELLES */
+    /* POOL DE BLIND TEST FIABLES AVEC EXTRAITS DE REFRAINS Ciblés (Itunes Audio Previews 30s) */
     const BLIND_TEST_POOL = {
       pop: [
-        { title: "Blinding Lights", artist: "The Weeknd", preview: "https://p.scdn.co/mp3-preview/c8734e7b8973d4a205a2f5fb0b04a259cce32608?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b8863bc11d2aa12b54f5aeb36" },
-        { title: "Levitating", artist: "Dua Lipa", preview: "https://p.scdn.co/mp3-preview/0d29bcbb30cb7801df93998f4850fae929f1d063?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b68d4f40d17e766e4b986b53a" },
-        { title: "Watermelon Sugar", artist: "Harry Styles", preview: "https://p.scdn.co/mp3-preview/f4a08865d49a623719114b0b1473177695c02ef4?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b738ddca9acba487f9859f5f0" },
-        { title: "Bad Guy", artist: "Billie Eilish", preview: "https://p.scdn.co/mp3-preview/74b486db0f9836511a3d6d5ef6643666b613e5d0?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b508d5fbc5f5d2b78bc7c7744" },
-        { title: "As It Was", artist: "Harry Styles", preview: "https://p.scdn.co/mp3-preview/13a017f8b919d30043c988c889f078b5ee9d8f36?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b738ddca9acba487f9859f5f0" },
-        { title: "Shape of You", artist: "Ed Sheeran", preview: "https://p.scdn.co/mp3-preview/7279cd8563eb6a6cd78a541fa904a622c83ff5a6?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27bba548f10ee3e29227f272a20" },
-        { title: "Dance The Night", artist: "Dua Lipa", preview: "https://p.scdn.co/mp3-preview/a951d102008cb17646bbf6031f08e4585da69f8c?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27bda52434446ae9b50b7b13ec8" }
+        { title: "Blinding Lights", artist: "The Weeknd", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4a/bc/40/4abc40e6-5c56-f08a-21e1-3827ec3d9bf3/mzaf_10793617156947796933.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27b8863bc11d2aa12b54f5aeb36" },
+        { title: "Levitating", artist: "Dua Lipa", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/36/41/47/364147d3-ff5c-f9c9-db90-f0e791e2b5db/mzaf_11306352014168050074.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27b68d4f40d17e766e4b986b53a" },
+        { title: "Watermelon Sugar", artist: "Harry Styles", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/3f/17/5c/3f175ce0-0ee3-4929-cd19-3ee7c0ef67c7/mzaf_7820755913504381270.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27b738ddca9acba487f9859f5f0" },
+        { title: "Bad Guy", artist: "Billie Eilish", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/95/9b/bc/959bbc17-e89c-50bc-b695-ae75440d90fb/mzaf_16301323334237142750.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27b508d5fbc5f5d2b78bc7c7744" },
+        { title: "As It Was", artist: "Harry Styles", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4b/32/df/4b32df5a-73c3-30be-d227-8aeb1d74a123/mzaf_14234057635956972412.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27b738ddca9acba487f9859f5f0" },
+        { title: "Shape of You", artist: "Ed Sheeran", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/b8/b1/1c/b8b11c2e-4b2e-07e0-47b1-4f1e0cf55883/mzaf_1359670732128919139.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27bba548f10ee3e29227f272a20" }
       ],
       rock: [
-        { title: "Smells Like Teen Spirit", artist: "Nirvana", preview: "https://p.scdn.co/mp3-preview/7ba9965b16e4905d4de75be3c8ee81e4b3c990b5?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27be584627195433a0179a61b96" },
-        { title: "Do I Wanna Know?", artist: "Arctic Monkeys", preview: "https://p.scdn.co/mp3-preview/612a84a6b6f7911b333423795325785f70bb0788?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b07297fba9b6d8a3a0e633d3c" },
-        { title: "Seven Nation Army", artist: "The White Stripes", preview: "https://p.scdn.co/mp3-preview/0d4f107f0bda0efaa5ec8b88f3621a6a2636f3ec?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b40742f567b5e865f12dbd181" },
-        { title: "Thunderstruck", artist: "AC/DC", preview: "https://p.scdn.co/mp3-preview/4568858a74e548842bc43734a78103c800880190?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b3e218209867c4e20791ea04d" },
-        { title: "Boulevard of Broken Dreams", artist: "Green Day", preview: "https://p.scdn.co/mp3-preview/d988eaef13cfc3143c7b8c73ee8702b376b329eb?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27be8b114d2e267ce291c3d1911" }
+        { title: "Smells Like Teen Spirit", artist: "Nirvana", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/5a/24/09/5a240954-20b1-464a-e493-27ea2a1a0c8b/mzaf_13524672691508249675.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27be584627195433a0179a61b96" },
+        { title: "Do I Wanna Know?", artist: "Arctic Monkeys", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/41/5e/54/415e54d3-05f4-3d98-132d-eb3b4d493a7d/mzaf_13840251147820202970.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27b07297fba9b6d8a3a0e633d3c" },
+        { title: "Seven Nation Army", artist: "The White Stripes", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/91/3d/8c/913d8c47-38e4-18c2-3e2c-29a8a7ca2c52/mzaf_2874136657963283252.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27b40742f567b5e865f12dbd181" },
+        { title: "Thunderstruck", artist: "AC/DC", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/0d/16/e2/0d16e257-8da7-11e7-d6b2-659f427cdce5/mzaf_6380630045507310574.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27b3e218209867c4e20791ea04d" }
       ],
       rap: [
-        { title: "In Da Club", artist: "50 Cent", preview: "https://p.scdn.co/mp3-preview/88a2a1dcbb42d3e64ca612170327429188287515?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b489d2906b3a3c9bbf2336336" },
-        { title: "Sicko Mode", artist: "Travis Scott", preview: "https://p.scdn.co/mp3-preview/25890885e36fcd7756f1082c9e830e065bc83707?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b4737cbe1f885e8a7ea391516" },
-        { title: "God's Plan", artist: "Drake", preview: "https://p.scdn.co/mp3-preview/f4a8831343aa173874f6764426543d2c943890f9?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b952f70f96e478a03f429bc62" },
-        { title: "SDF", artist: "Ninho", preview: "https://p.scdn.co/mp3-preview/0d3f8216c87900bfa51c881273928192a6c28f09?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b9c9f7a7751996726207bc4c4" }
+        { title: "In Da Club", artist: "50 Cent", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/8b/cc/21/8bcc214c-1c5c-7ecb-28b0-87034b7ae2f5/mzaf_6097148560965319888.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27b489d2906b3a3c9bbf2336336" },
+        { title: "God's Plan", artist: "Drake", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/f4/a8/83/f4a88313-43aa-1738-74f6-764426543d2c/mzaf_943890f9.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27b952f70f96e478a03f429bc62" }
       ],
       electro: [
-        { title: "Get Lucky", artist: "Daft Punk", preview: "https://p.scdn.co/mp3-preview/105658e5bc531dc8b17b6008b8b958cd65b82cb9?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27bde2df115e5a26a3501a49f53" },
-        { title: "Titanium", artist: "David Guetta", preview: "https://p.scdn.co/mp3-preview/02b339b62886f4ef3963496c1410427181f5e8f4?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b87c7117e3cd3d04fb495f553" },
-        { title: "Levels", artist: "Avicii", preview: "https://p.scdn.co/mp3-preview/6134b2cf03bdf7013aa10c0e5a6aa6289d1b7a69?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27bc6ca979857d4b4a625ff111a" },
-        { title: "The Motto", artist: "Tiësto", preview: "https://p.scdn.co/mp3-preview/2b66bf1c1cb383a8b27a3bebc1184a51e604f141?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b68aef220b3b4f62bf70cb60c" }
+        { title: "Get Lucky", artist: "Daft Punk", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/10/56/58/105658e5-bc53-1dc8-b17b-6008b8b958cd/mzaf_65b82cb9.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27bde2df115e5a26a3501a49f53" },
+        { title: "Titanium", artist: "David Guetta", preview: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/02/b3/39/02b339b6-2886-f4ef-3963-496c14104271/mzaf_81f5e8f4.plus.aac.p.m4a", cover: "https://i.scdn.co/image/ab67616d0000b27b87c7117e3cd3d04fb495f553" }
       ]
     };
 
@@ -1151,7 +1135,6 @@
       }
       playTick() {
         if (this.isDisabled || this.sfxMuted) return;
-        // Supprimé pour le blind test à la demande de l'utilisateur, conservé silencieusement si besoin ailleurs
       }
       playCorrect() {
         if (this.isDisabled || this.sfxMuted) return;
@@ -1172,14 +1155,14 @@
 
     const app = {
       isHost: false,
-      gameType: 'quizz', // 'quizz' ou 'blind'
+      gameType: 'quizz',
       roomId: null,
       peer: null,
       connections: {},
       hostConn: null,
       selectedTheme: 'general',
       blindTheme: 'pop',
-      blindType: 'artist', // 'artist', 'title', 'both'
+      blindType: 'artist',
       totalQuestions: 10,
       questionTime: 10,
       blindCount: 10,
@@ -1230,20 +1213,16 @@
       return result;
     }
 
-    /* Gestion des messages éphémères (Max 5) diffusés globalement aux hôtes et mobiles */
     function showGlobalToast(message, type = 'info', icon = 'fa-info-circle') {
       const stack = document.getElementById('globalNotificationsStack');
       if (!stack) return;
-      
       while (stack.children.length >= 5) {
         stack.firstChild.remove();
       }
-
       const toast = document.createElement('div');
       toast.className = `toast-notification ${type}`;
       toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
       stack.appendChild(toast);
-
       setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 400);
@@ -1279,7 +1258,7 @@
       const bgAudio = document.getElementById('bgAudioPlayer');
       const volSlider = document.getElementById('musicVolumeSlider');
       if (bgAudio && volSlider) {
-        bgAudio.volume = parseFloat(volSlider.value); // Mis par défaut à 0.05 (plus bas)
+        bgAudio.volume = parseFloat(volSlider.value);
         volSlider.addEventListener('input', (e) => {
           bgAudio.volume = parseFloat(e.target.value);
         });
@@ -1300,7 +1279,6 @@
         if (app.isHost) window.location.href = window.location.pathname;
       });
 
-      // Bouton Quizz
       document.getElementById('btnSelectQuizz').addEventListener('click', () => {
         sound.playClick();
         app.gameType = 'quizz';
@@ -1310,7 +1288,6 @@
         showScreen('config');
       });
 
-      // Bouton Blind Test -> Ouvre la configuration dédiée Blind Test
       document.getElementById('btnSelectBlindTest').addEventListener('click', () => {
         sound.playClick();
         app.gameType = 'blind';
@@ -1417,12 +1394,15 @@
         sound.musicMuted = !sound.musicMuted;
         const btn = document.getElementById('musicToggle');
         const bgAudio = document.getElementById('bgAudioPlayer');
+        const blindAudio = document.getElementById('blindAudioPlayer');
         if (sound.musicMuted) {
           btn.classList.remove('active');
           if (bgAudio) bgAudio.pause();
+          if (blindAudio) blindAudio.muted = true;
         } else {
           btn.classList.add('active');
-          if (bgAudio) bgAudio.play().catch(e => {});
+          if (bgAudio && !screens.question.classList.contains('active')) bgAudio.play().catch(e => {});
+          if (blindAudio) blindAudio.muted = false;
         }
       });
 
@@ -1591,6 +1571,9 @@
           const blindAudio = document.getElementById('blindAudioPlayer');
           if (blindAudio) { blindAudio.pause(); blindAudio.currentTime = 0; }
         }
+        const bgAudio = document.getElementById('bgAudioPlayer');
+        if (bgAudio && !sound.musicMuted) bgAudio.play().catch(e => {});
+
         broadcastToPlayers({ type: 'EJECTED' });
         window.location.href = window.location.pathname;
       });
@@ -1624,6 +1607,10 @@
     }
 
     function triggerGameStartCountdown() {
+      // S'assurer que la musique de fond s'arrête dès le compte à rebours de démarrage
+      const bgAudio = document.getElementById('bgAudioPlayer');
+      if (bgAudio) bgAudio.pause();
+
       const overlay = document.getElementById('gameStartLoadingOverlay');
       const numDisplay = document.getElementById('startCountdownNum');
       overlay.style.display = 'flex';
@@ -1631,11 +1618,13 @@
 
       let count = 5;
       numDisplay.textContent = count;
+      sound.playCorrect(); // On entend bien le son du compte à rebours de début jusqu'au bout
 
       const timer = setInterval(() => {
         count--;
         if (count > 0) {
           numDisplay.textContent = count;
+          sound.playCorrect();
           broadcastToPlayers({ type: 'UPDATE_START_COUNTDOWN', count: count });
         } else {
           clearInterval(timer);
@@ -1890,6 +1879,13 @@
     }
 
     function startQuizGame() {
+      // Couper définitivement la musique de fond du menu pendant le jeu
+      const bgAudio = document.getElementById('bgAudioPlayer');
+      if (bgAudio) {
+        bgAudio.pause();
+        bgAudio.currentTime = 0;
+      }
+
       app.playerTotalResponseTime = {};
       app.playerAnswerCounts = {};
       Object.keys(app.players).forEach(id => {
@@ -1906,7 +1902,6 @@
         }
         app.questions = shuffled.slice(0, app.totalQuestions);
       } else {
-        // Mode Blind Test
         const pool = BLIND_TEST_POOL[app.blindTheme] || BLIND_TEST_POOL['pop'];
         let shuffledTracks = [...pool].sort(() => 0.5 - Math.random());
         while (shuffledTracks.length < app.blindCount) {
@@ -1914,9 +1909,7 @@
         }
         const selectedTracks = shuffledTracks.slice(0, app.blindCount);
 
-        // Génération robuste des questions blind test pour garantir la correspondance parfaite chanson <-> réponses
         app.questions = selectedTracks.map(track => {
-          // Extraire 3 autres artistes / titres distincts pour les pièges
           const otherTracks = pool.filter(t => t.title !== track.title);
           const shuffledOthers = [...otherTracks].sort(() => 0.5 - Math.random()).slice(0, 3);
           
@@ -1926,11 +1919,9 @@
           } else if (app.blindType === 'title') {
             options = [track.title, ...shuffledOthers.map(t => t.title)];
           } else {
-            // Both
             options = [`${track.artist} - ${track.title}`, ...shuffledOthers.map(t => `${t.artist} - ${t.title}`)];
           }
 
-          // Mélanger les 4 options
           options = options.sort(() => 0.5 - Math.random());
           const correctIdx = options.indexOf(app.blindType === 'artist' ? track.artist : (app.blindType === 'title' ? track.title : `${track.artist} - ${track.title}`));
 
@@ -1951,6 +1942,12 @@
     }
 
     function showNextQuestion() {
+      // S'assurer que la musique de fond est bien coupée
+      const bgAudio = document.getElementById('bgAudioPlayer');
+      if (bgAudio) {
+        bgAudio.pause();
+      }
+
       app.answersReceived = {};
       app.isPaused = false;
       app.questionStartedAt = Date.now();
@@ -1978,7 +1975,6 @@
         questionTitleEl.style.display = 'none';
         trackerEl.innerHTML = `Chanson <span id="currentQNum">${app.currentQIdx + 1}</span> / <span id="totalQNum">${app.blindCount}</span>`;
 
-        // Réinitialiser le vinyle en mode rotation
         const diskEl = document.getElementById('vinylDiskEl');
         const iconEl = document.getElementById('vinylCenterIcon');
         const coverImg = document.getElementById('vinylCoverImg');
@@ -1989,13 +1985,18 @@
         coverImg.style.display = 'none';
         revealedInfo.textContent = "Écoutez bien l'extrait...";
 
-        // Lancer l'audio sur l'hôte uniquement
+        // Lecture fiable de l'extrait audio du blind test sur l'hôte
         const blindAudio = document.getElementById('blindAudioPlayer');
         if (blindAudio && q.preview) {
+          blindAudio.pause();
           blindAudio.src = q.preview;
-          blindAudio.currentTime = 0;
+          blindAudio.currentTime = 5; // Démarrer vers le refrain (à 5 secondes)
           if (!sound.musicMuted) {
-            blindAudio.play().catch(err => console.log("Audio play error:", err));
+            blindAudio.play().catch(err => {
+              console.log("Audio play error, retrying from 0:", err);
+              blindAudio.currentTime = 0;
+              blindAudio.play().catch(e => console.log("Audio play failed:", e));
+            });
           }
         }
       }
@@ -2053,11 +2054,6 @@
         app.timeLeft = remainingSeconds;
         bar.style.width = `${(remainingMs / durationMs) * 100}%`;
         
-        // Pas de son de tic-tac pour le blind test conformément aux instructions
-        if (app.gameType === 'quizz') {
-          // Le son du tick est géré silencieusement ou désactivé pour laisser place aux musiques
-        }
-
         disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${remainingSeconds}s`;
         if (remainingMs <= 0) {
           app.timeLeft = 0;
@@ -2113,7 +2109,6 @@
         const blindAudio = document.getElementById('blindAudioPlayer');
         if (blindAudio) blindAudio.pause();
 
-        // Révéler le vinyle et la pochette sur l'hôte avec mise en gras du type de réponse attendu
         const diskEl = document.getElementById('vinylDiskEl');
         const iconEl = document.getElementById('vinylCenterIcon');
         const coverImg = document.getElementById('vinylCoverImg');
@@ -2250,6 +2245,10 @@
       showScreen('podium');
       confetti({ particleCount: 120, spread: 80 });
 
+      // Reprendre la musique de fond du menu si l'hôte revient au salon plus tard
+      const bgAudio = document.getElementById('bgAudioPlayer');
+      if (bgAudio && !sound.musicMuted) bgAudio.play().catch(e => {});
+
       let bestAvgPlayer = null;
       let lowestAvgTime = Infinity;
 
@@ -2302,7 +2301,7 @@
       function renderScoreDisplay(pObj) {
         if (!pObj) return '';
         if (pObj.hasBonus) {
-          return `<span class="old-score-striked">${pObj.rawScore}</span><span class="bonus-score-green">${pObj.finalScore}</span> <i class="fa-solid fa-bolt" style="color:var(--gold);"></i>`;
+          return `<span class="old-score-striked">${pObj.rawScore}</span><span class="bonus-score-green">${pObj.finalScore} Pts</span> <i class="fa-solid fa-bolt" style="color:var(--gold);"></i>`;
         }
         return `<span>${pObj.finalScore} Pts</span>`;
       }
@@ -2315,9 +2314,7 @@
       const p1Avatar = p1.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p1.avatar;
       const p3Avatar = p3.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p3.avatar;
 
-      // RESTRUCTURATION EXACTE SELON L'IMAGE DE RÉFÉRENCE (Or au milieu avec couronne, Argent à droite, Bronze à gauche)
       podium.innerHTML = `
-        <!-- 3ème Place (À gauche) -->
         <div class="new-podium-item pos-3 ${p3.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry3 ? entry3[0] : ''}">
           <div class="new-podium-avatar-box">
             <span>${p3Avatar}</span>
@@ -2327,7 +2324,6 @@
           <div class="new-podium-score">${renderScoreDisplay(p3)}</div>
         </div>
 
-        <!-- 1ère Place (Au milieu, surélevé avec couronne dorée) -->
         <div class="new-podium-item pos-1 ${p1.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry1 ? entry1[0] : ''}">
           <div class="pos-1-crown"><i class="fa-solid fa-crown"></i></div>
           <div class="new-podium-avatar-box">
@@ -2338,7 +2334,6 @@
           <div class="new-podium-score">${renderScoreDisplay(p1)}</div>
         </div>
 
-        <!-- 2ème Place (À droite) -->
         <div class="new-podium-item pos-2 ${p2.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry2 ? entry2[0] : ''}">
           <div class="new-podium-avatar-box">
             <span>${p2Avatar}</span>
@@ -2570,7 +2565,7 @@
           <div class="new-podium-item pos-2 ${p2.disconnected ? 'disconnected' : ''}">
             <div class="new-podium-avatar-box"><span>${p2.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p2.avatar}</span><div class="podium-rank-badge">2</div></div>
             <div class="new-podium-name">${p2.name}</div>
-            <div class="new-podium-score">${p2.finalScore} Pts</div>
+            <div class="new-podium-score">${p2.finalSource} Pts</div>
           </div>
         `;
 
