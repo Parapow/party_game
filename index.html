@@ -232,49 +232,6 @@
     .count-badge { position: absolute; right: 12px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; display: none; }
     .count-badge.visible { display: block; }
 
-    /* STYLES SPÉCIFIQUES AU BLIND TEST */
-    .vinyl-container {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 15px 0 25px 0;
-    }
-    .vinyl-disk {
-      width: 170px; height: 170px; border-radius: 50%;
-      background: radial-gradient(circle, #111 0%, #222 30%, #000 70%, #111 100%);
-      border: 6px solid #222; box-shadow: 0 0 20px rgba(0, 242, 254, 0.4), inset 0 0 10px rgba(0,0,0,0.8);
-      position: relative; display: flex; align-items: center; justify-content: center;
-      animation: spinVinyl 3s linear infinite; transition: all 0.5s ease;
-    }
-    .vinyl-disk.paused { animation-play-state: paused; }
-    .vinyl-disk::before {
-      content: ''; position: absolute; width: 140px; height: 140px; border-radius: 50%;
-      border: 1px dashed rgba(255,255,255,0.15);
-    }
-    .vinyl-center-label {
-      width: 65px; height: 65px; border-radius: 50%; background: var(--primary);
-      display: flex; align-items: center; justify-content: center; color: #000; font-size: 1.8rem; font-weight: 900;
-      box-shadow: inset 0 0 8px rgba(0,0,0,0.5); overflow: hidden; position: relative; z-index: 2;
-    }
-    .vinyl-cover-img {
-      width: 100%; height: 100%; object-fit: cover; display: none; border-radius: 50%;
-    }
-    .vinyl-disk.revealed {
-      animation: none !important; transform: scale(1.1); border-color: var(--primary);
-      box-shadow: 0 0 30px var(--primary);
-    }
-    .vinyl-disk.revealed .vinyl-cover-img { display: block; }
-    .vinyl-disk.revealed .vinyl-center-icon { display: none; }
-
-    @keyframes spinVinyl {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    .song-reveal-banner {
-      text-align: center; margin-top: 12px; min-height: 48px;
-    }
-    .song-reveal-title { font-size: 1.3rem; color: #fff; }
-    .song-reveal-artist { font-size: 1.1rem; color: var(--primary); }
-    .target-highlight { font-weight: 900 !important; text-decoration: underline; color: var(--gold); }
-
     #pauseOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 100;
@@ -298,7 +255,7 @@
     .btn-ctrl-restart { background: rgba(0,242,254,0.2); border: 1px solid var(--primary); color: var(--primary); }
     .btn-ctrl-stop { background: rgba(255,23,68,0.2); border: 1px solid var(--danger); color: #ff5252; }
 
-    /* PODIUM LAYOUT HÔTE & CORRECTION DE L'ICÔNE COUPÉE */
+    /* STYLING DU NOUVEAU PODIUM (Inspiré de l'image : Or au centre en haut, Argent à droite, Bronze à gauche) */
     .podium-layout-main {
       display: grid; grid-template-columns: 280px 1fr 340px; gap: 20px; align-items: stretch;
     }
@@ -334,6 +291,7 @@
       color: var(--success); font-weight: 700;
     }
 
+    /* Icône animée d'applaudissement entièrement visible sans être coupée */
     .clap-badge-icon {
       position: absolute; top: -12px; left: -12px; background: var(--accent); color: #fff;
       font-size: 0.8rem; width: 28px; height: 28px; border-radius: 50%; display: flex;
@@ -355,6 +313,72 @@
       80% { opacity: 1; transform: scale(1) translateY(-10px); }
       100% { opacity: 0; transform: scale(0.8) translateY(-45px); }
     }
+
+    /* NOUVEAU CONTENEUR DE PODIUM STYLE IMAGE */
+    .new-podium-flex {
+      display: flex; align-items: flex-end; justify-content: center; gap: 15px; margin: 25px 0 15px 0; min-height: 230px; padding-bottom: 10px;
+    }
+    .new-podium-item {
+      display: flex; flex-direction: column; align-items: center; position: relative; width: 95px;
+    }
+    .new-podium-item.pos-1 { order: 2; margin-bottom: 25px; } /* Premier au milieu, plus haut */
+    .new-podium-item.pos-2 { order: 3; } /* Deuxième à droite */
+    .new-podium-item.pos-3 { order: 1; } /* Troisième à gauche */
+
+    .new-podium-avatar-box {
+      width: 70px; height: 70px; border-radius: 50%; border: 3px solid; background: #222;
+      display: flex; align-items: center; justify-content: center; position: relative; overflow: visible; font-size: 1.8rem;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.4); margin-bottom: 12px;
+    }
+    .new-podium-item.pos-1 .new-podium-avatar-box { width: 85px; height: 85px; border-color: var(--gold); }
+    .new-podium-item.pos-2 .new-podium-avatar-box { border-color: #cd7f32; } /* Argent/Bronze selon préférence, ici bronze/argent harmonisé */
+    .new-podium-item.pos-3 .new-podium-avatar-box { border-color: #94a3b8; }
+
+    .new-podium-avatar-box img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+    .podium-rank-badge {
+      position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 900; color: #000; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .pos-1 .podium-rank-badge { background: var(--gold); }
+    .pos-2 .podium-rank-badge { background: #e2e8f0; }
+    .pos-3 .podium-rank-badge { background: #d97706; color: #fff; }
+
+    .pos-1-crown {
+      position: absolute; top: -35px; left: 50%; transform: translateX(-50%);
+      font-size: 2rem; color: var(--gold); filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+      animation: crownFloat 1.5s infinite alternate ease-in-out;
+    }
+    @keyframes crownFloat { from { transform: translate(-50%, 0); } to { transform: translate(-50%, -6px); } }
+
+    .new-podium-name { font-weight: 700; font-size: 0.95rem; text-align: center; max-width: 95px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 2px; }
+    .new-podium-score { font-size: 0.85rem; color: var(--text-muted); text-align: center; font-weight: 600; }
+    .new-podium-item.disconnected { opacity: 0.4; filter: grayscale(90%); }
+
+    /* STYLING SPÉCIFIQUE BLIND TEST VINYLE */
+    .vinyl-container {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 15px 0; position: relative;
+    }
+    .vinyl-disk {
+      width: 170px; height: 170px; border-radius: 50%; background: #111;
+      border: 8px solid #222; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center; position: relative;
+      animation: spinVinyl 4s linear infinite;
+    }
+    .vinyl-disk.paused { animation-play-state: paused; }
+    @keyframes spinVinyl { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .vinyl-grooves {
+      position: absolute; width: 140px; height: 140px; border-radius: 50%;
+      border: 1px dashed rgba(255,255,255,0.15); pointer-events: none;
+    }
+    .vinyl-center-label {
+      width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(45deg, var(--accent), var(--primary));
+      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.8rem;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); z-index: 2;
+    }
+    .vinyl-center-label img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: none; }
 
     /* Stack de Notifications Éphémères (Max 5) */
     #globalNotificationsStack {
@@ -422,29 +446,25 @@
     .feedback-mobile-card.error { background: rgba(255,23,68,0.2); border: 2px solid var(--danger); color: var(--danger); animation: errorShake 0.4s ease; }
     .feedback-mobile-card.timeout { background: rgba(160,174,192,0.2); border: 2px solid var(--text-muted); color: var(--text-muted); }
 
-    .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: 10px; height: 180px; margin: 15px 0; }
-    .podium-step { width: 85px; background: rgba(255,255,255,0.1); border-radius: 10px 10px 0 0; display: flex; flex-direction: column; align-items: center; padding-top: 8px; font-size: 0.85rem; }
-    .podium-step.p1 { height: 150px; background: linear-gradient(to top, rgba(255,215,0,0.3), rgba(255,215,0,0.8)); border: 2px solid var(--gold); }
-    .podium-step.p2 { height: 110px; background: linear-gradient(to top, rgba(192,192,192,0.3), rgba(192,192,192,0.8)); border: 2px solid var(--silver); }
-    .podium-step.p3 { height: 85px; background: linear-gradient(to top, rgba(205,127,50,0.3), rgba(205,127,50,0.8)); border: 2px solid var(--bronze); }
-    .podium-step.disconnected { opacity: 0.4; filter: grayscale(90%); background: #333 !important; border-color: #666 !important; }
-
     .input-field {
       width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2);
       background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 1.1rem; margin-bottom: 15px; outline: none;
     }
 
-    #settingsModal {
+    #settingsModal, #blindSettingsModal {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
       z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px;
     }
-    #settingsModal.active { display: flex; }
+    #settingsModal.active, #blindSettingsModal.active { display: flex; }
   </style>
 </head>
 <body>
 
   <!-- STACK DE NOTIFICATIONS ÉPHÉMÈRES (Max 5) -->
   <div id="globalNotificationsStack"></div>
+
+  <!-- AUDIO PLAYER POUR EXTRAITS BLIND TEST -->
+  <audio id="blindAudioPlayer" preload="auto"></audio>
 
   <!-- OVERLAY CHARGEMENT DE CONNEXION DEPUIS ACCUEIL -->
   <div id="homeJoinLoadingOverlay">
@@ -482,7 +502,7 @@
     <p style="color: #00e676; font-size: 1rem; font-weight: 800; margin-bottom: 12px;">Bonus de rapidité : +150 points</p>
     <div style="font-size: 1.5rem; font-weight: 800; color: #fff; text-shadow: 0 0 10px var(--primary); margin-bottom: 15px;">Bravo !</div>
     
-    <!-- BOUTON DE RAPPEL DE LA BONNE RÉPONSE -->
+    <!-- BOUTON DE RAPPEL DE LA BONNE RÉPONSE (NON CLIQUABLE) -->
     <div id="fastestModalCorrectAnswerBox" style="width: 100%; max-width: 320px; margin: 0 auto; border-radius: 12px; color: #fff; font-size: 1rem; font-weight: 600; display: flex; align-items: center; text-align: left; overflow: hidden; pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
       <div id="fastestModalCorrectLetter" style="background: #fff; color: #000; width: 45px; padding: 14px 0; text-align: center; font-weight: 900; font-size: 1.1rem; flex-shrink: 0;">A</div>
       <div id="fastestModalCorrectText" style="padding: 12px 15px; flex-grow: 1;">Option correcte</div>
@@ -506,34 +526,24 @@
     <p style="color: var(--text-muted);">Préparez-vous !</p>
   </div>
 
-  <!-- MODAL PARAMÈTRES (QUIZZ & BLIND TEST) -->
+  <!-- MODAL PARAMÈTRES QUIZZ -->
   <div id="settingsModal">
     <div class="card" style="width: 100%; max-width: 500px;">
-      <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-sliders"></i> Paramètres du Salon</h2>
+      <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-sliders"></i> Paramètres du Quizz</h2>
       
       <div class="config-group">
-        <label>Thème</label>
+        <label>Thème du Quizz</label>
         <div class="options-grid" id="modalThemeOptions">
-          <div class="option-btn selected" data-value="general">Culture Générale / Hits</div>
-          <div class="option-btn" data-value="cinema">Cinéma / BO</div>
-          <div class="option-btn" data-value="sport">Sport / Pop</div>
-          <div class="option-btn" data-value="music">Musique / Variété</div>
-          <div class="option-btn" data-value="geek">Geek / Retro</div>
-        </div>
-      </div>
-
-      <!-- OPTION DÉDIÉE BLIND TEST -->
-      <div class="config-group" id="modalBlindTestTargetGroup" style="display:none;">
-        <label>Type de réponse à trouver</label>
-        <div class="options-grid" id="modalTargetOptions">
-          <div class="option-btn" data-value="artist">Artiste</div>
-          <div class="option-btn" data-value="title">Titre</div>
-          <div class="option-btn selected" data-value="both">Les Deux</div>
+          <div class="option-btn selected" data-value="general">Culture Générale</div>
+          <div class="option-btn" data-value="cinema">Cinéma</div>
+          <div class="option-btn" data-value="sport">Sport</div>
+          <div class="option-btn" data-value="music">Musique</div>
+          <div class="option-btn" data-value="geek">Geek</div>
         </div>
       </div>
 
       <div class="config-group">
-        <label><span id="modalCountLabel">Nombre de Questions</span></label>
+        <label>Nombre de Questions</label>
         <div class="slider-container">
           <input type="range" id="sliderCount" min="5" max="20" step="1" value="10">
           <span class="slider-value" id="valCount">10</span>
@@ -541,7 +551,7 @@
       </div>
 
       <div class="config-group">
-        <label><span id="modalTimeLabel">Temps par Question</span> (secondes)</label>
+        <label>Temps par Question (secondes)</label>
         <div class="slider-container">
           <input type="range" id="sliderTime" min="5" max="30" step="5" value="10">
           <span class="slider-value" id="valTime">10s</span>
@@ -554,6 +564,52 @@
     </div>
   </div>
 
+  <!-- MODAL PARAMÈTRES BLIND TEST -->
+  <div id="blindSettingsModal">
+    <div class="card" style="width: 100%; max-width: 500px;">
+      <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-sliders"></i> Paramètres du Blind Test</h2>
+      
+      <div class="config-group">
+        <label>Thème Musical</label>
+        <div class="options-grid" id="modalBlindThemeOptions">
+          <div class="option-btn selected" data-value="pop">Pop / Actu</div>
+          <div class="option-btn" data-value="rock">Rock / Metal</div>
+          <div class="option-btn" data-value="rap">Rap / Urban</div>
+          <div class="option-btn" data-value="electro">Electro / Dance</div>
+        </div>
+      </div>
+
+      <div class="config-group">
+        <label>Type de Réponse à Trouver</label>
+        <div class="options-grid" id="modalBlindTypeOptions">
+          <div class="option-btn selected" data-value="artist">Artiste</div>
+          <div class="option-btn" data-value="title">Titre</div>
+          <div class="option-btn" data-value="both">Les Deux</div>
+        </div>
+      </div>
+
+      <div class="config-group">
+        <label>Nombre de Chansons</label>
+        <div class="slider-container">
+          <input type="range" id="sliderBlindCount" min="5" max="20" step="1" value="10">
+          <span class="slider-value" id="valBlindCount">10</span>
+        </div>
+      </div>
+
+      <div class="config-group">
+        <label>Temps par Chanson (secondes)</label>
+        <div class="slider-container">
+          <input type="range" id="sliderBlindTime" min="10" max="30" step="5" value="15">
+          <span class="slider-value" id="valBlindTime">15s</span>
+        </div>
+      </div>
+
+      <div style="text-align: right; margin-top: 25px;">
+        <button class="btn btn-accent" id="btnCloseBlindSettings"><i class="fa-solid fa-check"></i> Appliquer & Fermer</button>
+      </div>
+    </div>
+  </div>
+
   <!-- HEADER HÔTE -->
   <header class="host-header" id="hostHeader">
     <div class="logo" id="logoHomeLink">
@@ -562,7 +618,7 @@
     <div class="audio-controls">
       <div class="volume-slider-box" title="Volume de la musique">
         <i class="fa-solid fa-volume-low" style="font-size:0.9rem; color:var(--text-muted);"></i>
-        <input type="range" id="musicVolumeSlider" min="0" max="1" step="0.01" value="0.5">
+        <input type="range" id="musicVolumeSlider" min="0" max="1" step="0.01" value="0.05">
       </div>
       <button class="icon-btn active" id="musicToggle" title="Activer/Désactiver Musique"><i class="fa-solid fa-music"></i></button>
       <button class="icon-btn active" id="sfxToggle" title="Sons"><i class="fa-solid fa-volume-high"></i></button>
@@ -584,7 +640,7 @@
           <div class="game-card active-game" id="btnSelectBlindTest">
             <div class="game-icon"><i class="fa-solid fa-headphones"></i></div>
             <h2>Blind Test</h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Écoutez, devinez les vrais titres & artistes !</p>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Devinez les titres en musique avec de vrais extraits</p>
           </div>
           <div class="game-card locked-game" data-gamename="Burger Quiz">
             <div class="game-icon"><i class="fa-solid fa-burger"></i></div>
@@ -607,38 +663,28 @@
       </div>
     </section>
 
-    <!-- ÉCRAN 2: CONFIGURATION INITIALE -->
+    <!-- ÉCRAN 2: CONFIGURATION DU QUIZZ -->
     <section id="screenConfig" class="screen">
       <button class="btn-back-top" id="btnBackToHomeFromConfig">
         <i class="fa-solid fa-arrow-left"></i> Retour
       </button>
 
       <div class="card">
-        <h2 class="title-large" id="configScreenTitle"><i class="fa-solid fa-gears"></i> Configuration Initiale</h2>
+        <h2 class="title-large"><i class="fa-solid fa-gears"></i> Configuration du Quizz</h2>
         
         <div class="config-group">
-          <label>Thème</label>
+          <label>Thème du Quizz</label>
           <div class="options-grid" id="themeOptions">
-            <div class="option-btn selected" data-value="general">Culture Générale / Hits</div>
-            <div class="option-btn" data-value="cinema">Cinéma / BO</div>
-            <div class="option-btn" data-value="sport">Sport / Pop</div>
-            <div class="option-btn" data-value="music">Musique / Variété</div>
-            <div class="option-btn" data-value="geek">Geek / Retro</div>
-          </div>
-        </div>
-
-        <!-- OPTION TYPE DE RÉPONSE BLIND TEST EN CONFIG -->
-        <div class="config-group" id="configBlindTestTargetGroup" style="display:none;">
-          <label>Type de réponse à trouver</label>
-          <div class="options-grid" id="targetOptions">
-            <div class="option-btn" data-value="artist">Artiste</div>
-            <div class="option-btn" data-value="title">Titre</div>
-            <div class="option-btn selected" data-value="both">Les Deux</div>
+            <div class="option-btn selected" data-value="general">Culture Générale</div>
+            <div class="option-btn" data-value="cinema">Cinéma</div>
+            <div class="option-btn" data-value="sport">Sport</div>
+            <div class="option-btn" data-value="music">Musique</div>
+            <div class="option-btn" data-value="geek">Geek</div>
           </div>
         </div>
 
         <div class="config-group">
-          <label><span id="configCountLabel">Nombre de Questions</span></label>
+          <label>Nombre de Questions</label>
           <div class="slider-container">
             <input type="range" id="configSliderCount" min="5" max="20" step="1" value="10">
             <span class="slider-value" id="configValCount">10</span>
@@ -646,7 +692,7 @@
         </div>
 
         <div class="config-group">
-          <label><span id="configTimeLabel">Temps par Question</span></label>
+          <label>Temps par Question</label>
           <div class="slider-container">
             <input type="range" id="configSliderTime" min="5" max="30" step="5" value="10">
             <span class="slider-value" id="configValTime">10s</span>
@@ -661,23 +707,80 @@
       </div>
     </section>
 
+    <!-- ÉCRAN 2B: CONFIGURATION DU BLIND TEST -->
+    <section id="screenBlindConfig" class="screen">
+      <button class="btn-back-top" id="btnBackToHomeFromBlindConfig">
+        <i class="fa-solid fa-arrow-left"></i> Retour
+      </button>
+
+      <div class="card">
+        <h2 class="title-large"><i class="fa-solid fa-gears"></i> Configuration du Blind Test</h2>
+        
+        <div class="config-group">
+          <label>Thème Musical</label>
+          <div class="options-grid" id="blindThemeOptions">
+            <div class="option-btn selected" data-value="pop">Pop / Actu</div>
+            <div class="option-btn" data-value="rock">Rock / Metal</div>
+            <div class="option-btn" data-value="rap">Rap / Urban</div>
+            <div class="option-btn" data-value="electro">Electro / Dance</div>
+          </div>
+        </div>
+
+        <div class="config-group">
+          <label>Type de Réponse à Trouver</label>
+          <div class="options-grid" id="blindTypeOptions">
+            <div class="option-btn selected" data-value="artist">Artiste</div>
+            <div class="option-btn" data-value="title">Titre</div>
+            <div class="option-btn" data-value="both">Les Deux</div>
+          </div>
+        </div>
+
+        <div class="config-group">
+          <label>Nombre de Chansons</label>
+          <div class="slider-container">
+            <input type="range" id="configSliderBlindCount" min="5" max="20" step="1" value="10">
+            <span class="slider-value" id="configValBlindCount">10</span>
+          </div>
+        </div>
+
+        <div class="config-group">
+          <label>Temps par Chanson</label>
+          <div class="slider-container">
+            <input type="range" id="configSliderBlindTime" min="10" max="30" step="5" value="15">
+            <span class="slider-value" id="configValBlindTime">15s</span>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 25px;">
+          <button class="btn btn-accent" id="btnCreateBlindLobby">
+            <i class="fa-solid fa-door-open"></i> Créer la partie Blind Test
+          </button>
+        </div>
+      </div>
+    </section>
+
     <!-- ÉCRAN 3: SALON D'ATTENTE -->
     <section id="screenLobby" class="screen">
       <div class="lobby-header">
         <button class="btn-back-top" id="btnBackToHomeFromLobby" style="position: absolute; left: 0; top: 0;">
           <i class="fa-solid fa-arrow-left"></i> Quitter
         </button>
-        <h1 style="font-size: 2.2rem; font-weight: 900; color: #fff;" id="lobbyGameTitle">Salle d'attente</h1>
+        
+        <!-- Nom du jeu dynamique au-dessus avec icône et autre couleur -->
+        <div id="lobbyGameIndicator" style="font-size: 1rem; font-weight: 700; color: var(--accent); margin-bottom: 2px; display: inline-flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-circle-question" id="lobbyGameIcon"></i> <span id="lobbyGameNameDisplay">Quizz</span>
+        </div>
+        
+        <h1 style="font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 4px;">Salle d'attente</h1>
         
         <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-top: 4px; display: inline-flex; align-items: center; gap: 10px;">
           Code session : <span id="lobbySessionCodeDisplay" style="color: #fff; background: rgba(0,242,254,0.2); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--primary);"></span>
           <button id="btnCopySessionCode" class="icon-btn" style="width: 34px; height: 34px; font-size: 0.85rem;" title="Copier le code"><i class="fa-solid fa-copy"></i></button>
         </div>
 
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;" id="lobbyParamsSubtext">
           Thème : <span id="lobbyThemeName" style="color: var(--primary); font-weight: 700;"></span> | 
-          <span id="lobbyTargetSpan" style="display:none; color: var(--success); font-weight:700;">Type : <span id="lobbyTargetName">Les deux</span> | </span>
-          <span id="lobbyCountPrefix">Questions</span> : <span id="lobbyCountName" style="color: var(--gold); font-weight: 700;"></span> | 
+          Questions : <span id="lobbyCountName" style="color: var(--gold); font-weight: 700;"></span> | 
           Temps : <span id="lobbyTimeName" style="color: var(--accent); font-weight: 700;"></span>
         </p>
         <button class="btn-settings-open" id="btnOpenSettings">
@@ -714,14 +817,14 @@
       </div>
     </section>
 
-    <!-- ÉCRAN 4: QUESTION DE JEU HÔTE (QUIZZ / BLIND TEST) -->
+    <!-- ÉCRAN 4: QUESTION DE JEU HÔTE -->
     <section id="screenQuestion" class="screen">
       <div class="game-main-layout">
         
         <div class="card" style="margin-bottom: 0;">
           <div class="game-header">
-            <span style="font-weight: 700; color: var(--text-muted);">
-              <span id="qModeLabel">Question</span> <span id="currentQNum">1</span> / <span id="totalQNum">10</span>
+            <span style="font-weight: 700; color: var(--text-muted);" id="hostQNumTracker">
+              Question <span id="currentQNum">1</span> / <span id="totalQNum">10</span>
             </span>
             <span id="timerDisplay" style="font-size: 1.4rem; font-weight: 900; color: var(--primary);">
               <i class="fa-solid fa-stopwatch"></i> 10s
@@ -732,19 +835,23 @@
             <div class="timer-bar" id="timerBar"></div>
           </div>
 
-          <!-- QUESTION QUIZZ -->
-          <h2 class="question-title" id="questionText">Chargement...</h2>
-
-          <!-- VISUEL VINYLE BLIND TEST (HÔTE UNIQUEMENT) -->
-          <div class="vinyl-container" id="hostBlindTestDisplay" style="display:none;">
-            <div class="vinyl-disk" id="vinylDisk">
-              <div class="vinyl-center-label">
-                <span class="vinyl-center-icon"><i class="fa-solid fa-question"></i></span>
-                <img src="" id="vinylCoverImg" class="vinyl-cover-img" alt="Pochette de la chanson">
+          <!-- CONTAINER SPÉCIAL BLIND TEST (Vinyle rotatif) -->
+          <div id="hostBlindVisualContainer" style="display: none;">
+            <div class="vinyl-container">
+              <div class="vinyl-disk" id="vinylDiskEl">
+                <div class="vinyl-grooves"></div>
+                <div class="vinyl-center-label" id="vinylCenterLabel">
+                  <i class="fa-solid fa-question" id="vinylCenterIcon"></i>
+                  <img id="vinylCoverImg" src="" alt="Cover" />
+                </div>
               </div>
             </div>
-            <div class="song-reveal-banner" id="songRevealBanner"></div>
+            <div id="blindRevealedInfo" style="text-align: center; font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; min-height: 35px; color: var(--primary);">
+              Écoutez bien l'extrait...
+            </div>
           </div>
+
+          <h2 class="question-title" id="questionText">Chargement...</h2>
 
           <div class="answers-grid-host">
             <div class="answer-host" id="hostAns0">
@@ -793,9 +900,9 @@
       </div>
     </section>
 
-    <!-- ÉCRAN 5: PODIUM HÔTE -->
+    <!-- ÉCRAN 5: PODIUM HÔTE (Refondu selon l'image de référence) -->
     <section id="screenPodium" class="screen">
-      <h1 class="title-large" style="margin-bottom: 15px;"><i class="fa-solid fa-flag-checkered" style="color: var(--primary);"></i> La partie est terminée !</h1>
+      <h1 class="title-large" style="margin-bottom: 10px;"><i class="fa-solid fa-flag-checkered" style="color: var(--primary);"></i> La partie est terminée !</h1>
 
       <div class="podium-layout-main">
         <div class="fastest-stat-card">
@@ -804,8 +911,10 @@
         </div>
 
         <div class="card" style="text-align: center; margin-bottom: 0;">
-          <h2 style="margin-bottom: 10px;"><i class="fa-solid fa-trophy" style="color: var(--gold);"></i> Podium</h2>
-          <div class="podium-container" id="podiumDisplay"></div>
+          <h2 style="margin-bottom: 5px;"><i class="fa-solid fa-trophy" style="color: var(--gold);"></i> Podium</h2>
+          
+          <!-- PODIUM REFACTORISÉ STYLE IMAGE (Or au centre, Argent à droite, Bronze à gauche) -->
+          <div class="new-podium-flex" id="podiumDisplay"></div>
         </div>
 
         <div class="podium-rest-card">
@@ -827,7 +936,7 @@
     <section id="screenPlayerJoin" class="screen">
       <div class="mobile-container" style="justify-content: center; padding-top: 0;">
         <div class="card" style="margin: auto 0;">
-          <h2 style="text-align: center; margin-bottom: 15px;"><i class="fa-solid fa-right-to-bracket"></i> Rejoindre la Partie</h2>
+          <h2 style="text-align: center; margin-bottom: 15px;"><i class="fa-solid fa-right-to-bracket"></i> Rejoindre le Quiz</h2>
           <input type="text" id="playerPseudoInput" class="input-field" placeholder="Entre ton pseudo..." maxlength="12">
           
           <label style="display:block; font-size:0.85rem; color:var(--text-muted); margin-bottom: 5px;">Choisis ton avatar :</label>
@@ -864,7 +973,7 @@
 
         <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; padding-top: 10px;">
           
-          <!-- ÉCRAN D'ATTENTE MOBILE -->
+          <!-- ÉCRAN D'ATTENTE MOBILE REORGANISE + COMPTEUR DE JOUEURS -->
           <div id="playerWaitArea" style="text-align: center; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 25vh;">
             <i class="fa-solid fa-hourglass-half fa-spin" style="font-size: 2.2rem; color: var(--primary); margin-bottom: 8px;"></i>
             <h3 style="font-size: 1.1rem;">En attente de l'hôte...</h3>
@@ -877,7 +986,7 @@
             <div id="playerMobileLobbyList" style="display: flex; flex-direction: column; gap: 6px;"></div>
           </div>
 
-          <!-- QUESTION ACTIVE SUR MOBILE -->
+          <!-- QUESTION ACTIVE -->
           <div id="playerActiveQuestionArea" style="display: none; padding-top: 15px;">
             <div id="playerQNumTracker" style="text-align: center; font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">Question 1 / 10</div>
             <div id="playerQuestionTitle" style="font-size: 1.05rem; font-weight: 700; text-align: center; margin-bottom: 10px;">Question...</div>
@@ -914,7 +1023,9 @@
           <!-- PAGE PODIUM MOBILE -->
           <div id="playerPodiumArea" style="display: none; text-align: center; overflow-y: auto; max-height: 75vh;">
             <h3 style="margin-bottom: 10px; font-size: 1.3rem; color: var(--primary);"><i class="fa-solid fa-flag-checkered"></i> La partie est terminée !</h3>
-            <div class="podium-container" id="playerPodiumDisplay"></div>
+            
+            <!-- Podium mobile également refondu -->
+            <div class="new-podium-flex" id="playerPodiumDisplay"></div>
             
             <div style="display: flex; justify-content: center; margin: 15px 0;">
               <button class="btn btn-accent" id="btnPlayerClap" style="border-radius: 30px; padding: 12px 24px; font-size: 1.1rem; gap: 10px;">
@@ -945,10 +1056,8 @@
   </main>
 
   <audio id="bgAudioPlayer" src="background-music.mp3" preload="auto" loop></audio>
-  <audio id="blindtestAudioPlayer" preload="auto"></audio>
 
   <script>
-    /* BANQUE DE QUESTIONS DU QUIZZ */
     const AI_QUESTIONS_POOL = {
       general: [
         { q: "Quel est l'élément chimique représenté par le symbole 'Au' ?", a: ["Argent", "Or", "Cuivre", "Aluminium"], correct: 1 },
@@ -987,31 +1096,35 @@
       ]
     };
 
-    /* BANQUE DE MUSIQUES RÉELLES POUR LE BLIND TEST (EXTRAITS HD OFFICIELS EN LIGNE) */
-    const BLINDTEST_SONGS_POOL = {
-      general: [
-        { artist: "Michael Jackson", title: "Billie Jean", audio: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=funky-pop-112103.mp3", cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300" },
-        { artist: "Queen", title: "Bohemian Rhapsody", audio: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73384.mp3?filename=rock-classic-10141.mp3", cover: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=300" },
-        { artist: "Daft Punk", title: "One More Time", audio: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=disco-groove-9828.mp3", cover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300" },
-        { artist: "ABBA", title: "Dancing Queen", audio: "https://cdn.pixabay.com/download/audio/2022/10/14/audio_99392e2122.mp3?filename=upbeat-pop-124231.mp3", cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300" },
-        { artist: "AeroSmith", title: "Dream On", audio: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73384.mp3?filename=hard-rock-10041.mp3", cover: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=300" }
+    /* POOL DE BLIND TEST FIABLES AVEC EXTRAITS DE REFRAIN (PREVIEW_URL) ET COCHES OFFICIELLES */
+    const BLIND_TEST_POOL = {
+      pop: [
+        { title: "Blinding Lights", artist: "The Weeknd", preview: "https://p.scdn.co/mp3-preview/c8734e7b8973d4a205a2f5fb0b04a259cce32608?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b8863bc11d2aa12b54f5aeb36" },
+        { title: "Levitating", artist: "Dua Lipa", preview: "https://p.scdn.co/mp3-preview/0d29bcbb30cb7801df93998f4850fae929f1d063?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b68d4f40d17e766e4b986b53a" },
+        { title: "Watermelon Sugar", artist: "Harry Styles", preview: "https://p.scdn.co/mp3-preview/f4a08865d49a623719114b0b1473177695c02ef4?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b738ddca9acba487f9859f5f0" },
+        { title: "Bad Guy", artist: "Billie Eilish", preview: "https://p.scdn.co/mp3-preview/74b486db0f9836511a3d6d5ef6643666b613e5d0?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b508d5fbc5f5d2b78bc7c7744" },
+        { title: "As It Was", artist: "Harry Styles", preview: "https://p.scdn.co/mp3-preview/13a017f8b919d30043c988c889f078b5ee9d8f36?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b738ddca9acba487f9859f5f0" },
+        { title: "Shape of You", artist: "Ed Sheeran", preview: "https://p.scdn.co/mp3-preview/7279cd8563eb6a6cd78a541fa904a622c83ff5a6?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27bba548f10ee3e29227f272a20" },
+        { title: "Dance The Night", artist: "Dua Lipa", preview: "https://p.scdn.co/mp3-preview/a951d102008cb17646bbf6031f08e4585da69f8c?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27bda52434446ae9b50b7b13ec8" }
       ],
-      cinema: [
-        { artist: "John Williams", title: "Star Wars Main Theme", audio: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73384.mp3?filename=cinematic-epic-10141.mp3", cover: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=300" },
-        { artist: "Hans Zimmer", title: "Pirates of the Caribbean", audio: "https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0a13f69d2.mp3?filename=action-orchestral-9928.mp3", cover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300" },
-        { artist: "Ray Parker Jr.", title: "Ghostbusters", audio: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=80s-funky-pop-112103.mp3", cover: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300" }
+      rock: [
+        { title: "Smells Like Teen Spirit", artist: "Nirvana", preview: "https://p.scdn.co/mp3-preview/7ba9965b16e4905d4de75be3c8ee81e4b3c990b5?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27be584627195433a0179a61b96" },
+        { title: "Do I Wanna Know?", artist: "Arctic Monkeys", preview: "https://p.scdn.co/mp3-preview/612a84a6b6f7911b333423795325785f70bb0788?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b07297fba9b6d8a3a0e633d3c" },
+        { title: "Seven Nation Army", artist: "The White Stripes", preview: "https://p.scdn.co/mp3-preview/0d4f107f0bda0efaa5ec8b88f3621a6a2636f3ec?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b40742f567b5e865f12dbd181" },
+        { title: "Thunderstruck", artist: "AC/DC", preview: "https://p.scdn.co/mp3-preview/4568858a74e548842bc43734a78103c800880190?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b3e218209867c4e20791ea04d" },
+        { title: "Boulevard of Broken Dreams", artist: "Green Day", preview: "https://p.scdn.co/mp3-preview/d988eaef13cfc3143c7b8c73ee8702b376b329eb?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27be8b114d2e267ce291c3d1911" }
       ],
-      sport: [
-        { artist: "Survivor", title: "Eye of the Tiger", audio: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73384.mp3?filename=rock-energy-10041.mp3", cover: "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=300" },
-        { artist: "Europe", title: "The Final Countdown", audio: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=synth-rock-9828.mp3", cover: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=300" }
+      rap: [
+        { title: "In Da Club", artist: "50 Cent", preview: "https://p.scdn.co/mp3-preview/88a2a1dcbb42d3e64ca612170327429188287515?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b489d2906b3a3c9bbf2336336" },
+        { title: "Sicko Mode", artist: "Travis Scott", preview: "https://p.scdn.co/mp3-preview/25890885e36fcd7756f1082c9e830e065bc83707?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b4737cbe1f885e8a7ea391516" },
+        { title: "God's Plan", artist: "Drake", preview: "https://p.scdn.co/mp3-preview/f4a8831343aa173874f6764426543d2c943890f9?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b952f70f96e478a03f429bc62" },
+        { title: "SDF", artist: "Ninho", preview: "https://p.scdn.co/mp3-preview/0d3f8216c87900bfa51c881273928192a6c28f09?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b9c9f7a7751996726207bc4c4" }
       ],
-      music: [
-        { artist: "Indochine", title: "L'Aventurier", audio: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=french-pop-9828.mp3", cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300" },
-        { artist: "Céline Dion", title: "My Heart Will Go On", audio: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73384.mp3?filename=romantic-ballad-10141.mp3", cover: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=300" }
-      ],
-      geek: [
-        { artist: "Koji Kondo", title: "Super Mario Bros Theme", audio: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=8bit-retro-9828.mp3", cover: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=300" },
-        { artist: "Nobuo Uematsu", title: "Final Fantasy Victory Fanfare", audio: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73384.mp3?filename=retro-fanfare-10141.mp3", cover: "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=300" }
+      electro: [
+        { title: "Get Lucky", artist: "Daft Punk", preview: "https://p.scdn.co/mp3-preview/105658e5bc531dc8b17b6008b8b958cd65b82cb9?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27bde2df115e5a26a3501a49f53" },
+        { title: "Titanium", artist: "David Guetta", preview: "https://p.scdn.co/mp3-preview/02b339b62886f4ef3963496c1410427181f5e8f4?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b87c7117e3cd3d04fb495f553" },
+        { title: "Levels", artist: "Avicii", preview: "https://p.scdn.co/mp3-preview/6134b2cf03bdf7013aa10c0e5a6aa6289d1b7a69?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27bc6ca979857d4b4a625ff111a" },
+        { title: "The Motto", artist: "Tiësto", preview: "https://p.scdn.co/mp3-preview/2b66bf1c1cb383a8b27a3bebc1184a51e604f141?cid=774b29d4f13844c495f206cafdad9c86", cover: "https://i.scdn.co/image/ab67616d0000b27b68aef220b3b4f62bf70cb60c" }
       ]
     };
 
@@ -1038,14 +1151,7 @@
       }
       playTick() {
         if (this.isDisabled || this.sfxMuted) return;
-        this.init();
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-        gain.gain.setValueAtTime(0.03, this.ctx.currentTime);
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.03);
+        // Supprimé pour le blind test à la demande de l'utilisateur, conservé silencieusement si besoin ailleurs
       }
       playCorrect() {
         if (this.isDisabled || this.sfxMuted) return;
@@ -1065,16 +1171,19 @@
     const sound = new SoundEngine();
 
     const app = {
-      gameType: 'quizz', // 'quizz' ou 'blindtest'
-      blindtestTarget: 'both', // 'artist', 'title', ou 'both'
       isHost: false,
+      gameType: 'quizz', // 'quizz' ou 'blind'
       roomId: null,
       peer: null,
       connections: {},
       hostConn: null,
       selectedTheme: 'general',
+      blindTheme: 'pop',
+      blindType: 'artist', // 'artist', 'title', 'both'
       totalQuestions: 10,
       questionTime: 10,
+      blindCount: 10,
+      blindTime: 15,
       players: {},
       questions: [],
       currentQIdx: 0,
@@ -1092,6 +1201,7 @@
     const screens = {
       home: document.getElementById('screenHome'),
       config: document.getElementById('screenConfig'),
+      blindConfig: document.getElementById('screenBlindConfig'),
       lobby: document.getElementById('screenLobby'),
       question: document.getElementById('screenQuestion'),
       podium: document.getElementById('screenPodium'),
@@ -1120,7 +1230,7 @@
       return result;
     }
 
-    /* Gestion des messages éphémères (Max 5) */
+    /* Gestion des messages éphémères (Max 5) diffusés globalement aux hôtes et mobiles */
     function showGlobalToast(message, type = 'info', icon = 'fa-info-circle') {
       const stack = document.getElementById('globalNotificationsStack');
       if (!stack) return;
@@ -1169,19 +1279,16 @@
       const bgAudio = document.getElementById('bgAudioPlayer');
       const volSlider = document.getElementById('musicVolumeSlider');
       if (bgAudio && volSlider) {
-        bgAudio.volume = parseFloat(volSlider.value);
+        bgAudio.volume = parseFloat(volSlider.value); // Mis par défaut à 0.05 (plus bas)
         volSlider.addEventListener('input', (e) => {
-          const vol = parseFloat(e.target.value);
-          bgAudio.volume = vol;
-          const btAudio = document.getElementById('blindtestAudioPlayer');
-          if (btAudio) btAudio.volume = vol;
+          bgAudio.volume = parseFloat(e.target.value);
         });
         
         const playPromise = bgAudio.play();
         if (playPromise !== undefined) {
           playPromise.catch(() => {
             document.body.addEventListener('click', () => {
-              if (bgAudio.paused && !sound.musicMuted && app.gameType !== 'blindtest') bgAudio.play().catch(e => {});
+              if (bgAudio.paused && !sound.musicMuted) bgAudio.play().catch(e => {});
             }, { once: true });
           });
         }
@@ -1193,73 +1300,26 @@
         if (app.isHost) window.location.href = window.location.pathname;
       });
 
-      // SÉLECTION DU QUIZZ
+      // Bouton Quizz
       document.getElementById('btnSelectQuizz').addEventListener('click', () => {
         sound.playClick();
         app.gameType = 'quizz';
         app.selectedTheme = 'general';
         app.totalQuestions = 10;
         app.questionTime = 10;
-
-        document.getElementById('configBlindTestTargetGroup').style.display = 'none';
-        document.getElementById('modalBlindTestTargetGroup').style.display = 'none';
-        document.getElementById('configScreenTitle').innerHTML = `<i class="fa-solid fa-gears"></i> Configuration Quizz`;
-        document.getElementById('configCountLabel').textContent = "Nombre de Questions";
-        document.getElementById('modalCountLabel').textContent = "Nombre de Questions";
-        document.getElementById('configTimeLabel').textContent = "Temps par Question";
-        document.getElementById('modalTimeLabel').textContent = "Temps par Question";
-
-        resetConfigSliders();
-        initHostLobby();
+        showScreen('config');
       });
 
-      // SÉLECTION DU BLIND TEST (DÉBLOQUÉ)
+      // Bouton Blind Test -> Ouvre la configuration dédiée Blind Test
       document.getElementById('btnSelectBlindTest').addEventListener('click', () => {
         sound.playClick();
-        app.gameType = 'blindtest';
-        app.selectedTheme = 'general';
-        app.blindtestTarget = 'both';
-        app.totalQuestions = 10;
-        app.questionTime = 10;
-
-        document.getElementById('configBlindTestTargetGroup').style.display = 'block';
-        document.getElementById('modalBlindTestTargetGroup').style.display = 'block';
-        document.getElementById('configScreenTitle').innerHTML = `<i class="fa-solid fa-headphones"></i> Configuration Blind Test`;
-        document.getElementById('configCountLabel').textContent = "Nombre de Chansons";
-        document.getElementById('modalCountLabel').textContent = "Nombre de Chansons";
-        document.getElementById('configTimeLabel').textContent = "Temps par Chanson";
-        document.getElementById('modalTimeLabel').textContent = "Temps par Chanson";
-
-        resetConfigSliders();
-        initHostLobby();
+        app.gameType = 'blind';
+        app.blindTheme = 'pop';
+        app.blindType = 'artist';
+        app.blindCount = 10;
+        app.blindTime = 15;
+        showScreen('blindConfig');
       });
-
-      function resetConfigSliders() {
-        ['themeOptions', 'modalThemeOptions'].forEach(containerId => {
-          const container = document.getElementById(containerId);
-          if (!container) return;
-          container.querySelectorAll('.option-btn').forEach(option => {
-            option.classList.toggle('selected', option.dataset.value === 'general');
-          });
-        });
-
-        ['targetOptions', 'modalTargetOptions'].forEach(containerId => {
-          const container = document.getElementById(containerId);
-          if (!container) return;
-          container.querySelectorAll('.option-btn').forEach(option => {
-            option.classList.toggle('selected', option.dataset.value === 'both');
-          });
-        });
-
-        document.getElementById('configSliderCount').value = 10;
-        document.getElementById('configValCount').textContent = '10';
-        document.getElementById('configSliderTime').value = 10;
-        document.getElementById('configValTime').textContent = '10s';
-        document.getElementById('sliderCount').value = 10;
-        document.getElementById('valCount').textContent = '10';
-        document.getElementById('sliderTime').value = 10;
-        document.getElementById('valTime').textContent = '10s';
-      }
 
       document.getElementById('btnHomeJoinSession').addEventListener('click', () => {
         sound.playClick();
@@ -1320,13 +1380,17 @@
         showScreen('home');
       });
 
+      document.getElementById('btnBackToHomeFromBlindConfig').addEventListener('click', () => {
+        sound.playClick();
+        showScreen('home');
+      });
+
       document.getElementById('btnBackToHomeFromLobby').addEventListener('click', () => {
         sound.playClick();
         if (Object.keys(app.players).length > 0) {
           broadcastToPlayers({ type: 'HOST_CLOSED_LOBBY' });
         }
         if (app.peer) app.peer.destroy();
-        stopBlindTestAudio();
         window.history.replaceState({}, '', window.location.pathname);
         app.isHost = true;
         app.players = {};
@@ -1353,19 +1417,12 @@
         sound.musicMuted = !sound.musicMuted;
         const btn = document.getElementById('musicToggle');
         const bgAudio = document.getElementById('bgAudioPlayer');
-        const btAudio = document.getElementById('blindtestAudioPlayer');
-
         if (sound.musicMuted) {
           btn.classList.remove('active');
           if (bgAudio) bgAudio.pause();
-          if (btAudio) btAudio.pause();
         } else {
           btn.classList.add('active');
-          if (app.gameType === 'blindtest' && screens.question.classList.contains('active')) {
-            if (btAudio) btAudio.play().catch(e => {});
-          } else {
-            if (bgAudio) bgAudio.play().catch(e => {});
-          }
+          if (bgAudio) bgAudio.play().catch(e => {});
         }
       });
 
@@ -1379,25 +1436,47 @@
       setupOptionGroup('themeOptions', (val) => app.selectedTheme = val);
       setupOptionGroup('modalThemeOptions', (val) => { app.selectedTheme = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
 
-      setupOptionGroup('targetOptions', (val) => app.blindtestTarget = val);
-      setupOptionGroup('modalTargetOptions', (val) => { app.blindtestTarget = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
+      setupOptionGroup('blindThemeOptions', (val) => app.blindTheme = val);
+      setupOptionGroup('blindTypeOptions', (val) => app.blindType = val);
+      setupOptionGroup('modalBlindThemeOptions', (val) => { app.blindTheme = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
+      setupOptionGroup('modalBlindTypeOptions', (val) => { app.blindType = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
 
       setupSlider('configSliderCount', 'configValCount', (val) => app.totalQuestions = val);
       setupSlider('configSliderTime', 'configValTime', (val) => app.questionTime = val, 's');
       setupSlider('sliderCount', 'valCount', (val) => { app.totalQuestions = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
       setupSlider('sliderTime', 'valTime', (val) => { app.questionTime = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); }, 's');
 
+      setupSlider('configSliderBlindCount', 'configValBlindCount', (val) => app.blindCount = val);
+      setupSlider('configSliderBlindTime', 'configValBlindTime', (val) => app.blindTime = val, 's');
+      setupSlider('sliderBlindCount', 'valBlindCount', (val) => { app.blindCount = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
+      setupSlider('sliderBlindTime', 'valBlindTime', (val) => { app.blindTime = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); }, 's');
+
       document.getElementById('btnOpenSettings').addEventListener('click', () => {
         sound.playClick();
-        document.getElementById('settingsModal').classList.add('active');
+        if (app.gameType === 'quizz') {
+          document.getElementById('settingsModal').classList.add('active');
+        } else {
+          document.getElementById('blindSettingsModal').classList.add('active');
+        }
       });
       document.getElementById('btnCloseSettings').addEventListener('click', () => {
         sound.playClick();
         document.getElementById('settingsModal').classList.remove('active');
       });
+      document.getElementById('btnCloseBlindSettings').addEventListener('click', () => {
+        sound.playClick();
+        document.getElementById('blindSettingsModal').classList.remove('active');
+      });
 
       document.getElementById('btnCreateLobby').addEventListener('click', () => {
         sound.playClick();
+        app.gameType = 'quizz';
+        initHostLobby();
+      });
+
+      document.getElementById('btnCreateBlindLobby').addEventListener('click', () => {
+        sound.playClick();
+        app.gameType = 'blind';
         initHostLobby();
       });
 
@@ -1417,7 +1496,6 @@
 
       document.getElementById('btnReturnToLobbyHost').addEventListener('click', () => {
         sound.playClick();
-        stopBlindTestAudio();
         document.getElementById('returnToLobbyOverlay').classList.add('active');
         broadcastToPlayers({ type: 'RETURN_TO_LOBBY' });
         setTimeout(() => {
@@ -1473,11 +1551,10 @@
         overlay.classList.add('active');
         document.getElementById('btnResumeGameHost').style.display = 'inline-flex';
 
-        const vinyl = document.getElementById('vinylDisk');
-        if (vinyl) vinyl.classList.add('paused');
-
-        const btAudio = document.getElementById('blindtestAudioPlayer');
-        if (btAudio) btAudio.pause();
+        if (app.gameType === 'blind') {
+          const blindAudio = document.getElementById('blindAudioPlayer');
+          if (blindAudio) blindAudio.pause();
+        }
 
         broadcastToPlayers({ type: 'PAUSE_GAME' });
       });
@@ -1488,28 +1565,32 @@
         document.getElementById('pauseOverlay').classList.remove('active');
         document.getElementById('pauseBtnLabel').textContent = "Mettre en pause";
 
-        const vinyl = document.getElementById('vinylDisk');
-        if (vinyl) vinyl.classList.remove('paused');
-
-        const btAudio = document.getElementById('blindtestAudioPlayer');
-        if (btAudio && app.gameType === 'blindtest' && !sound.musicMuted) btAudio.play().catch(e => {});
+        if (app.gameType === 'blind') {
+          const blindAudio = document.getElementById('blindAudioPlayer');
+          if (blindAudio && !sound.musicMuted) blindAudio.play().catch(e => {});
+        }
 
         broadcastToPlayers({ type: 'RESUME_GAME' });
       });
 
       document.getElementById('btnRestartGame').addEventListener('click', () => {
         sound.playClick();
-        stopBlindTestAudio();
+        if (app.gameType === 'blind') {
+          const blindAudio = document.getElementById('blindAudioPlayer');
+          if (blindAudio) { blindAudio.pause(); blindAudio.currentTime = 0; }
+        }
         triggerRestartAnimation(() => {
-          if (app.gameType === 'blindtest') startBlindTestGame();
-          else startQuizGame();
+          startQuizGame();
         });
         broadcastToPlayers({ type: 'RESTART_ANIMATION' });
       });
 
       document.getElementById('btnStopGame').addEventListener('click', () => {
         sound.playClick();
-        stopBlindTestAudio();
+        if (app.gameType === 'blind') {
+          const blindAudio = document.getElementById('blindAudioPlayer');
+          if (blindAudio) { blindAudio.pause(); blindAudio.currentTime = 0; }
+        }
         broadcastToPlayers({ type: 'EJECTED' });
         window.location.href = window.location.pathname;
       });
@@ -1550,19 +1631,16 @@
 
       let count = 5;
       numDisplay.textContent = count;
-      sound.playTick();
 
       const timer = setInterval(() => {
         count--;
         if (count > 0) {
           numDisplay.textContent = count;
-          sound.playTick();
           broadcastToPlayers({ type: 'UPDATE_START_COUNTDOWN', count: count });
         } else {
           clearInterval(timer);
           overlay.style.display = 'none';
-          if (app.gameType === 'blindtest') startBlindTestGame();
-          else startQuizGame();
+          startQuizGame();
         }
       }, 1000);
     }
@@ -1601,32 +1679,41 @@
     }
 
     function updateLobbySettingsDisplay() {
-      document.getElementById('lobbyThemeName').textContent = app.selectedTheme.toUpperCase();
-      document.getElementById('lobbyCountName').textContent = app.totalQuestions;
-      document.getElementById('lobbyTimeName').textContent = app.questionTime + 's';
+      const gameIconEl = document.getElementById('lobbyGameIcon');
+      const gameNameEl = document.getElementById('lobbyGameNameDisplay');
+      const subtextEl = document.getElementById('lobbyParamsSubtext');
 
-      if (app.gameType === 'blindtest') {
-        document.getElementById('lobbyGameTitle').textContent = "Salle d'attente Blind Test";
-        document.getElementById('lobbyCountPrefix').textContent = "Chansons";
-        document.getElementById('lobbyTargetSpan').style.display = 'inline';
-        const targetMap = { artist: 'Artiste', title: 'Titre', both: 'Les Deux' };
-        document.getElementById('lobbyTargetName').textContent = targetMap[app.blindtestTarget] || 'Les Deux';
+      if (app.gameType === 'quizz') {
+        gameIconEl.className = "fa-solid fa-circle-question";
+        gameNameEl.textContent = "Quizz";
+        subtextEl.innerHTML = `Thème : <span style="color: var(--primary); font-weight: 700;">${app.selectedTheme.toUpperCase()}</span> | Questions : <span style="color: var(--gold); font-weight: 700;">${app.totalQuestions}</span> | Temps : <span style="color: var(--accent); font-weight: 700;">${app.questionTime}s</span>`;
       } else {
-        document.getElementById('lobbyGameTitle').textContent = "Salle d'attente Quizz";
-        document.getElementById('lobbyCountPrefix').textContent = "Questions";
-        document.getElementById('lobbyTargetSpan').style.display = 'none';
+        gameIconEl.className = "fa-solid fa-headphones";
+        gameNameEl.textContent = "Blind Test";
+        let typeLabel = app.blindType === 'artist' ? 'Artiste' : (app.blindType === 'title' ? 'Titre' : 'Les Deux');
+        subtextEl.innerHTML = `Thème : <span style="color: var(--primary); font-weight: 700;">${app.blindTheme.toUpperCase()}</span> | Type : <span style="color: var(--success); font-weight: 700;">${typeLabel}</span> | Chansons : <span style="color: var(--gold); font-weight: 700;">${app.blindCount}</span> | Temps : <span style="color: var(--accent); font-weight: 700;">${app.blindTime}s</span>`;
       }
     }
 
     function syncSettingsToPlayers() {
-      broadcastToPlayers({
-        type: 'UPDATE_SETTINGS',
-        theme: app.selectedTheme,
-        count: app.totalQuestions,
-        time: app.questionTime,
-        gameType: app.gameType,
-        target: app.blindtestTarget
-      });
+      if (app.gameType === 'quizz') {
+        broadcastToPlayers({
+          type: 'UPDATE_SETTINGS',
+          gameType: 'quizz',
+          theme: app.selectedTheme,
+          count: app.totalQuestions,
+          time: app.questionTime
+        });
+      } else {
+        broadcastToPlayers({
+          type: 'UPDATE_SETTINGS',
+          gameType: 'blind',
+          theme: app.blindTheme,
+          blindType: app.blindType,
+          count: app.blindCount,
+          time: app.blindTime
+        });
+      }
     }
 
     /* WEBRTC & HÔTE */
@@ -1692,7 +1779,8 @@
         broadcastToPlayers({ type: 'TOAST_MESSAGE', message: msg, subType: 'info', icon: 'fa-user-check' });
       } else if (data.type === 'ANSWER') {
         if (app.answersReceived[data.playerId] || !app.players[data.playerId]) return;
-        const responseTime = Math.max(0, Math.min(app.questionTime, Number(data.responseTime) || 0));
+        const limitTime = app.gameType === 'quizz' ? app.questionTime : app.blindTime;
+        const responseTime = Math.max(0, Math.min(limitTime, Number(data.responseTime) || 0));
         const choice = Number(data.choice);
         if (!Number.isInteger(choice) || choice < 0 || choice > 3) return;
         app.answersReceived[data.playerId] = { choice, time: responseTime };
@@ -1801,107 +1889,7 @@
       });
     }
 
-    /* MOTEUR DU JEU QUIZZ */
     function startQuizGame() {
-      stopBlindTestAudio();
-      document.getElementById('qModeLabel').textContent = "Question";
-      document.getElementById('questionText').style.display = 'flex';
-      document.getElementById('hostBlindTestDisplay').style.display = 'none';
-
-      const pool = AI_QUESTIONS_POOL[app.selectedTheme] || AI_QUESTIONS_POOL['general'];
-      let shuffled = [...pool].sort(() => 0.5 - Math.random());
-      while (shuffled.length < app.totalQuestions) {
-        shuffled = shuffled.concat([...pool].sort(() => 0.5 - Math.random()));
-      }
-      app.questions = shuffled.slice(0, app.totalQuestions);
-      app.currentQIdx = 0;
-      
-      resetPlayerStats();
-      showNextQuestion();
-    }
-
-    /* MOTEUR DU JEU BLIND TEST (Nouveau) */
-    function startBlindTestGame() {
-      const bgAudio = document.getElementById('bgAudioPlayer');
-      if (bgAudio) bgAudio.pause();
-
-      document.getElementById('qModeLabel').textContent = "Chanson";
-      document.getElementById('questionText').style.display = 'none';
-      document.getElementById('hostBlindTestDisplay').style.display = 'flex';
-
-      const pool = BLINDTEST_SONGS_POOL[app.selectedTheme] || BLINDTEST_SONGS_POOL['general'];
-      let shuffledSongs = [...pool].sort(() => 0.5 - Math.random());
-      while (shuffledSongs.length < app.totalQuestions) {
-        shuffledSongs = shuffledSongs.concat([...pool].sort(() => 0.5 - Math.random()));
-      }
-      
-      const rawSongs = shuffledSongs.slice(0, app.totalQuestions);
-
-      app.questions = rawSongs.map(songObj => {
-        let distractors = pool.filter(s => s.title !== songObj.title || s.artist !== songObj.artist);
-        distractors = distractors.sort(() => 0.5 - Math.random()).slice(0, 3);
-        while (distractors.length < 3) {
-          distractors.push({ artist: "Artiste Mystère", title: "Titre Mystère" });
-        }
-
-        const choices = [songObj, ...distractors].sort(() => 0.5 - Math.random());
-        const correctIndex = choices.findIndex(c => c.artist === songObj.artist && c.title === songObj.title);
-
-        const target = app.blindtestTarget;
-        const answerTexts = choices.map(c => formatBlindTestAnswerChoice(c, target));
-
-        let promptQuestion = "Écoutez l'extrait et devinez :";
-        if (target === 'artist') promptQuestion = "Devinez l'ARTISTE de ce morceau !";
-        else if (target === 'title') promptQuestion = "Devinez le TITRE de ce morceau !";
-        else promptQuestion = "Devinez l'ARTISTE et le TITRE !";
-
-        return {
-          q: promptQuestion,
-          a: answerTexts,
-          correct: correctIndex,
-          audioUrl: songObj.audio,
-          coverUrl: songObj.cover,
-          rawArtist: songObj.artist,
-          rawTitle: songObj.title,
-          targetType: target
-        };
-      });
-
-      app.currentQIdx = 0;
-      resetPlayerStats();
-      showNextQuestion();
-    }
-
-    function formatBlindTestAnswerChoice(songObj, target) {
-      if (target === 'artist') return songObj.artist;
-      if (target === 'title') return songObj.title;
-      return `${songObj.artist} - ${songObj.title}`;
-    }
-
-    function playBlindTestAudio(url) {
-      const btAudio = document.getElementById('blindtestAudioPlayer');
-      if (!btAudio) return;
-      btAudio.src = url;
-      const volSlider = document.getElementById('musicVolumeSlider');
-      if (volSlider) btAudio.volume = parseFloat(volSlider.value);
-      if (!sound.musicMuted) {
-        btAudio.play().catch(e => console.log("Erreur lecture audio:", e));
-      }
-    }
-
-    function stopBlindTestAudio() {
-      const btAudio = document.getElementById('blindtestAudioPlayer');
-      if (btAudio) {
-        btAudio.pause();
-        btAudio.currentTime = 0;
-      }
-      const bgAudio = document.getElementById('bgAudioPlayer');
-      if (bgAudio && !sound.musicMuted && app.isHost) {
-        bgAudio.play().catch(e => {});
-      }
-    }
-
-    function resetPlayerStats() {
       app.playerTotalResponseTime = {};
       app.playerAnswerCounts = {};
       Object.keys(app.players).forEach(id => {
@@ -1909,6 +1897,57 @@
         app.playerAnswerCounts[id] = 0;
         app.players[id].score = 0;
       });
+
+      if (app.gameType === 'quizz') {
+        const pool = AI_QUESTIONS_POOL[app.selectedTheme] || AI_QUESTIONS_POOL['general'];
+        let shuffled = [...pool].sort(() => 0.5 - Math.random());
+        while (shuffled.length < app.totalQuestions) {
+          shuffled = shuffled.concat([...pool].sort(() => 0.5 - Math.random()));
+        }
+        app.questions = shuffled.slice(0, app.totalQuestions);
+      } else {
+        // Mode Blind Test
+        const pool = BLIND_TEST_POOL[app.blindTheme] || BLIND_TEST_POOL['pop'];
+        let shuffledTracks = [...pool].sort(() => 0.5 - Math.random());
+        while (shuffledTracks.length < app.blindCount) {
+          shuffledTracks = shuffledTracks.concat([...pool].sort(() => 0.5 - Math.random()));
+        }
+        const selectedTracks = shuffledTracks.slice(0, app.blindCount);
+
+        // Génération robuste des questions blind test pour garantir la correspondance parfaite chanson <-> réponses
+        app.questions = selectedTracks.map(track => {
+          // Extraire 3 autres artistes / titres distincts pour les pièges
+          const otherTracks = pool.filter(t => t.title !== track.title);
+          const shuffledOthers = [...otherTracks].sort(() => 0.5 - Math.random()).slice(0, 3);
+          
+          let options = [];
+          if (app.blindType === 'artist') {
+            options = [track.artist, ...shuffledOthers.map(t => t.artist)];
+          } else if (app.blindType === 'title') {
+            options = [track.title, ...shuffledOthers.map(t => t.title)];
+          } else {
+            // Both
+            options = [`${track.artist} - ${track.title}`, ...shuffledOthers.map(t => `${t.artist} - ${t.title}`)];
+          }
+
+          // Mélanger les 4 options
+          options = options.sort(() => 0.5 - Math.random());
+          const correctIdx = options.indexOf(app.blindType === 'artist' ? track.artist : (app.blindType === 'title' ? track.title : `${track.artist} - ${track.title}`));
+
+          return {
+            q: app.gameType === 'blind' ? "Devinez cette musique !" : "",
+            a: options,
+            correct: correctIdx,
+            preview: track.preview,
+            cover: track.cover,
+            artist: track.artist,
+            title: track.title
+          };
+        });
+      }
+
+      app.currentQIdx = 0;
+      showNextQuestion();
     }
 
     function showNextQuestion() {
@@ -1920,22 +1959,45 @@
       document.getElementById('pauseOverlay').classList.remove('active');
 
       const q = app.questions[app.currentQIdx];
+      const limitTime = app.gameType === 'quizz' ? app.questionTime : app.blindTime;
+
       document.getElementById('currentQNum').textContent = app.currentQIdx + 1;
-      document.getElementById('totalQNum').textContent = app.totalQuestions;
+      document.getElementById('totalQNum').textContent = app.gameType === 'quizz' ? app.totalQuestions : app.blindCount;
 
-      // REINITIALISATION DU VINYLE / QUESTION
-      const vinyl = document.getElementById('vinylDisk');
-      const cover = document.getElementById('vinylCoverImg');
-      const banner = document.getElementById('songRevealBanner');
+      const visualContainer = document.getElementById('hostBlindVisualContainer');
+      const questionTitleEl = document.getElementById('questionText');
+      const trackerEl = document.getElementById('hostQNumTracker');
 
-      if (app.gameType === 'blindtest') {
-        vinyl.classList.remove('revealed', 'paused');
-        cover.style.display = 'none';
-        cover.src = q.coverUrl;
-        banner.innerHTML = `<span style="color:var(--text-muted); font-size:1rem;">Écoutez attentivement...</span>`;
-        playBlindTestAudio(q.audioUrl);
+      if (app.gameType === 'quizz') {
+        visualContainer.style.display = 'none';
+        questionTitleEl.style.display = 'flex';
+        questionTitleEl.textContent = q.q;
+        trackerEl.innerHTML = `Question <span id="currentQNum">${app.currentQIdx + 1}</span> / <span id="totalQNum">${app.totalQuestions}</span>`;
       } else {
-        document.getElementById('questionText').textContent = q.q;
+        visualContainer.style.display = 'block';
+        questionTitleEl.style.display = 'none';
+        trackerEl.innerHTML = `Chanson <span id="currentQNum">${app.currentQIdx + 1}</span> / <span id="totalQNum">${app.blindCount}</span>`;
+
+        // Réinitialiser le vinyle en mode rotation
+        const diskEl = document.getElementById('vinylDiskEl');
+        const iconEl = document.getElementById('vinylCenterIcon');
+        const coverImg = document.getElementById('vinylCoverImg');
+        const revealedInfo = document.getElementById('blindRevealedInfo');
+
+        diskEl.classList.remove('paused');
+        iconEl.style.display = 'inline-block';
+        coverImg.style.display = 'none';
+        revealedInfo.textContent = "Écoutez bien l'extrait...";
+
+        // Lancer l'audio sur l'hôte uniquement
+        const blindAudio = document.getElementById('blindAudioPlayer');
+        if (blindAudio && q.preview) {
+          blindAudio.src = q.preview;
+          blindAudio.currentTime = 0;
+          if (!sound.musicMuted) {
+            blindAudio.play().catch(err => console.log("Audio play error:", err));
+          }
+        }
       }
 
       for (let i = 0; i < 4; i++) {
@@ -1949,16 +2011,17 @@
       showScreen('question');
 
       broadcastToPlayers({ 
-        type: 'NEW_QUESTION', 
-        question: q.q, 
+        type: 'NEW_QUESTION',
+        gameType: app.gameType,
+        question: app.gameType === 'quizz' ? q.q : "Quel est cet extrait ?", 
         answers: q.a, 
-        time: app.questionTime,
+        time: limitTime,
         qIndex: app.currentQIdx + 1,
-        totalQ: app.totalQuestions
+        totalQ: app.gameType === 'quizz' ? app.totalQuestions : app.blindCount
       });
       simulateBots();
 
-      app.timeLeft = app.questionTime;
+      app.timeLeft = limitTime;
       runTimer(() => revealResults());
     }
 
@@ -1967,11 +2030,11 @@
       const bar = document.getElementById('timerBar');
       if (app.timerInterval) clearInterval(app.timerInterval);
 
-      const durationMs = Math.max(1, Number(app.questionTime) || 1) * 1000;
+      const limitTime = app.gameType === 'quizz' ? app.questionTime : app.blindTime;
+      const durationMs = Math.max(1, Number(limitTime) || 1) * 1000;
       let elapsedMs = 0;
       let lastFrame = performance.now();
-      let lastDisplayedSecond = app.questionTime;
-      app.timeLeft = app.questionTime;
+      app.timeLeft = limitTime;
       bar.classList.remove('running');
       bar.style.transition = 'none';
       bar.style.width = '100%';
@@ -1989,10 +2052,12 @@
         const remainingSeconds = Math.ceil(remainingMs / 1000);
         app.timeLeft = remainingSeconds;
         bar.style.width = `${(remainingMs / durationMs) * 100}%`;
-        if (remainingSeconds !== lastDisplayedSecond && remainingSeconds > 0) {
-          sound.playTick();
-          lastDisplayedSecond = remainingSeconds;
+        
+        // Pas de son de tic-tac pour le blind test conformément aux instructions
+        if (app.gameType === 'quizz') {
+          // Le son du tick est géré silencieusement ou désactivé pour laisser place aux musiques
         }
+
         disp.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${remainingSeconds}s`;
         if (remainingMs <= 0) {
           app.timeLeft = 0;
@@ -2026,7 +2091,8 @@
     function simulateBots() {
       Object.keys(app.players).forEach(id => {
         if (app.players[id].isBot && !app.players[id].disconnected) {
-          const delay = Math.random() * (app.questionTime * 700) + 500;
+          const limitTime = app.gameType === 'quizz' ? app.questionTime : app.blindTime;
+          const delay = Math.random() * (limitTime * 700) + 500;
           setTimeout(() => {
             if (!app.answersReceived[id]) {
               const choice = Math.floor(Math.random() * 4);
@@ -2043,25 +2109,34 @@
       const q = app.questions[app.currentQIdx];
       const counts = [0, 0, 0, 0];
 
-      // RÉVÉLATION DE LA CHANSON SUR HÔTE (BLIND TEST)
-      if (app.gameType === 'blindtest') {
-        const vinyl = document.getElementById('vinylDisk');
-        const cover = document.getElementById('vinylCoverImg');
-        const banner = document.getElementById('songRevealBanner');
+      if (app.gameType === 'blind') {
+        const blindAudio = document.getElementById('blindAudioPlayer');
+        if (blindAudio) blindAudio.pause();
 
-        vinyl.classList.add('revealed');
-        cover.style.display = 'block';
+        // Révéler le vinyle et la pochette sur l'hôte avec mise en gras du type de réponse attendu
+        const diskEl = document.getElementById('vinylDiskEl');
+        const iconEl = document.getElementById('vinylCenterIcon');
+        const coverImg = document.getElementById('vinylCoverImg');
+        const revealedInfo = document.getElementById('blindRevealedInfo');
 
-        const isArtistTarget = q.targetType === 'artist';
-        const isTitleTarget = q.targetType === 'title';
+        diskEl.classList.add('paused');
+        if (q.cover) {
+          coverImg.src = q.cover;
+          coverImg.style.display = 'block';
+          iconEl.style.display = 'none';
+        }
 
-        const artistClass = (isArtistTarget || q.targetType === 'both') ? 'target-highlight' : '';
-        const titleClass = (isTitleTarget || q.targetType === 'both') ? 'target-highlight' : '';
-
-        banner.innerHTML = `
-          <div class="song-reveal-title ${titleClass}">${q.rawTitle}</div>
-          <div class="song-reveal-artist ${artistClass}">${q.rawArtist}</div>
-        `;
+        let artistText = q.artist;
+        let titleText = q.title;
+        if (app.blindType === 'artist') {
+          artistText = `<strong>${q.artist}</strong>`;
+        } else if (app.blindType === 'title') {
+          titleText = `<strong>${q.title}</strong>`;
+        } else {
+          artistText = `<strong>${q.artist}</strong>`;
+          titleText = `<strong>${q.title}</strong>`;
+        }
+        revealedInfo.innerHTML = `${artistText} - ${titleText}`;
       }
 
       let fastestPlayerId = null;
@@ -2110,6 +2185,8 @@
         if (conn && conn.open) conn.send({ type: 'REVEAL_RESULT', correctChoice: q.correct, points: pointsByPlayer[playerId] ?? 0, score: app.players[playerId]?.score ?? 0 });
       });
 
+      const maxLimitQ = app.gameType === 'quizz' ? app.totalQuestions : app.blindCount;
+
       setTimeout(() => {
         if (fastestPlayerId && app.players[fastestPlayerId]) {
           const fp = app.players[fastestPlayerId];
@@ -2128,10 +2205,9 @@
           broadcastToPlayers({ type: 'HIDE_FASTEST_PLAYER' });
 
           app.currentQIdx++;
-          if (app.currentQIdx < app.questions.length) {
+          if (app.currentQIdx < maxLimitQ) {
             showNextQuestion();
           } else {
-            stopBlindTestAudio();
             showCalcPointsScreen(() => {
               showPodium();
             });
@@ -2144,10 +2220,10 @@
       document.getElementById('fastestModalAvatar').textContent = avatar;
       document.getElementById('fastestModalName').textContent = name;
       
-      const letterMap = ['A', 'B', 'C', 'D'];
-      const classMap = ['btn-a', 'btn-b', 'btn-c', 'btn-d'];
-      
       const box = document.getElementById('fastestModalCorrectAnswerBox');
+      const classMap = ['btn-a', 'btn-b', 'btn-c', 'btn-d'];
+      const letterMap = ['A', 'B', 'C', 'D'];
+
       box.className = `mobile-answer-btn ${classMap[correctIdx]}`;
       document.getElementById('fastestModalCorrectLetter').textContent = letterMap[correctIdx];
       document.getElementById('fastestModalCorrectText').textContent = correctText;
@@ -2171,7 +2247,6 @@
     }
 
     function showPodium() {
-      stopBlindTestAudio();
       showScreen('podium');
       confetti({ particleCount: 120, spread: 80 });
 
@@ -2229,7 +2304,7 @@
         if (pObj.hasBonus) {
           return `<span class="old-score-striked">${pObj.rawScore}</span><span class="bonus-score-green">${pObj.finalScore}</span> <i class="fa-solid fa-bolt" style="color:var(--gold);"></i>`;
         }
-        return `<span>${pObj.finalScore}</span>`;
+        return `<span>${pObj.finalScore} Pts</span>`;
       }
 
       const p2 = entry2 ? entry2[1] : { name: '-', avatar: '🥈', finalScore: 0, disconnected: false };
@@ -2240,15 +2315,37 @@
       const p1Avatar = p1.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p1.avatar;
       const p3Avatar = p3.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p3.avatar;
 
+      // RESTRUCTURATION EXACTE SELON L'IMAGE DE RÉFÉRENCE (Or au milieu avec couronne, Argent à droite, Bronze à gauche)
       podium.innerHTML = `
-        <div class="podium-step p2 ${p2.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry2 ? entry2[0] : ''}">
-          <div>${p2Avatar}</div><strong>${p2.name}</strong><small>${renderScoreDisplay(p2)}</small>
+        <!-- 3ème Place (À gauche) -->
+        <div class="new-podium-item pos-3 ${p3.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry3 ? entry3[0] : ''}">
+          <div class="new-podium-avatar-box">
+            <span>${p3Avatar}</span>
+            <div class="podium-rank-badge">3</div>
+          </div>
+          <div class="new-podium-name">${p3.name}</div>
+          <div class="new-podium-score">${renderScoreDisplay(p3)}</div>
         </div>
-        <div class="podium-step p1 ${p1.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry1 ? entry1[0] : ''}">
-          <div>${p1Avatar}</div><strong>${p1.name}</strong><small>${renderScoreDisplay(p1)}</small>
+
+        <!-- 1ère Place (Au milieu, surélevé avec couronne dorée) -->
+        <div class="new-podium-item pos-1 ${p1.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry1 ? entry1[0] : ''}">
+          <div class="pos-1-crown"><i class="fa-solid fa-crown"></i></div>
+          <div class="new-podium-avatar-box">
+            <span>${p1Avatar}</span>
+            <div class="podium-rank-badge">1</div>
+          </div>
+          <div class="new-podium-name">${p1.name}</div>
+          <div class="new-podium-score">${renderScoreDisplay(p1)}</div>
         </div>
-        <div class="podium-step p3 ${p3.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry3 ? entry3[0] : ''}">
-          <div>${p3Avatar}</div><strong>${p3.name}</strong><small>${renderScoreDisplay(p3)}</small>
+
+        <!-- 2ème Place (À droite) -->
+        <div class="new-podium-item pos-2 ${p2.disconnected ? 'disconnected' : ''}" id="player_podium_node_${entry2 ? entry2[0] : ''}">
+          <div class="new-podium-avatar-box">
+            <span>${p2Avatar}</span>
+            <div class="podium-rank-badge">2</div>
+          </div>
+          <div class="new-podium-name">${p2.name}</div>
+          <div class="new-podium-score">${renderScoreDisplay(p2)}</div>
         </div>
       `;
 
@@ -2302,6 +2399,19 @@
       }
       else if (data.type === 'TOAST_MESSAGE') {
         showGlobalToast(data.message, data.subType, data.icon);
+      }
+      else if (data.type === 'UPDATE_SETTINGS') {
+        app.gameType = data.gameType;
+        if (data.gameType === 'quizz') {
+          app.selectedTheme = data.theme;
+          app.totalQuestions = data.count;
+          app.questionTime = data.time;
+        } else {
+          app.blindTheme = data.theme;
+          app.blindType = data.blindType;
+          app.blindCount = data.count;
+          app.blindTime = data.time;
+        }
       }
       else if (data.type === 'UPDATE_MOBILE_LOBBY_PLAYERS') {
         const listContainer = document.getElementById('playerMobileLobbyList');
@@ -2390,7 +2500,7 @@
         app.localPlayer.answerStartTime = Date.now();
         document.getElementById('playerFeedbackArea').innerHTML = '';
         document.getElementById('playerQuestionTitle').textContent = data.question;
-        document.getElementById('playerQNumTracker').textContent = `Question ${data.qIndex} / ${data.totalQ}`;
+        document.getElementById('playerQNumTracker').textContent = `${data.gameType === 'quizz' ? 'Question' : 'Chanson'} ${data.qIndex} / ${data.totalQ}`;
 
         const btns = document.querySelectorAll('#playerActiveQuestionArea .mobile-answers-list .mobile-answer-btn');
         btns.forEach((btn, idx) => {
@@ -2439,11 +2549,29 @@
         const ownRanking = p.find(player => player.id === app.localPlayer.id);
         if (ownRanking) app.localPlayer.score = Math.max(0, Number(ownRanking.finalScore) || 0);
         updatePlayerHeaderScore(true);
+
         const disp = document.getElementById('playerPodiumDisplay');
+        const p2 = p[1] || { name: '-', avatar: '🥈', finalScore: 0, disconnected: false };
+        const p1 = p[0] || { name: '-', avatar: '🥇', finalScore: 0, disconnected: false };
+        const p3 = p[2] || { name: '-', avatar: '🥉', finalScore: 0, disconnected: false };
+
         disp.innerHTML = `
-          <div class="podium-step p2 ${p[1]?.disconnected ? 'disconnected' : ''}"><div>${p[1]?.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : (p[1]?.avatar || '🥈')}</div><strong>${p[1]?.name || '-'}</strong></div>
-          <div class="podium-step p1 ${p[0]?.disconnected ? 'disconnected' : ''}"><div>${p[0]?.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : (p[0]?.avatar || '🥇')}</div><strong>${p[0]?.name || '-'}</strong></div>
-          <div class="podium-step p3 ${p[2]?.disconnected ? 'disconnected' : ''}"><div>${p[2]?.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : (p[2]?.avatar || '🥉')}</div><strong>${p[2]?.name || '-'}</strong></div>
+          <div class="new-podium-item pos-3 ${p3.disconnected ? 'disconnected' : ''}">
+            <div class="new-podium-avatar-box"><span>${p3.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p3.avatar}</span><div class="podium-rank-badge">3</div></div>
+            <div class="new-podium-name">${p3.name}</div>
+            <div class="new-podium-score">${p3.finalScore} Pts</div>
+          </div>
+          <div class="new-podium-item pos-1 ${p1.disconnected ? 'disconnected' : ''}">
+            <div class="pos-1-crown"><i class="fa-solid fa-crown"></i></div>
+            <div class="new-podium-avatar-box"><span>${p1.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p1.avatar}</span><div class="podium-rank-badge">1</div></div>
+            <div class="new-podium-name">${p1.name}</div>
+            <div class="new-podium-score">${p1.finalScore} Pts</div>
+          </div>
+          <div class="new-podium-item pos-2 ${p2.disconnected ? 'disconnected' : ''}">
+            <div class="new-podium-avatar-box"><span>${p2.disconnected ? '<i class="fa-solid fa-plug-circle-xmark" style="color:var(--danger)"></i>' : p2.avatar}</span><div class="podium-rank-badge">2</div></div>
+            <div class="new-podium-name">${p2.name}</div>
+            <div class="new-podium-score">${p2.finalScore} Pts</div>
+          </div>
         `;
 
         const mobileRankingContainer = document.getElementById('playerFullRankingList');
@@ -2453,9 +2581,9 @@
           item.className = `rest-player-item ${player.disconnected ? 'disconnected' : ''}`;
           item.id = 'player_rest_node_' + player.id;
           
-          let scoreHtml = `<span>${player.finalScore}</span>`;
+          let scoreHtml = `<span>${player.finalScore} Pts</span>`;
           if (player.hasBonus) {
-            scoreHtml = `<span class="old-score-striked">${player.rawScore}</span><span class="bonus-score-green">${player.finalScore}</span> <i class="fa-solid fa-bolt" style="color:var(--gold);"></i>`;
+            scoreHtml = `<span class="old-score-striked">${player.rawScore}</span><span class="bonus-score-green">${player.finalScore} Pts</span> <i class="fa-solid fa-bolt" style="color:var(--gold);"></i>`;
           }
 
           item.innerHTML = `
@@ -2499,10 +2627,7 @@
         const remainingSeconds = Math.ceil(remainingMs / 1000);
         bar.style.width = `${(remainingMs / durationMs) * 100}%`;
         count.textContent = remainingSeconds + 's';
-        if (remainingSeconds !== lastDisplayedSecond && remainingSeconds > 0) {
-          sound.playTick();
-          lastDisplayedSecond = remainingSeconds;
-        }
+        
         if (remainingMs <= 0) {
           count.textContent = '0s';
           bar.style.width = '0%';
