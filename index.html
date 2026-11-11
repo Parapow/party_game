@@ -37,7 +37,7 @@
       --c-red: #e8514c;
       --c-blue: #5f69a8;
       --c-green: #3f7a5a;
-      --c-yellow: #f0a93a;
+      --c-yellow: #d4780a;
       --text-light: #f7f4ff;
       --text-muted: #a49cc0;
       --radius: 26px;
@@ -286,7 +286,7 @@
     .timer-bar.running { transition: width 1s linear; }
 
     .question-title {
-      font-size: 1.55rem; font-weight: 700; text-align: center; margin-bottom: 22px; min-height: 120px; padding: 22px;
+      font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 500; line-height: 1.35; text-align: center; margin-bottom: 22px; min-height: 120px; padding: 22px;
       display: flex; align-items: center; justify-content: center; color: #fff;
       background: var(--hero-grad); border-radius: var(--radius); position: relative; overflow: hidden;
       box-shadow: 0 10px 26px rgba(92, 69, 184, 0.4);
@@ -305,7 +305,7 @@
     #hostAns0 { background: var(--c-red); }
     #hostAns1 { background: var(--c-blue); }
     #hostAns2 { background: var(--c-green); }
-    #hostAns3 { background: var(--c-yellow); color: #2a1d05; }
+    #hostAns3 { background: var(--c-yellow); }
     .answer-prefix {
       width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
       font-weight: 900; color: #1a1530; background: #fff; flex-shrink: 0;
@@ -346,6 +346,7 @@
     .btn-ctrl-pause { background: rgba(240,169,58,0.18); color: #f0a93a; }
     .btn-ctrl-restart { background: rgba(165,140,255,0.2); color: var(--primary); }
     .btn-ctrl-stop { background: rgba(255,90,95,0.18); color: #ff7b7f; }
+    .btn-ctrl-lobby { background: rgba(255,255,255,0.1); color: #fff; }
     .btn-ctrl:hover { filter: brightness(1.25); }
 
     /* PODIUM HÔTE */
@@ -522,7 +523,7 @@
     .mobile-answer-btn.btn-a { background: var(--c-red); }
     .mobile-answer-btn.btn-b { background: var(--c-blue); }
     .mobile-answer-btn.btn-c { background: var(--c-green); }
-    .mobile-answer-btn.btn-d { background: var(--c-yellow); color: #2a1d05; }
+    .mobile-answer-btn.btn-d { background: var(--c-yellow); }
 
     .mobile-answer-btn.locked { opacity: 0.3; pointer-events: none; }
     .mobile-answer-btn.selected-choice { opacity: 1 !important; outline: 4px solid #fff; }
@@ -673,6 +674,7 @@
       </div>
       <button class="icon-btn active" id="musicToggle" title="Activer/Désactiver Musique"><i class="fa-solid fa-music"></i></button>
       <button class="icon-btn active" id="sfxToggle" title="Sons"><i class="fa-solid fa-volume-high"></i></button>
+      <button class="icon-btn" id="fullscreenToggle" title="Plein écran"><i class="fa-solid fa-expand"></i></button>
     </div>
   </header>
 
@@ -855,10 +857,13 @@
 
           <div class="host-controls-bar">
             <button class="btn-ctrl btn-ctrl-pause" id="btnPauseGame">
-              <i class="fa-solid fa-pause"></i> <span id="pauseBtnLabel">Mettre en pause</span>
+              <i class="fa-solid fa-pause"></i> <span id="pauseBtnLabel">Pause</span>
             </button>
             <button class="btn-ctrl btn-ctrl-restart" id="btnRestartGame">
               <i class="fa-solid fa-rotate-right"></i> Recommencer
+            </button>
+            <button class="btn-ctrl btn-ctrl-lobby" id="btnLobbyGame">
+              <i class="fa-solid fa-house"></i> Salle d'attente
             </button>
             <button class="btn-ctrl btn-ctrl-stop" id="btnStopGame">
               <i class="fa-solid fa-square"></i> Arrêter
@@ -964,7 +969,7 @@
           <!-- QUESTION ACTIVE -->
           <div id="playerActiveQuestionArea" style="display: none; padding-top: 15px;">
             <div id="playerQNumTracker" style="text-align: center; font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 8px;">Question 1 / 10</div>
-            <div id="playerQuestionTitle" style="font-size: 1.1rem; font-weight: 700; text-align: center; margin-bottom: 12px; background: var(--hero-grad); border-radius: 22px; padding: 18px 16px; box-shadow: 0 8px 20px rgba(92,69,184,0.4);">Question...</div>
+            <div id="playerQuestionTitle" style="font-size: 1.1rem; font-weight: 500; text-align: center; margin-bottom: 12px; background: var(--hero-grad); border-radius: 22px; padding: 18px 16px; box-shadow: 0 8px 20px rgba(92,69,184,0.4);">Question...</div>
 
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
               <div style="flex-grow: 1; height: 10px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden;">
@@ -1138,7 +1143,8 @@
       isPaused: false,
       timeLeft: 10,
       localPlayer: { id: null, name: '', avatar: '😎', choice: null, answerStartTime: 0, score: 0 },
-      clapCooldown: false
+      clapCooldown: false,
+      gameToken: 0
     };
 
     const screens = {
@@ -1190,6 +1196,36 @@
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 400);
       }, 3200);
+    }
+
+    function returnToLobbyFromGame() {
+      app.gameToken++;
+      if (app.timerInterval) { clearInterval(app.timerInterval); app.timerInterval = null; }
+      app.isPaused = false;
+      ['pauseOverlay', 'fastestPlayerOverlay', 'calcPointsOverlay', 'restartOverlay'].forEach(id => document.getElementById(id).classList.remove('active'));
+      document.getElementById('pauseBtnLabel').textContent = "Pause";
+      const overlay = document.getElementById('returnToLobbyOverlay');
+      overlay.classList.add('active');
+      broadcastToPlayers({ type: 'RETURN_TO_LOBBY' });
+      setTimeout(() => {
+        overlay.classList.remove('active');
+        showScreen('lobby');
+        updateLobbyUI();
+        broadcastPlayersListToMobile();
+      }, 2000);
+    }
+
+    /* ===== CONFETTIS PODIUM (une seule fois) ===== */
+    function playPodiumConfetti() {
+      if (typeof confetti !== 'function') return;
+      const base = { colors: ['#a58cff', '#ffc247', '#e8514c', '#3ddc97', '#6fb3ff', '#ffffff'], zIndex: 300, disableForReducedMotion: true };
+      confetti({ ...base, particleCount: 140, spread: 100, startVelocity: 45, origin: { x: 0.5, y: 0.65 } });
+      const end = Date.now() + 2500;
+      (function frame() {
+        confetti({ ...base, particleCount: 4, angle: 60, spread: 60, origin: { x: 0, y: 0.8 } });
+        confetti({ ...base, particleCount: 4, angle: 120, spread: 60, origin: { x: 1, y: 0.8 } });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
     }
 
     /* ===== PODIUM : rendu partagé hôte / mobile ===== */
@@ -1410,6 +1446,30 @@
         else btn.classList.add('active');
       });
 
+      const fsBtn = document.getElementById('fullscreenToggle');
+      if (fsBtn) {
+        if (!document.documentElement.requestFullscreen) fsBtn.style.display = 'none';
+        fsBtn.addEventListener('click', () => {
+          sound.playClick();
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => showGlobalToast("Le plein écran n'est pas disponible.", "error", "fa-triangle-exclamation"));
+          } else {
+            document.exitFullscreen();
+          }
+        });
+        document.addEventListener('fullscreenchange', () => {
+          const on = !!document.fullscreenElement;
+          fsBtn.classList.toggle('active', on);
+          fsBtn.querySelector('i').className = on ? 'fa-solid fa-compress' : 'fa-solid fa-expand';
+          fsBtn.title = on ? 'Quitter le plein écran' : 'Plein écran';
+        });
+      }
+
+      document.getElementById('btnLobbyGame').addEventListener('click', () => {
+        sound.playClick();
+        returnToLobbyFromGame();
+      });
+
       setupOptionGroup('themeOptions', (val) => app.selectedTheme = val);
       setupOptionGroup('modalThemeOptions', (val) => { app.selectedTheme = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
 
@@ -1497,7 +1557,7 @@
       document.getElementById('btnPauseGame').addEventListener('click', () => {
         sound.playClick();
         app.isPaused = true;
-        document.getElementById('pauseBtnLabel').textContent = "En pause";
+        document.getElementById('pauseBtnLabel').textContent = "Pause";
         
         const overlay = document.getElementById('pauseOverlay');
         overlay.classList.add('active');
@@ -1510,14 +1570,15 @@
         sound.playClick();
         app.isPaused = false;
         document.getElementById('pauseOverlay').classList.remove('active');
-        document.getElementById('pauseBtnLabel').textContent = "Mettre en pause";
+        document.getElementById('pauseBtnLabel').textContent = "Pause";
         broadcastToPlayers({ type: 'RESUME_GAME' });
       });
 
       document.getElementById('btnRestartGame').addEventListener('click', () => {
         sound.playClick();
+        const restartToken = app.gameToken;
         triggerRestartAnimation(() => {
-          startQuizGame();
+          if (restartToken === app.gameToken) startQuizGame();
         });
         broadcastToPlayers({ type: 'RESTART_ANIMATION' });
       });
@@ -1807,6 +1868,7 @@
         shuffled = shuffled.concat([...pool].sort(() => 0.5 - Math.random()));
       }
       app.questions = shuffled.slice(0, app.totalQuestions);
+      app.gameToken++;
       app.currentQIdx = 0;
       
       app.playerTotalResponseTime = {};
@@ -1825,7 +1887,7 @@
       app.isPaused = false;
       app.questionStartedAt = Date.now();
       app.localPlayer.answerStartTime = app.questionStartedAt;
-      document.getElementById('pauseBtnLabel').textContent = "Mettre en pause";
+      document.getElementById('pauseBtnLabel').textContent = "Pause";
       document.getElementById('pauseOverlay').classList.remove('active');
 
       const q = app.questions[app.currentQIdx];
@@ -1937,6 +1999,7 @@
     function revealResults() {
       const q = app.questions[app.currentQIdx];
       const counts = [0, 0, 0, 0];
+      const token = app.gameToken;
 
       let fastestPlayerId = null;
       let minTime = Infinity;
@@ -1987,6 +2050,7 @@
       });
 
       setTimeout(() => {
+        if (token !== app.gameToken) return;
         if (fastestPlayerId && app.players[fastestPlayerId]) {
           const fp = app.players[fastestPlayerId];
           showFastestPlayerOverlay(fp.avatar, fp.name, q.correct, q.a[q.correct]);
@@ -2002,12 +2066,14 @@
         setTimeout(() => {
           hideFastestPlayerOverlay();
           broadcastToPlayers({ type: 'HIDE_FASTEST_PLAYER' });
+          if (token !== app.gameToken) return;
 
           app.currentQIdx++;
           if (app.currentQIdx < app.questions.length) {
             showNextQuestion();
           } else {
             showCalcPointsScreen(() => {
+              if (token !== app.gameToken) return;
               showPodium();
             });
           }
@@ -2046,8 +2112,9 @@
     }
 
     function showPodium() {
+      const podiumWasActive = screens.podium.classList.contains('active');
       showScreen('podium');
-      confetti({ particleCount: 120, spread: 80 });
+      if (!podiumWasActive) playPodiumConfetti();
 
       let bestAvgPlayer = null;
       let lowestAvgTime = Infinity;
@@ -2167,6 +2234,12 @@
         }
       }
       else if (data.type === 'RETURN_TO_LOBBY') {
+        if (window.pTimer) { clearInterval(window.pTimer); window.pTimer = null; window.playerTimerToken = (window.playerTimerToken || 0) + 1; }
+        window.playerTimerPaused = false;
+        ['pauseOverlay', 'fastestPlayerOverlay', 'calcPointsOverlay'].forEach(id => document.getElementById(id).classList.remove('active'));
+        document.getElementById('gameStartLoadingOverlay').style.display = 'none';
+        document.getElementById('playerActiveQuestionArea').style.display = 'none';
+        document.getElementById('playerFeedbackArea').style.display = 'none';
         document.getElementById('returnToLobbyOverlay').classList.add('active');
         setTimeout(() => {
           document.getElementById('returnToLobbyOverlay').classList.remove('active');
@@ -2273,6 +2346,8 @@
         }
       }
       else if (data.type === 'FINAL_PODIUM') {
+        const mobilePodiumShown = document.getElementById('playerPodiumArea').style.display === 'block';
+        if (!mobilePodiumShown) playPodiumConfetti();
         document.getElementById('calcPointsOverlay').classList.remove('active');
         document.getElementById('playerWaitArea').style.display = 'none';
         document.getElementById('playerLobbyViewListContainer').style.display = 'none';
