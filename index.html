@@ -318,6 +318,26 @@
     .count-badge { position: absolute; right: 14px; background: rgba(0,0,0,0.35); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; display: none; }
     .count-badge.visible { display: block; }
 
+    /* LE JUSTE PRIX */
+    .game-card.price-game { background: var(--c-green); }
+    .game-card.price-game::after {
+      content: '€'; font-family: 'Anton', sans-serif; position: absolute; right: 16px; bottom: -22px;
+      font-size: 6.5rem; line-height: 1; color: rgba(255,255,255,0.16); pointer-events: none;
+    }
+    .game-card.price-game:hover { box-shadow: 0 14px 30px rgba(63,122,90,0.55); }
+
+    .price-item-box { display: none; flex-direction: column; align-items: center; gap: 10px; margin: 0 0 20px; }
+    .price-item-box.pop .price-item-visual { animation: itemPop 0.5s cubic-bezier(.2,1.4,.4,1); }
+    @keyframes itemPop { from { opacity: 0; transform: scale(0.6) rotate(-6deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+    .price-item-visual {
+      width: 170px; height: 170px; border-radius: 30px; display: flex; align-items: center; justify-content: center;
+      font-size: 6rem; line-height: 1; overflow: hidden;
+      background: linear-gradient(145deg, #f7f1ea, #d8cdee); box-shadow: 0 12px 28px rgba(0,0,0,0.45), inset 0 0 0 4px rgba(255,255,255,0.5);
+    }
+    .price-item-visual img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+    .price-item-name { font-weight: 600; color: var(--text-muted); font-size: 0.95rem; text-align: center; }
+    #screenQuestion.price-mode .question-title { min-height: 72px; padding: 14px 18px; font-size: 1.4rem; margin-bottom: 16px; }
+
     /* OVERLAYS */
     #pauseOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -656,6 +676,15 @@
         </div>
       </div>
 
+      <div class="config-group" id="modalDifficultyGroup" style="display:none;">
+        <label>Difficulté (écart entre les prix)</label>
+        <div class="options-grid" id="modalDifficultyOptions">
+          <div class="option-btn" data-value="easy">Facile</div>
+          <div class="option-btn selected" data-value="normal">Normal</div>
+          <div class="option-btn" data-value="hard">Difficile</div>
+        </div>
+      </div>
+
       <div style="text-align: right; margin-top: 25px;">
         <button class="btn btn-accent" id="btnCloseSettings"><i class="fa-solid fa-check"></i> Appliquer & Fermer</button>
       </div>
@@ -700,10 +729,10 @@
             <h2>Burger Quiz</h2>
             <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Le sel, le poivre et le questionnaire</p>
           </div>
-          <div class="game-card locked-game" data-gamename="Time's Up">
-            <div class="game-icon"><i class="fa-solid fa-stopwatch-20"></i></div>
-            <h2>Time's Up</h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Faites deviner un max de mots</p>
+          <div class="game-card price-game" id="btnSelectPrice">
+            <div class="game-icon"><i class="fa-solid fa-tags"></i></div>
+            <h2>Le Juste Prix</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Estimez le prix de l'objet</p>
           </div>
         </div>
       </div>
@@ -774,7 +803,7 @@
         </div>
 
         <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">
-          Thème : <span id="lobbyThemeName" style="color: var(--primary); font-weight: 700;"></span> | 
+          <span id="lobbyThemeLabel">Thème :</span> <span id="lobbyThemeName" style="color: var(--primary); font-weight: 700;"></span> | 
           Questions : <span id="lobbyCountName" style="color: var(--gold); font-weight: 700;"></span> | 
           Temps : <span id="lobbyTimeName" style="color: var(--accent); font-weight: 700;"></span>
         </p>
@@ -831,6 +860,11 @@
           </div>
 
           <h2 class="question-title" id="questionText">Chargement...</h2>
+
+          <div class="price-item-box" id="priceItemBox">
+            <div class="price-item-visual" id="priceItemVisual"></div>
+            <div class="price-item-name" id="priceItemName"></div>
+          </div>
 
           <div class="answers-grid-host">
             <div class="answer-host" id="hostAns0">
@@ -1074,7 +1108,109 @@
       ]
     };
 
-    class SoundEngine {
+    /* ===== LE JUSTE PRIX ===== */
+    // Pour utiliser une vraie photo : ajouter  img: "images/mon-objet.jpg"  dans l'objet (l'emoji reste en secours).
+    // Les prix sont indicatifs et modifiables. Garder des multiples de 5/10/50/100 (selon le montant).
+    const PRICE_ITEMS = [
+      { name: "Console de jeux de salon", emoji: "🎮", price: 450 },
+      { name: "Smartphone haut de gamme", emoji: "📱", price: 1000 },
+      { name: "Casque audio sans fil", emoji: "🎧", price: 300 },
+      { name: "Montre connectée", emoji: "⌚", price: 400 },
+      { name: "Ordinateur portable", emoji: "💻", price: 1200 },
+      { name: "Appareil photo hybride", emoji: "📷", price: 800 },
+      { name: "Guitare électrique", emoji: "🎸", price: 600 },
+      { name: "Vélo de ville", emoji: "🚲", price: 450 },
+      { name: "Valise cabine rigide", emoji: "🧳", price: 120 },
+      { name: "Machine à expresso", emoji: "☕", price: 250 },
+      { name: "Aspirateur robot", emoji: "🧹", price: 400 },
+      { name: "Ballon de football officiel", emoji: "⚽", price: 100 },
+      { name: "Raquette de tennis", emoji: "🎾", price: 200 },
+      { name: "Télescope pour débutant", emoji: "🔭", price: 350 },
+      { name: "Flacon de parfum", emoji: "🧴", price: 110 },
+      { name: "Skateboard complet", emoji: "🛹", price: 100 },
+      { name: "Tente de camping 4 places", emoji: "⛺", price: 200 },
+      { name: "Lunettes de soleil de marque", emoji: "🕶️", price: 150 },
+      { name: "Piano numérique", emoji: "🎹", price: 700 },
+      { name: "Téléviseur 4K 55 pouces", emoji: "📺", price: 800 },
+      { name: "Sac à dos de randonnée", emoji: "🎒", price: 80 },
+      { name: "Trottinette électrique", emoji: "🛴", price: 400 },
+      { name: "Paire de baskets de running", emoji: "👟", price: 130 }
+    ];
+
+    // Écart des mauvaises réponses par rapport au vrai prix selon la difficulté
+    const PRICE_FACTORS = {
+      easy:   [0.3, 0.5, 0.65, 1.6, 2, 2.8, 3.5],
+      normal: [0.5, 0.65, 0.75, 0.85, 1.2, 1.4, 1.7, 2.2],
+      hard:   [0.75, 0.82, 0.88, 0.92, 1.1, 1.15, 1.25, 1.35]
+    };
+
+    function formatPrice(v) {
+      return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' €';
+    }
+
+    function priceStep(v) {
+      return v < 50 ? 5 : v < 200 ? 10 : v < 1000 ? 50 : 100;
+    }
+
+    function buildPriceQuestion(item) {
+      const correct = item.price;
+      const prices = new Set([correct]);
+      const factors = [...(PRICE_FACTORS[app.priceDifficulty] || PRICE_FACTORS.normal)].sort(() => Math.random() - 0.5);
+      for (const f of factors) {
+        if (prices.size >= 4) break;
+        const raw = correct * f;
+        const s = priceStep(raw);
+        prices.add(Math.max(s, Math.round(raw / s) * s));
+      }
+      let k = 1;
+      while (prices.size < 4) {
+        prices.add(correct + k * priceStep(correct));
+        k++;
+      }
+      const sorted = [...prices].sort((a, b) => a - b);
+      return {
+        q: "Estime le prix de cet objet !",
+        a: sorted.map(formatPrice),
+        correct: sorted.indexOf(correct),
+        item: { name: item.name, emoji: item.emoji, img: item.img || null }
+      };
+    }
+
+    function renderPriceItem(item) {
+      const box = document.getElementById('priceItemBox');
+      if (!box) return;
+      if (!item) { box.style.display = 'none'; return; }
+      const visual = document.getElementById('priceItemVisual');
+      visual.innerHTML = '';
+      if (item.img) {
+        const img = new Image();
+        img.alt = item.name;
+        img.onerror = () => { visual.innerHTML = ''; visual.textContent = item.emoji; };
+        img.src = item.img;
+        visual.appendChild(img);
+      } else {
+        visual.textContent = item.emoji;
+      }
+      document.getElementById('priceItemName').textContent = item.name;
+      box.style.display = 'flex';
+      box.classList.remove('pop');
+      void box.offsetWidth;
+      box.classList.add('pop');
+    }
+
+    function applyModeToSettingsUI() {
+      const isPrice = app.gameMode === 'price';
+      const themeGroup = document.getElementById('modalThemeOptions').closest('.config-group');
+      if (themeGroup) themeGroup.style.display = isPrice ? 'none' : '';
+      const diffGroup = document.getElementById('modalDifficultyGroup');
+      if (diffGroup) diffGroup.style.display = isPrice ? '' : 'none';
+      document.querySelectorAll('#modalDifficultyOptions .option-btn').forEach(o => {
+        o.classList.toggle('selected', o.dataset.value === app.priceDifficulty);
+      });
+    }
+
+    
+class SoundEngine {
       constructor() {
         this.ctx = null;
         this.musicMuted = false;
@@ -1144,7 +1280,9 @@
       timeLeft: 10,
       localPlayer: { id: null, name: '', avatar: '😎', choice: null, answerStartTime: 0, score: 0 },
       clapCooldown: false,
-      gameToken: 0
+      gameToken: 0,
+      gameMode: 'quiz',
+      priceDifficulty: 'normal'
     };
 
     const screens = {
@@ -1315,6 +1453,7 @@
 
       document.getElementById('btnSelectQuizz').addEventListener('click', () => {
         sound.playClick();
+        app.gameMode = 'quiz';
         app.selectedTheme = 'general';
         app.totalQuestions = 10;
         app.questionTime = 10;
@@ -1336,6 +1475,19 @@
         document.getElementById('sliderTime').value = 10;
         document.getElementById('valTime').textContent = '10s';
 
+        initHostLobby();
+      });
+
+      document.getElementById('btnSelectPrice').addEventListener('click', () => {
+        sound.playClick();
+        app.gameMode = 'price';
+        app.priceDifficulty = 'normal';
+        app.totalQuestions = 10;
+        app.questionTime = 15;
+        ['sliderCount', 'configSliderCount'].forEach(id => document.getElementById(id).value = 10);
+        ['valCount', 'configValCount'].forEach(id => document.getElementById(id).textContent = '10');
+        ['sliderTime', 'configSliderTime'].forEach(id => document.getElementById(id).value = 15);
+        ['valTime', 'configValTime'].forEach(id => document.getElementById(id).textContent = '15s');
         initHostLobby();
       });
 
@@ -1471,6 +1623,7 @@
       });
 
       setupOptionGroup('themeOptions', (val) => app.selectedTheme = val);
+      setupOptionGroup('modalDifficultyOptions', (val) => { app.priceDifficulty = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
       setupOptionGroup('modalThemeOptions', (val) => { app.selectedTheme = val; updateLobbySettingsDisplay(); syncSettingsToPlayers(); });
 
       setupSlider('configSliderCount', 'configValCount', (val) => app.totalQuestions = val);
@@ -1480,6 +1633,7 @@
 
       document.getElementById('btnOpenSettings').addEventListener('click', () => {
         sound.playClick();
+        applyModeToSettingsUI();
         document.getElementById('settingsModal').classList.add('active');
       });
       document.getElementById('btnCloseSettings').addEventListener('click', () => {
@@ -1675,7 +1829,11 @@
     }
 
     function updateLobbySettingsDisplay() {
-      document.getElementById('lobbyThemeName').textContent = app.selectedTheme.toUpperCase();
+      const isPrice = app.gameMode === 'price';
+      document.getElementById('lobbyThemeLabel').textContent = isPrice ? 'Difficulté :' : 'Thème :';
+      document.getElementById('lobbyThemeName').textContent = isPrice
+        ? ({ easy: 'FACILE', normal: 'NORMAL', hard: 'DIFFICILE' }[app.priceDifficulty] || 'NORMAL')
+        : app.selectedTheme.toUpperCase();
       document.getElementById('lobbyCountName').textContent = app.totalQuestions;
       document.getElementById('lobbyTimeName').textContent = app.questionTime + 's';
     }
@@ -1862,12 +2020,13 @@
     }
 
     function startQuizGame() {
-      const pool = AI_QUESTIONS_POOL[app.selectedTheme] || AI_QUESTIONS_POOL['general'];
+      const pool = app.gameMode === 'price' ? PRICE_ITEMS : (AI_QUESTIONS_POOL[app.selectedTheme] || AI_QUESTIONS_POOL['general']);
       let shuffled = [...pool].sort(() => 0.5 - Math.random());
       while (shuffled.length < app.totalQuestions) {
         shuffled = shuffled.concat([...pool].sort(() => 0.5 - Math.random()));
       }
       app.questions = shuffled.slice(0, app.totalQuestions);
+      if (app.gameMode === 'price') app.questions = app.questions.map(buildPriceQuestion);
       app.gameToken++;
       app.currentQIdx = 0;
       
@@ -1894,6 +2053,8 @@
       document.getElementById('currentQNum').textContent = app.currentQIdx + 1;
       document.getElementById('totalQNum').textContent = app.totalQuestions;
       document.getElementById('questionText').textContent = q.q;
+      screens.question.classList.toggle('price-mode', app.gameMode === 'price');
+      renderPriceItem(q.item || null);
 
       for (let i = 0; i < 4; i++) {
         const card = document.getElementById(`hostAns${i}`);
